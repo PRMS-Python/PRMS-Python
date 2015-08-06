@@ -1,2 +1,2 @@
-# prms-sensitivity
-Python code for sensitivity/uncertainty analysis, data processing for PRMS computer program
+# PRMS-Python
+A Python module to asist with calibration, data processing, and data visualization for the Precipitation Runoff Modeling System (PRMS) computer program. 
