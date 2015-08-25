@@ -1,0 +1,7 @@
+## 
+*.pyc
+*~
+
+*.pdf
+
+**/prms_ic.out
