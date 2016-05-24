@@ -13,3 +13,4 @@ There are more built distributions for Linux and Windows in the `dists` director
 
 * load_PRMSstatvar in ipynb in `scripts/statvarfile.ipynb`
 * modifying params in `scripts/change_param.py`
+* input and output paths defined in control file      
