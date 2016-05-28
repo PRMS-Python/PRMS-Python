@@ -5,3 +5,6 @@
 *.pdf
 
 **/prms_ic.out
+
+## ipython notebook checkpoint folders
+**/.ipynb_checkpoints/
