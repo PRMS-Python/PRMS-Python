@@ -1,1 +1,1 @@
-from .prms_python import Parameters
+from .prms_python import Parameters, modify_params

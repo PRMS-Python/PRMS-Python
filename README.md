@@ -17,6 +17,9 @@ assert snow_adj.shape == (12, 16)
 import numpy as np
 z = np.zeros(snow_adj.shape)
 p['snow_adj'] = z  # now p['snow_adj'] is 12x16 matrix of zeros
+
+# write modified parameters to file
+p.write('newparameters')
 ```
 
 ## Notes
