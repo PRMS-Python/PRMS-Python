@@ -9,3 +9,7 @@
 ## ipython notebook checkpoint folders
 **/.ipynb_checkpoints/
 venv
+*animation*
+test/data/models/lbcd/prms.out
+test/data/models/lbcd/prms_ic.out
+test/data/models/lbcd/statvar.dat
