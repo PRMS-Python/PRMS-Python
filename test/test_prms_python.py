@@ -1,3 +1,4 @@
+import json
 import glob
 import os
 import shutil
@@ -5,7 +6,7 @@ import unittest
 
 from difflib import Differ
 
-from prms_python import modify_params, Parameters, Simulation
+from prms_python import modify_params, Parameters, Scenario, Simulation
 
 
 class TestSimulations(unittest.TestCase):
@@ -55,41 +56,94 @@ class TestSimulations(unittest.TestCase):
         self.assertIn('inputs', gs)
         self.assertIn('outputs', gs)
 
-        gi = [
-                os.path.basename(f)
-                for f in
-                glob.glob(os.path.join(self.simulation_dir, 'inputs', '*'))
-        ]
-        self.assertIn('control', gi)
-        self.assertIn('parameters', gi)
-        self.assertIn('data', gi)
-
-        go = [
-                os.path.basename(f)
-                for f in
-                glob.glob(os.path.join(self.simulation_dir, 'outputs', '*'))
-        ]
-        self.assertIn('prms_ic.out', go)
-        self.assertIn('prms.out', go)
-        self.assertIn('statvar.dat', go)
-        self.assertIn('animation.out.nhru', go)
+        assert_valid_input_dir(
+            self, os.path.join(self.simulation_dir, 'inputs')
+        )
+        assert_valid_output_dir(
+            self, os.path.join(self.simulation_dir, 'outputs')
+        )
 
 
 class TestScenarios(unittest.TestCase):
 
     def setUp(self):
-        pass
+
+        self.test_data_dir = os.path.join('test', 'data')
+
+        self.test_model_data_dir = os.path.join(
+            'test', 'data', 'models', 'lbcd'
+        )
+
+        self.scenario_dir = os.path.join(self.test_data_dir, 'tmp_scenario')
 
     def tearDown(self):
-        pass
+
+        if os.path.exists(self.scenario_dir):
+            shutil.rmtree(self.scenario_dir)
 
     def test_create_scenario(self):
         """a simulation setup should create a simulation directory"""
-        assert False
+
+        s = Scenario(
+            self.test_model_data_dir, self.scenario_dir,
+            title='Scenario Uno', description='test scenario for prms_python'
+        )
+
+        param_mods = {
+            'snow_adj': lambda x: 1.1*x,
+            'rad_trncf': lambda x: 0.9*x
+        }
+        s.build_scenario(param_mod_funs=param_mods)
+
+        assert_valid_input_dir(self, self.scenario_dir)  # os.path.join(self.scenario_dir, 'inputs'))
+
+        s.run()
+
+        assert_valid_input_dir(
+            self, os.path.join(self.scenario_dir, 'inputs')
+        )
+        assert_valid_output_dir(
+            self, os.path.join(self.scenario_dir, 'outputs')
+        )
+
+        md_json_path = os.path.join(self.scenario_dir, 'metadata.json')
+        assert os.path.isfile(md_json_path)
+
+        md_json = json.loads(open(md_json_path).read())
+        assert md_json['title'] == 'Scenario Uno'
+        assert md_json['description'] == 'test scenario for prms_python'
+        assert 'start_datetime' in md_json
+        assert 'end_datetime' in md_json
+        assert 'mod_funs_dict' in md_json
 
     def test_create_many_scenarios(self):
         "create_many_simulations should create many simulation directories"
         assert False
+
+
+def assert_valid_input_dir(test_case, d):
+
+    gs = [
+        os.path.basename(f)
+        for f in glob.glob(os.path.join(d, '*'))
+    ]
+
+    test_case.assertIn('control', gs, d)
+    test_case.assertIn('parameters', gs, d)
+    test_case.assertIn('data', gs, d)
+
+
+def assert_valid_output_dir(test_case, d):
+
+    go = [
+            os.path.basename(f)
+            for f in
+            glob.glob(os.path.join(d, '*'))
+    ]
+    test_case.assertIn('prms_ic.out', go)
+    test_case.assertIn('prms.out', go)
+    test_case.assertIn('statvar.dat', go)
+    test_case.assertIn('animation.out.nhru', go)
 
 
 class TestParameters(unittest.TestCase):

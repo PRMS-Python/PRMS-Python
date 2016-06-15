@@ -11,7 +11,6 @@ This module presents a Simulation and Scenario class, where each tracks
 relevant provenance information and input files to facilitate better
 data management techniques to streamline later analyses.
 '''
-import copy
 import datetime
 import itertools
 import numpy as np

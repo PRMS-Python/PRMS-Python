@@ -42,7 +42,7 @@ class Simulation(object):
             raise RuntimeError('Data file missing from ' + idir)
 
         self.simulation_dir = simulation_dir
-        if simulation_dir:
+        if simulation_dir and simulation_dir != input_dir:
 
             if os.path.exists(simulation_dir):
                 shutil.rmtree(simulation_dir)
