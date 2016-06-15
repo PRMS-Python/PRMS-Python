@@ -3,7 +3,7 @@ GSFLOW Control File for Lehman and Baker Creek J. Volk
 aniOutON_OFF
 1
 1
-0
+1
 ####
 print_debug
 1
@@ -37,7 +37,7 @@ prms.out
 data_file
 1
 4
-lbcd_2.data
+data
 ####
 dispGraphsBuffSize
 1
@@ -179,7 +179,7 @@ nstatVars
 param_file
 1
 4
-lbcd.param
+parameters
 ####
 precip_module
 1

@@ -38,9 +38,6 @@ class TestScenarioSimulations(unittest.TestCase):
     def test_simulation(self):
         assert False
 
-    def test_simulate_many(self):
-        assert False
-
     def test_create_scenario(self):
         """a simulation setup should create a simulation directory"""
         assert False
