@@ -97,7 +97,7 @@ class TestParameters(unittest.TestCase):
     def setUp(self):
 
         self.test_data_dir = os.path.join('test', 'data')
-        self.test_param = os.path.join(self.test_data_dir, 'parameter')
+        self.test_param = os.path.join(self.test_data_dir, 'parameters')
         self.temp_dir = os.path.join('test', 'data', 'tmp')
         if os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir)
