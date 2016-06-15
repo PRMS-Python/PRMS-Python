@@ -1,13 +1,14 @@
+import glob
 import os
 import shutil
 import unittest
 
 from difflib import Differ
 
-from prms_python import modify_params, Parameters
+from prms_python import modify_params, Parameters, Simulation
 
 
-class TestScenarioSimulations(unittest.TestCase):
+class TestSimulations(unittest.TestCase):
     """
     Simulations should take a base directory and return a simulation directory
     """
@@ -16,27 +17,71 @@ class TestScenarioSimulations(unittest.TestCase):
 
         self.test_data_dir = os.path.join('test', 'data')
 
-        td = self.test_data_dir
+        self.test_model_data_dir = os.path.join(
+            'test', 'data', 'models', 'lbcd'
+        )
 
-        self.simulation_dirs = [
-            os.path.join(td, 'simdir1'), os.path.join(td, 'simdir2')
-        ]
-
-        for d in self.simulation_dirs:
-            if os.path.exists(d):
-                shutil.rmtree(d)
-
-            os.mkdir(d)
+        self.simulation_dir = os.path.join(self.test_data_dir, 'tmp_sim')
 
     def tearDown(self):
-        """docstring for tearDown"""
 
-        for d in self.simulation_dirs:
-            if os.path.exists(d):
-                shutil.rmtree(d)
+        if os.path.exists(self.simulation_dir):
+            shutil.rmtree(self.simulation_dir)
 
-    def test_simulation(self):
-        assert False
+    def test_simulation_no_simdir(self):
+        "Simulation should run and write outputs to input directory when simulation_dir is not specified"
+        s = Simulation(self.test_model_data_dir)
+        s.run()
+
+        g = [
+                os.path.basename(f)
+                for f in glob.glob(os.path.join(self.test_model_data_dir, '*'))
+        ]
+
+        self.assertIn('prms_ic.out', g)
+        self.assertIn('prms.out', g)
+        self.assertIn('statvar.dat', g)
+        self.assertIn('animation.out.nhru', g)
+
+    def test_simulation_w_simdir(self):
+        "Simulation should create sim dir with inputs and outputs directory when simulation_dir is specified"
+        s = Simulation(self.test_model_data_dir, self.simulation_dir)
+        s.run()
+
+        gs = [
+                os.path.basename(f)
+                for f in glob.glob(os.path.join(self.simulation_dir, '*'))
+        ]
+        self.assertIn('inputs', gs)
+        self.assertIn('outputs', gs)
+
+        gi = [
+                os.path.basename(f)
+                for f in
+                glob.glob(os.path.join(self.simulation_dir, 'inputs', '*'))
+        ]
+        self.assertIn('control', gi)
+        self.assertIn('parameters', gi)
+        self.assertIn('data', gi)
+
+        go = [
+                os.path.basename(f)
+                for f in
+                glob.glob(os.path.join(self.simulation_dir, 'outputs', '*'))
+        ]
+        self.assertIn('prms_ic.out', go)
+        self.assertIn('prms.out', go)
+        self.assertIn('statvar.dat', go)
+        self.assertIn('animation.out.nhru', go)
+
+
+class TestScenarios(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
 
     def test_create_scenario(self):
         """a simulation setup should create a simulation directory"""
