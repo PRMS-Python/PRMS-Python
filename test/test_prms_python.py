@@ -5,6 +5,7 @@ import shutil
 import unittest
 
 from difflib import Differ
+from numpy.testing import assert_array_almost_equal
 
 from prms_python import modify_params, Parameters, Scenario, Simulation
 
@@ -82,7 +83,7 @@ class TestScenarios(unittest.TestCase):
             shutil.rmtree(self.scenario_dir)
 
     def test_create_scenario(self):
-        """a simulation setup should create a simulation directory"""
+        """a simulation setup should create a simulation directory with correct scenario data"""
 
         s = Scenario(
             self.test_model_data_dir, self.scenario_dir,
@@ -115,6 +116,16 @@ class TestScenarios(unittest.TestCase):
         assert 'start_datetime' in md_json
         assert 'end_datetime' in md_json
         assert 'mod_funs_dict' in md_json
+
+        p_base = Parameters(
+            os.path.join(self.test_model_data_dir, 'parameters')
+        )
+        p_scen = Parameters(
+            os.path.join(self.scenario_dir, 'inputs', 'parameters')
+        )
+
+        assert_array_almost_equal(p_base['snow_adj']*1.1, p_scen['snow_adj'])
+        assert_array_almost_equal(p_base['rad_trncf']*0.9, p_scen['rad_trncf'])
 
     def test_create_many_scenarios(self):
         "create_many_simulations should create many simulation directories"
