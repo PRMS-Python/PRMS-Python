@@ -1,12 +1,160 @@
 import inspect
 import json
+import multiprocessing as mp
 import os
 import shutil
+import uuid
 
 from datetime import datetime
 
 from .parameters import modify_params
 from .simulation import Simulation
+
+
+class ScenarioSeries(object):
+    """
+    Container for a series of related scenario model runs. The user can
+    initialize the series with a title and a description. Then to build
+    the series the user provides a list of dictionaries with parameter-function
+    key-value pairs, and optionally a title and description for each dictionary
+    defining the individual scenario.
+
+    The ScenarioSeries' ``build`` method creates a directory structure under
+    the series directory (``{series-directory}``) where each
+    subdirectory is named with a UUID which can be matched to its title using
+    the metadata in ``{series-directory}/series_metadata.json``.
+
+    In the future we may add a way for the user to access the results of
+    the scenario simulations diretcly through the series, but for now the
+    results are written to disk and the user must load them manually. It's
+    maybe a little clunky, but here we use the title metadata to be able to
+    reference the statsvar file for a particular set of scale factors. See
+    below how to build the statvar path after running a series of scenarios.
+    See the online documentation for a full example.
+
+    Example:
+        >>> import numpy as np
+        >>> sc_ser = ScenarioSeries(
+                'base_inputs', 'scenario_dir', title='my title',
+                description='series description'
+            )
+        >>> def _scale_fun(val):
+                def scale(x):
+                    return x*val
+                return scale
+        >>> sc_list = [
+                {
+                    'rad_trncf': _scale_fun(val),
+                    'snow_adj': _scale_fun(val),
+                    'title':
+                        '"rad_trncf":{0:%.1f}|"snow_adj":{0:%.1f}'.format(val)
+                } for val in np.arange(0.7, 0.9, 0.1)
+            ]
+        >>> sc_ser.build(sc_list)
+        >>> sc_ser.run()
+        >>> series_md = json.loads(
+                open(os.path.join('scenario_dir', 'series_metadata.json'))
+            )
+        >>> uuid_title_map = series_md['uuid_title_map']
+        >>> uu = [k for k, v in uuid_title_map.iteritems()
+                    if v == '"rad_trncf":0.7|"snow_adj":0.7']
+        >>> statvar_path = os.path.join(
+                'scenario_dir', uu, 'outputs', 'statvar.dat'
+            )
+    """
+
+    def __init__(self, base_dir, scenarios_dir, title=None, description=None):
+        """
+        Create a new ScenarioSeries using inputs from base_dir and writing
+        outputs to scenarios_dir.
+
+        Arguments:
+            base_dir (str): path to base inputs; 'control', 'parameters',
+                and 'data' must be present there
+            scenarios_dir (str): directory where scenario data will be written
+                to; will be overwritten or created if it does not exist
+            title (str): title of the ScenarioSeries instance
+            description (str): description of the ScenarioSeries instance
+        """
+        self.base_dir = base_dir
+        self.scenarios_dir = scenarios_dir
+        if os.path.exists(scenarios_dir):
+            shutil.rmtree(scenarios_dir)
+
+        os.mkdir(scenarios_dir)
+
+        self.metadata = dict(title=title,
+                             description=description,
+                             uuid_title_map={})
+        self.scenarios = []
+
+    def build(self, scenarios_list):
+        """
+        Build the scenarios from a list of scenario definitions in dicitonary
+        form. Each element of scenarios_list can have any number of parameters
+        as keys with a function for each value. The other two acceptable keys
+        are title and description which will be passed on to each individual
+        Scenario's metadata for future lookups.
+
+        See the example in ScenarioSeries docstring above for a usage example.
+
+        Calling ``build`` will create the directory structure explained in
+        the class docstring.
+
+        Arguments:
+            scenarios_list (list): list of dictionaries with key-value
+                pairs being parameter-function definition pairs or
+                title-title string or description-description string.
+        Returns:
+            None
+        """
+
+        title = None
+        description = None
+        for s in scenarios_list:
+
+            if 'title' in s:
+                title = s['title']
+                del s['title']
+
+            if 'description' in s:
+                description = s['description']
+                del s['description']
+
+            uu = str(uuid.uuid4())
+
+            self.metadata['uuid_title_map'].update({uu: title})
+
+            scenario_path = os.path.join(self.scenarios_dir, uu)
+
+            # create Scenario
+            scenario = Scenario(
+                self.base_dir, scenario_path, title=title,
+                description=description
+            )
+
+            # s now only contains parameter keys and function references vals
+            scenario.build(s)
+
+            self.scenarios.append(scenario)
+
+    def run(self, nproc=None):
+
+        if not nproc:
+            nproc = mp.cpu_count()/2
+
+        pool = mp.Pool(processes=nproc)
+        pool.map(_scenario_runner, self.scenarios)
+
+        with open(
+            os.path.join(self.scenarios_dir, 'series_metadata.json'), 'w'
+        ) as f:
+
+            f.write(json.dumps(self.metadata, indent=2))
+
+
+def _scenario_runner(scenario):
+    scenario.run()
 
 
 class Scenario:
@@ -30,7 +178,7 @@ class Scenario:
 
         self.__simulation_ready = False
 
-    def build_scenario(self, param_mod_funs=None):
+    def build(self, param_mod_funs=None):
 
         if not isinstance(param_mod_funs, dict):
             raise TypeError('param_mod_funs must be a dictionary')

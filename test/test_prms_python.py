@@ -1,13 +1,17 @@
 import json
 import glob
+import numpy as np
 import os
+import re
 import shutil
 import unittest
 
 from difflib import Differ
 from numpy.testing import assert_array_almost_equal
 
-from prms_python import modify_params, Parameters, Scenario, Simulation
+from prms_python import (
+    modify_params, Parameters, Scenario, ScenarioSeries, Simulation
+)
 
 
 class TestSimulations(unittest.TestCase):
@@ -65,7 +69,7 @@ class TestSimulations(unittest.TestCase):
         )
 
 
-class TestScenarios(unittest.TestCase):
+class TestScenario(unittest.TestCase):
 
     def setUp(self):
 
@@ -94,7 +98,7 @@ class TestScenarios(unittest.TestCase):
             'snow_adj': lambda x: 1.1*x,
             'rad_trncf': lambda x: 0.9*x
         }
-        s.build_scenario(param_mod_funs=param_mods)
+        s.build(param_mod_funs=param_mods)
 
         assert_valid_input_dir(self, self.scenario_dir)  # os.path.join(self.scenario_dir, 'inputs'))
 
@@ -127,9 +131,126 @@ class TestScenarios(unittest.TestCase):
         assert_array_almost_equal(p_base['snow_adj']*1.1, p_scen['snow_adj'])
         assert_array_almost_equal(p_base['rad_trncf']*0.9, p_scen['rad_trncf'])
 
-    def test_create_many_scenarios(self):
-        "create_many_simulations should create many simulation directories"
-        assert False
+
+class TestScenarios(unittest.TestCase):
+
+    def setUp(self):
+
+        self.test_data_dir = os.path.join('test', 'data')
+
+        self.test_model_data_dir = os.path.join(
+            self.test_data_dir, 'models', 'lbcd'
+        )
+
+        self.scenarios_dir = os.path.join(self.test_data_dir, 'tmp_scenarios')
+
+    def tearDown(self):
+
+        if os.path.exists(self.scenarios_dir):
+            shutil.rmtree(self.scenarios_dir)
+
+    def test_scenario_series(self):
+        "create_many_simulations should create many simulation directories and correct data"
+
+        s = ScenarioSeries(
+            self.test_model_data_dir, self.scenarios_dir,
+            title='scenario series uno',
+            description='''
+Each scenario is given a title with the schema
+'"<param_name1>":<scale_value1>|"<param_name2>":<scale_value2>', which can be
+easily parsed into a Python dictionary later. We use the pipe instead of
+comma for easier visual inspection, though this is entirely up to the
+user/developer. The scenario consists of parameters scaled for each of the
+specified parameters.
+'''
+        )
+
+        def _scale_param(val):
+            def scale_by_val(x):
+                return x*val
+            return scale_by_val
+
+        scale_arange = np.arange(0.7, 0.9, 0.1)
+        series_funs = [
+            {
+                'title': '"rad_trncf":{0:.1f}|"snow_adj":{0:.1f}'.format(val),
+                'rad_trncf': _scale_param(val),
+                'snow_adj': _scale_param(val)
+            }
+            for val in scale_arange
+        ]
+
+        s.build(series_funs)
+
+        g_series = glob.glob(os.path.join(self.scenarios_dir, '*'))
+        assert len(g_series) == 3, g_series
+
+        uuid_pattern = re.compile(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        )
+        dircount = 0
+        series_dirs = []
+        for d in g_series:
+            # XXX TODO this is in flux. at this point maybe all will be dirs
+            if os.path.isdir(d):
+                # at this point the files are in the base scenario dir;
+                # they will be moved later when the scenario is run
+                assert_valid_input_dir(self, os.path.join(d))
+                assert re.match(uuid_pattern, os.path.basename(d)), os.path.basename(d)
+
+                series_dirs.append(d)
+                dircount += 1
+
+        assert dircount == 3
+
+        s.run()
+
+        g_series = glob.glob(os.path.join(self.scenarios_dir, '*'))
+
+        # self.assertIn(
+            # os.path.join(self.scenarios_dir, 'README.md'),
+            # g_series
+        # )
+
+        series_md_path = os.path.join(
+            self.scenarios_dir, 'series_metadata.json'
+        )
+        self.assertIn(series_md_path, g_series)
+
+        series_md = json.loads(open(series_md_path).read())
+        dir_titles = series_md['uuid_title_map']
+        titles = dir_titles.values()
+
+        print titles
+
+        assert '"rad_trncf":0.7|"snow_adj":0.7' in titles
+        assert '"rad_trncf":0.8|"snow_adj":0.8' in titles
+        assert '"rad_trncf":0.9|"snow_adj":0.9' in titles
+
+        p_base = Parameters(
+            os.path.join(self.test_model_data_dir, 'parameters')
+        )
+        for g in g_series:
+            if os.path.isdir(g):
+                assert_valid_output_dir(self, os.path.join(g, 'outputs'))
+
+                md = json.loads(open(os.path.join(g, 'metadata.json')).read())
+
+                title = md['title']
+                scale_vals = eval('{' + title.replace('|', ',') + '}')
+
+                p_scen = Parameters(os.path.join(g, 'inputs', 'parameters'))
+
+                rad_base = p_base['rad_trncf']
+                rad_scen = p_scen['rad_trncf']
+
+                snow_base = p_base['snow_adj']
+                snow_scen = p_scen['snow_adj']
+
+                assert_array_almost_equal(
+                    rad_base*scale_vals['rad_trncf'], rad_scen)
+                assert_array_almost_equal(
+                    snow_base*scale_vals['snow_adj'], snow_scen)
 
 
 def assert_valid_input_dir(test_case, d):
