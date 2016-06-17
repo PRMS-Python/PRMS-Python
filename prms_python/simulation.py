@@ -79,7 +79,6 @@ class Simulation(object):
             p.communicate()
 
             poll = p.poll()
-            print poll
             prms_finished = poll == 0
 
         self.has_run = True

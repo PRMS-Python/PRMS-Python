@@ -153,6 +153,7 @@ class ScenarioSeries(object):
             f.write(json.dumps(self.metadata, indent=2))
 
 
+# multiprocessing req the function be def'd at root scope so it's picklable
 def _scenario_runner(scenario):
     scenario.run()
 

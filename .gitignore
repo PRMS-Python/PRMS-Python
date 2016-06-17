@@ -13,3 +13,4 @@ venv
 test/data/models/lbcd/prms.out
 test/data/models/lbcd/prms_ic.out
 test/data/models/lbcd/statvar.dat
+notebooks/jupyternb-scenario-series-example/
