@@ -138,7 +138,7 @@ class ScenarioSeries(object):
 
             self.scenarios.append(scenario)
 
-    def run(self, nproc=None):
+    def run(self, prms_exec='prms', nproc=None):
 
         if not nproc:
             nproc = mp.cpu_count()/2
@@ -154,8 +154,8 @@ class ScenarioSeries(object):
 
 
 # multiprocessing req the function be def'd at root scope so it's picklable
-def _scenario_runner(scenario):
-    scenario.run()
+def _scenario_runner(scenario, prms_exec='prms'):
+    scenario.run(prms_exec=prms_exec)
 
 
 class Scenario:
@@ -214,7 +214,7 @@ class Scenario:
 
         self.__simulation_ready = True
 
-    def run(self):
+    def run(self, prms_exec='prms'):
 
         if not self.__simulation_ready:
             raise RuntimeError(
@@ -222,7 +222,7 @@ class Scenario:
             )
 
         self.metadata['start_datetime'] = datetime.now().isoformat()
-        self.simulation.run()
+        self.simulation.run(prms_exec=prms_exec)
         self.metadata['end_datetime'] = datetime.now().isoformat()
 
         self.metadata.write(os.path.join(self.scenario_dir, 'metadata.json'))

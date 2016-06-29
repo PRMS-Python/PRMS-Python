@@ -59,7 +59,7 @@ class Simulation(object):
 
         self.has_run = False
 
-    def run(self):
+    def run(self, prms_exec='prms'):
 
         cwd = os.getcwdu()
 
@@ -70,7 +70,7 @@ class Simulation(object):
             os.chdir(self.input_dir)
 
         p = subprocess.Popen(
-            'prms control', shell=True, stdout=subprocess.PIPE,
+            prms_exec + ' control', shell=True, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 

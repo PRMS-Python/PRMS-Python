@@ -27,10 +27,10 @@ def modify_params(params_in, params_out, param_mods=None):
 
     Below we modify the monthly jh_coef by increasing it 10% for every month.
 
-    >>> params_in = 'models/lbdc/params'
-    >>> params_out = 'scenarios/jh_coef_1.1/params'
-    >>> scale_10pct = lambda x: x * 1.1
-    >>> modify_params(params_in, params_out, {'jh_coef': scale_10pct})
+        >>> params_in = 'models/lbdc/params'
+        >>> params_out = 'scenarios/jh_coef_1.1/params'
+        >>> scale_10pct = lambda x: x * 1.1
+        >>> modify_params(params_in, params_out, {'jh_coef': scale_10pct})
 
     So param_mods is a dictionary of with keys being parameter names and
     values a function that operates on a single value. Currently we only
@@ -40,12 +40,14 @@ def modify_params(params_in, params_out, param_mods=None):
 
     Arguments:
         params_in (str): location on disk of the base parameter file
-        params_out (str): location on disk where the modified parameters will
-            be written
+
+        params_out (str): location on disk where the modified parameters will be written
+
         param_mods (dict): param name-keyed, param modification function-valued
 
     Returns:
         None
+
     '''
     p_in = Parameters(params_in)
 

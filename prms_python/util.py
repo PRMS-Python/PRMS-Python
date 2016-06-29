@@ -152,7 +152,8 @@ def nash_sutcliffe(observed, modeled):
 
     Arguments:
         observed (numpy.ndarray): historic observational data
-        modeled (numpy.ndarray):
+
+        modeled (numpy.ndarray): model output with matching time index
     """
     numerator = sum((observed - modeled)**2)
     denominator = sum((observed - np.mean(observed))**2)
