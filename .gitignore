@@ -8,3 +8,5 @@
 
 ## ipython notebook checkpoint folders
 **/.ipynb_checkpoints/
+**/utility_functions.ipynb
+**/scripts/*.data
