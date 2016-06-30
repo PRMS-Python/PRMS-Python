@@ -1,37 +1,41 @@
 # PRMS-Python
+
+PRMS-Python provides a Python interface to PRMS data files and for running
+PRMS simulations. This module tries to improve the management of PRMS simulation
+data while also providing useful "pythonic" tools to do scenario-based PRMS
+simulations.  By "scenario-based" modeling we mean, for example, parameter
+sensitivity analysis, where each "scenario" is an iterative perturbation of
+one or many parameters. Another example "scenario-based" modeling exercise would
+be climate scenario modeling: what will happen to modeled outputs if the
+input meteorological data were to change?
+
+
+## Installation
+
+Currently it's clone-then-pip:
+
+```
+git clone https://github.com/northwest-knowledge-network/prms-python
+```
+
+then
+
+```
+pip install -r requirements.txt
+```
+
 A Python module to assist with calibration, data processing and visualization for the Precipitation Runoff Modeling System (PRMS) computer program.
 
-## Parameter File Tools
 
-Currently you can do the following, starting from the root directory.
+## Usage
 
-```python
-from prms_python import Parameters
-p = Parameters('test/data/parameter')
+Please read the [Online Documentation](https://prms-python.github.io/docs).
 
-# select PRMS parameter by name, raising KeyError if DNE
-snow_adj = p['snow_adj']
-assert snow_adj.shape == (12, 16)
 
-# assign values to PRMS parameter
-import numpy as np
-z = np.zeros(snow_adj.shape)
-p['snow_adj'] = z  # now p['snow_adj'] is 12x16 matrix of zeros
+## Unit tests
 
-# write modified parameters to file
-p.write('newparameters')
-```
-
-## Notes
-
-See the `models` directory for data and the Windows PRMS executable. To run PRMS just run
+I run them using nose but that's not required. From the root repo directory
 
 ```
-prms myrun.control
+nosetests -v
 ```
-
-There are more built distributions for Linux and Windows in the `dists` directory.
-
-* load_PRMSstatvar in ipynb in `scripts/statvarfile.ipynb`
-* modifying params in `scripts/change_param.py`
-* input and output paths defined in control file
