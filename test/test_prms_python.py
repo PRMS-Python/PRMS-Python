@@ -221,8 +221,6 @@ specified parameters.
         dir_titles = series_md['uuid_title_map']
         titles = dir_titles.values()
 
-        print titles
-
         assert '"rad_trncf":0.7|"snow_adj":0.7' in titles
         assert '"rad_trncf":0.8|"snow_adj":0.8' in titles
         assert '"rad_trncf":0.9|"snow_adj":0.9' in titles
@@ -364,9 +362,9 @@ def colored_string_diff(s1, s2):
     for l in diffList:
 
         if l[0] == '+':
-            print bcolors.GREEN + '+' + l[1:] + bcolors.ENDC
+            print(bcolors.GREEN + '+' + l[1:] + bcolors.ENDC)
         elif l[0] == '-':
-            print bcolors.RED + '-' + l[1:] + bcolors.ENDC
+            print(bcolors.RED + '-' + l[1:] + bcolors.ENDC)
         else:
             assert False, 'Error, diffList entry must start with + or -'
 

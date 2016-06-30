@@ -7,37 +7,37 @@ import os
 
 class Data(object):
     """
-    PRMS data object to read, write and modify time 
+    PRMS data object to read, write and modify time
     series input to PRMS that are located in the PRMS data file
-    """    
+    """
     ## data file constant attributes
-    date_header = ['year', 
-               'month', 
-               'day', 
-               'hh', 
-               'mm', 
+    date_header = ['year',
+               'month',
+               'day',
+               'hh',
+               'mm',
                'sec']
-    
-    valid_input_variables = ('gate_ht', 
-                         'humidity', 
-                         'lake_elev', 
+
+    valid_input_variables = ('gate_ht',
+                         'humidity',
+                         'lake_elev',
                          'pan_evap',
-                         'precip', 
-                         'rain_day', 
-                         'runoff', 
-                         'snowdepth', 
-                         'solrad', 
-                         'tmax', 
-                         'tmin', 
+                         'precip',
+                         'rain_day',
+                         'runoff',
+                         'snowdepth',
+                         'solrad',
+                         'tmax',
+                         'tmin',
                          'wind_speed')
-    
+
     def __init__(self, base_file):
         self.base_file = base_file
         self.metadata = self.__load_metadata()
         self.data_frame = self.__load_data()
 
     def __load_metadata(self):
-        """ 
+        """
         """
         ## valid input time series that can be put into a data file
 
@@ -63,18 +63,18 @@ class Data(object):
                     break
 
         return dict([('data_startline',data_startline), ('data_variables',input_data_names)])
-    
+
     def __load_data(self):
         missing_value = -999 ## missing data representation
-        df = pd.read_csv(self.base_file, header = -1, skiprows = self.metadata['data_startline'], 
+        df = pd.read_csv(self.base_file, header = -1, skiprows = self.metadata['data_startline'],
                          delim_whitespace = True, na_values = [missing_value]) ## read file
         df.columns = Data.date_header + self.metadata['data_variables']
         date = pd.Series(pd.to_datetime(df.year * 10000 + df.month * 100                                        + df.day, format = '%Y%m%d'),                                         index = df.index)
-        df.index = pd.to_datetime(date)  
+        df.index = pd.to_datetime(date)
         df.drop(Data.date_header, axis = 1, inplace = True) ## unneeded columns
-        df.columns.name = 'input variables' ; df.index.name = 'date' 
+        df.columns.name = 'input variables' ; df.index.name = 'date'
         return df
-    
+
     def adjust(self, func, vars_to_adjust):
         for v in vars_to_adjust:
             self.data_frame[v] = self.data_frame[v].apply(func)
@@ -85,7 +85,7 @@ class Data(object):
         self.data_frame['month'] = self.data_frame.index.month
         self.data_frame['day'] = self.data_frame.index.day
         self.data_frame['hh'] = self.data_frame['mm'] = self.data_frame['sec'] = 0
-        self.data_frame = self.data_frame[Data.date_header + self.metadata['data_variables']] 
+        self.data_frame = self.data_frame[Data.date_header + self.metadata['data_variables']]
         with open(out_path,'w') as outf:
             with open(self.base_file) as data:
                 for idx, line in enumerate(data):

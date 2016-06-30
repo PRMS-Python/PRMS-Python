@@ -92,10 +92,6 @@ class Parameters(object):
 
                 # # write dimensions
                 out_file.write('** Dimensions **\n')
-                # for dimname, nvals in self.dimensions.iteritems():
-                    # out_file.write('####\n')
-                    # out_file.write(dimname + '\n')
-                    # out_file.write(str(nvals) + '\n')
 
                 # write parameters; pre-sorted by data start line on read
                 name_is_next = False
@@ -125,7 +121,7 @@ class Parameters(object):
                         out_file.write(l.strip() + '\n')
 
                 # write all parameters that had been accessed and/or modified
-                for param, new_arr in self.param_arrays.iteritems():
+                for param, new_arr in self.param_arrays.items():
 
                     out_file.write('####\n')
 

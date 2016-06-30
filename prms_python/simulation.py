@@ -61,7 +61,7 @@ class Simulation(object):
 
     def run(self, prms_exec='prms'):
 
-        cwd = os.getcwdu()
+        cwd = os.getcwd()
 
         if self.simulation_dir:
             os.chdir(self.simulation_dir)
