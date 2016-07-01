@@ -14,33 +14,45 @@ filesystem with metadata. A series of scenarios (``ScenarioSeries``) are stored
 in a single root directory for each new series with metadata for later 
 analysis.
 
-Below are some examples. For more details, see the :doc:`/api`. 
 
-Installation
-------------
+Install
+-------
 
-Currently this is only available through cloning on GitHub. 
+``pip install prms-python``
+
+Developer Install
+`````````````````
+
+
+Clone from GitHub
 
 .. code-block:: sh
 
-    git clone https://github.com/mtpain/PRMS-Python.git
+    git clone https://github.com/mtpain/PRMS-Python.git && cd PRMS-Python
 
-Then install dependencies
+Then install dependencies and executable
 
 .. code-block:: sh
 
-    pip install -r requirements.txt
+    pip install --editable .
 
 
 Usage
 -----
 
-Please see the :doc:`tutorial` page for usage recipes and examples, and consult the
+If you want to dive right in, modify some parameters and run some scenarios,
+go on to the :doc:`cli` page. There you'll learn how to run `prmspy`, the 
+command-line interface to the PRMS-Python tools.
+
+If instead you would rather get acquainted with the Python API for direct use,
+see the :doc:`tutorial` page for usage recipes and examples, and consult the
 :doc:`api` for more details.
+
 
 .. toctree::
     :includehidden:
     :maxdepth: 2
 
+    cli
     tutorial
     api
