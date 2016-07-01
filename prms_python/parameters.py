@@ -12,6 +12,7 @@ relevant provenance information and input files to facilitate better
 data management techniques to streamline later analyses.
 '''
 import datetime
+import io
 import itertools
 import numpy as np
 
@@ -264,11 +265,11 @@ class Parameters(object):
             startline = param_metadata['data_startline']
             endline = startline + param_metadata['length'] + 1
 
-            arr = np.genfromtxt(
-                itertools.islice(
-                    open(self.base_file), startline, endline
+            param_slice = itertools.islice(
+                    io.open(self.base_file, 'rb'), startline, endline
                 )
-            )
+
+            arr = np.genfromtxt(param_slice)
 
             if param_metadata['ndims'] > 1:
                 dimsizes = [

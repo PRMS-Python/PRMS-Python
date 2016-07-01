@@ -19,3 +19,4 @@ docs/build
 
 **/utility_functions.ipynb
 **/scripts/*.data
+prms_python.egg-info

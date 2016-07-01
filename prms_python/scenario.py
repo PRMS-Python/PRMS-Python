@@ -83,6 +83,8 @@ class ScenarioSeries(object):
 
         os.mkdir(scenarios_dir)
 
+        shutil.copytree(base_dir, os.path.join(scenarios_dir, 'base_inputs'))
+
         self.metadata = dict(title=title,
                              description=description,
                              uuid_title_map={})
@@ -138,19 +140,19 @@ class ScenarioSeries(object):
 
             self.scenarios.append(scenario)
 
-    def run(self, prms_exec='prms', nproc=None):
-
-        if not nproc:
-            nproc = mp.cpu_count()/2
-
-        pool = mp.Pool(processes=nproc)
-        pool.map(_scenario_runner, self.scenarios)
-
         with open(
             os.path.join(self.scenarios_dir, 'series_metadata.json'), 'w'
         ) as f:
 
             f.write(json.dumps(self.metadata, indent=2))
+
+    def run(self, prms_exec='prms', nproc=None):
+
+        if not nproc:
+            nproc = mp.cpu_count()//2
+
+        pool = mp.Pool(processes=nproc)
+        pool.map(_scenario_runner, self.scenarios)
 
 
 # multiprocessing req the function be def'd at root scope so it's picklable
@@ -205,7 +207,7 @@ class Scenario:
 
         param_mod_funs_metadata = {
             param_name: inspect.getsource(param_mod_fun)
-            for param_name, param_mod_fun in param_mod_funs.iteritems()
+            for param_name, param_mod_fun in param_mod_funs.items()
         }
 
         self.metadata['mod_funs_dict'] = param_mod_funs_metadata
