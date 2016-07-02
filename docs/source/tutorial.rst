@@ -79,7 +79,7 @@ to disk in the PRMS format using methods of the ``Data`` class.
     def f(x):
       return (x + 2)
       
-    # apply function to daily temperature variables
+    # apply function to daily temperature input
     d.modify(f,['tmax','tmin'])
     
     # write new modified data file to disk 
