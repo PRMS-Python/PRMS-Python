@@ -1,15 +1,52 @@
-"""
-Description to come
-"""
+'''
+PRMS-Python: Powerful, sane tools for manipulating PRMS input data to create
+new scenarios or parameterizations for sensitivity analysis, scenario
+modeling, or whatever other uses this might have.
+The fundamental process in scenario development is to modify some "base"
+starting data to create some "scenario" data. No matter what data we're using,
+once it's ready, we run a PRMS "simulation" on that data.
+This module presents a Simulation and Scenario class, where each tracks
+relevant provenance information and input files to facilitate better
+data management techniques to streamline later analyses.
+'''
 import numpy as np
 import pandas as pd
 import os
 
 class Data(object):
     """
-    PRMS data object to read, write and modify time
-    series input to PRMS that are located in the PRMS data file
+    Object that reads the PRMS data file and loads it into a date-time indexed
+    DataFrame for data management, analysis and visualization. The ``adjust`` 
+    method allow for inplace modification of one or more time series inputs in the 
+    data file based on a user defined function. The ``write`` method reformats the 
+    Dataframe to PRMS text format and writes a new data file to disk.  Here is an
+    example of loading a data file, modifying the temperature inputs ('tmin' and 
+    'tmax') by adding two degrees to each element, and rewritting the modified 
+    data to disk: 
+
+    >>> d = Data('example_data_file')
+    >>> def f(x):
+            return x + 2
+    >>> d.modify(f,['tmax','tmin'])
+    >>> d.write('example_modified_data_file')
+
+    d is a Data instance of the example data file, calling 
+
+    >>> d.DataFrame 
+
+    shows the datetime indexed DataFrame of the input data that is created when a 
+    ``Data`` object is initiated. We then pass the function f(x) to d.modify 
+    along with a Python list of input variable/s that we want to modify, this 
+    modifies d.DataFrame in place. Printing the metadata attribute of the data
+    object,
+
+    >>> d.metadata
+
+    will show the names of the variables in the data file in case you forget which
+    you would like to modify. Last we call d.write with an output path to write 
+    the modified data variables to disk in PRMS text format. 
     """
+
     ## data file constant attributes
     date_header = ['year',
                'month',
@@ -31,26 +68,27 @@ class Data(object):
                          'tmin',
                          'wind_speed')
 
+    na_rep = -999
+
     def __init__(self, base_file):
+
         self.base_file = base_file
         self.metadata = self.__load_metadata()
         self.data_frame = self.__load_data()
 
     def __load_metadata(self):
-        """
-        """
-        ## valid input time series that can be put into a data file
 
-        #### starting list of names for header in dataframe
+        ## starting list for variable names in data file
         input_data_names = []
-        ## append to header list the variables present in the file
+
+        ## open data file and read header information
         with open(self.base_file, 'r') as inf:
             for idx,l in enumerate(inf):
                 if idx == 0: ## first line always string identifier of the file- may use later
                     data_head = l.rstrip()
                 elif l.startswith('/'): ## comment lines
                     continue
-                if l.startswith(Data.valid_input_variables): ## header lines with name and number of input variables
+                if l.startswith(Data.valid_input_variables): 
                     h = l.split() ## split line into list, first element name and second number of columns
                     if int(h[1]) > 1: ## more than one input time series of a particular variable
                         for el in range(int(h[1])):
@@ -65,22 +103,24 @@ class Data(object):
         return dict([('data_startline',data_startline), ('data_variables',input_data_names)])
 
     def __load_data(self):
-        missing_value = -999 ## missing data representation
+
         df = pd.read_csv(self.base_file, header = -1, skiprows = self.metadata['data_startline'],
-                         delim_whitespace = True, na_values = [missing_value]) ## read file
+                         delim_whitespace = True, na_values = [Data.na_rep]) ## read data file
         df.columns = Data.date_header + self.metadata['data_variables']
-        date = pd.Series(pd.to_datetime(df.year * 10000 + df.month * 100                                        + df.day, format = '%Y%m%d'),                                         index = df.index)
-        df.index = pd.to_datetime(date)
+        date = pd.Series(pd.to_datetime(df.year * 10000 + df.month * 100 +\
+			 df.day, format = '%Y%m%d'), index = df.index)
+        df.index = pd.to_datetime(date) ## assign datetime index
         df.drop(Data.date_header, axis = 1, inplace = True) ## unneeded columns
         df.columns.name = 'input variables' ; df.index.name = 'date'
         return df
 
-    def adjust(self, func, vars_to_adjust):
+    def modify(self, func, vars_to_adjust):
         for v in vars_to_adjust:
             self.data_frame[v] = self.data_frame[v].apply(func)
 
     def write(self, out_path):
-        ## reconstruct original datafile format
+
+        ## reconstruct PRMS data file format
         self.data_frame['year'] = self.data_frame.index.year
         self.data_frame['month'] = self.data_frame.index.month
         self.data_frame['day'] = self.data_frame.index.day
@@ -90,7 +130,8 @@ class Data(object):
             with open(self.base_file) as data:
                 for idx, line in enumerate(data):
                     if idx == self.metadata['data_startline']:
-                        self.data_frame.to_csv(outf, sep=' ', header=None, index=False, na_rep=-999)
+                        self.data_frame.to_csv(outf, sep=' ', header=None,\
+						index=False, na_rep=Data.na_rep)
                         break
-                    outf.write(line) # write line by line the header lines from original
+                    outf.write(line) # write line by line the header lines from base file
 
