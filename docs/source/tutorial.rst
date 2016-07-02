@@ -55,6 +55,38 @@ The ``Scenario`` and ``ScenarioSeries`` use this functionality (via the
 `prms_python.modify_params` function) to implement either a single Scenario or a 
 series of Scenarios.
 
+``Data``
+--------------
+
+The ``Data`` class loads a PRMS data file into a Pandas DataFrame and allows 
+for easy modification and writing of modified PRMS data files. 
+
+A PRMS data file holds time series variables that are used as input for running
+PRMS including daily temperature and precipitation. Being tabular and date-indexed 
+the data file is well represented and managed as a DataFrame. A common paractice 
+in hydrologic modeling is to evaluate hydrologic response to multiple climate 
+change scenarios. The ``Data`` class offers function-based modification of time 
+series variable/s so that the user can quickly create new climate inputs for PRMS.
+The user can visualize the data file variables from Pandas and rewrite modified data 
+to disk in the PRMS format using methods of the ``Data`` class.
+
+.. code-block:: python
+
+    from prms_python import Data
+    d = Data('test/data/data')
+
+    # modify daily temperature by adding 2 degrees to each input
+    def f(x):
+      return (x + 2)
+      
+    # apply function to daily temperature variables
+    d.modify(f,['tmax','tmin'])
+    
+    # write new modified data file to disk 
+    d.write('test/data/temp_plus2_data')
+
+The ``Scenario`` and ``ScenarioSeries`` will soon incorporate this functionality 
+to implement either a single Scenario or a series of Scenarios.
 
 ``Simulation``
 --------------
