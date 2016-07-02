@@ -16,7 +16,7 @@ import os
 class Data(object):
     """
     Object that reads the PRMS data file and loads it into a date-time indexed
-    DataFrame for data management, analysis and visualization. The ``adjust`` 
+    DataFrame for data management, analysis and visualization. The ``modify`` 
     method allow for inplace modification of one or more time series inputs in the 
     data file based on a user defined function. The ``write`` method reformats the 
     Dataframe to PRMS text format and writes a new data file to disk.  Here is an
