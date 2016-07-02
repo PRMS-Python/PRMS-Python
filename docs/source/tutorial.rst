@@ -80,7 +80,7 @@ to disk in the PRMS format using methods of the ``Data`` class.
       return (x + 2)
       
     # apply function to daily temperature input
-    d.modify(f,['tmax','tmin'])
+    d.modify(f, ['tmax','tmin'])
     
     # write new modified data file to disk 
     d.write('test/data/temp_plus2_data')
