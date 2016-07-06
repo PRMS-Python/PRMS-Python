@@ -220,11 +220,6 @@ specified parameters.
 
         g_series = glob.glob(os.path.join(self.scenarios_dir, '*'))
 
-        # self.assertIn(
-            # os.path.join(self.scenarios_dir, 'README.md'),
-            # g_series
-        # )
-
         series_md_path = os.path.join(
             self.scenarios_dir, 'series_metadata.json'
         )
