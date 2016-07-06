@@ -186,17 +186,17 @@ def nash_sutcliffe_matrix(data_dir, output_pdf_path):
 
         cax = ax.matshow(nash_sutcliffe_mat, cmap='viridis')
 
-        xtix = p1_vals
-        ytix = p2_vals
-        plt.xticks(range(len(xtix)), xtix)
+        ytix = p1_vals
+        xtix = p2_vals
         plt.yticks(range(len(ytix)), ytix)
+        plt.xticks(range(len(xtix)), xtix)
 
         ax.xaxis.set_ticks_position('bottom')
 
-        plt.xlabel(params[0])
-        plt.ylabel(params[1])
+        plt.ylabel(params[0].replace('"', ''))
+        plt.xlabel(params[1].replace('"', ''))
 
-        for i, j in itertools.product(range(len(xtix)), range(len(ytix))):
+        for i, j in itertools.product(range(len(ytix)), range(len(xtix))):
             plt.text(j, i, '%.2f' % nash_sutcliffe_mat[i, j],
                      horizontalalignment='center',
                      color='w'
