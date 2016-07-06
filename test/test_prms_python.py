@@ -183,25 +183,38 @@ specified parameters.
         s.build(series_funs)
 
         g_series = glob.glob(os.path.join(self.scenarios_dir, '*'))
-        assert len(g_series) == 3, g_series
+
+        # this should be 5 because of series_metadata.json and inputs_dir
+        assert len(g_series) == 5, g_series
 
         uuid_pattern = re.compile(
             r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
         )
-        dircount = 0
+
+        uuid_dir_count = 0
+        non_uuid_dir_count = 0
         series_dirs = []
+        found_metadata = False
         for d in g_series:
             # XXX TODO this is in flux. at this point maybe all will be dirs
             if os.path.isdir(d):
                 # at this point the files are in the base scenario dir;
                 # they will be moved later when the scenario is run
                 assert_valid_input_dir(self, os.path.join(d))
-                assert re.match(uuid_pattern, os.path.basename(d)), os.path.basename(d)
+                if re.match(uuid_pattern, os.path.basename(d)):
+                    uuid_dir_count += 1
+                    assert re.match(uuid_pattern, os.path.basename(d)), os.path.basename(d)
+                else:
+                    non_uuid_dir_count += 1
+
+            else:
+                found_metadata = True
 
                 series_dirs.append(d)
-                dircount += 1
 
-        assert dircount == 3
+        assert uuid_dir_count == 3
+        assert non_uuid_dir_count == 1
+        assert found_metadata
 
         s.run()
 
@@ -229,7 +242,7 @@ specified parameters.
             os.path.join(self.test_model_data_dir, 'parameters')
         )
         for g in g_series:
-            if os.path.isdir(g):
+            if os.path.isdir(g) and 'input' not in g:
                 assert_valid_output_dir(self, os.path.join(g, 'outputs'))
 
                 md = json.loads(open(os.path.join(g, 'metadata.json')).read())
