@@ -53,7 +53,7 @@ class ScenarioSeries(object):
         >>> sc_ser.build(sc_list)
         >>> sc_ser.run()
         >>> series_md = json.loads(
-                open(os.path.join('scenario_dir', 'series_metadata.json'))
+                open(os.path.join('scenario_dir', 'series_metadata.json')).read()
             )
         >>> uuid_title_map = series_md['uuid_title_map']
         >>> uu = [k for k, v in uuid_title_map.iteritems()
