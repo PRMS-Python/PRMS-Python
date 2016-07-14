@@ -193,11 +193,6 @@ class ScenarioSeries(object):
         pool = mp.Pool(processes=nproc)
         pool.map(_scenario_runner, self.scenarios)
 
-        # self.outputs = [
-            # ScenarioOutput(uu, os.path.join(os.curdir(), d))
-            # for uu, d in self.metadata['uuid_title_map'].items()
-        # ]
-
 
 # multiprocessing req the function be def'd at root scope so it's picklable
 def _scenario_runner(scenario, prms_exec='prms'):
@@ -296,16 +291,3 @@ class ScenarioMetadata:
     def write(self, output_path):
         with open(output_path, 'w') as f:
             f.write(json.dumps(self.metadata_dict))
-
-
-class ScenarioOutput:
-
-    def __init__(self, scenario_uu, scenario_directory, title=None):
-        opj = os.path.join
-        self.uuid = scenario_uu
-        self.scenario_directory = scenario_directory
-        self.title = title
-        self.data = Data(opj(scenario_directory, 'data'))
-        self.parameters = Parameters(opj(scenario_directory, 'parameters'))
-        self.statvar = load_statvar(opj(scenario_directory, 'statvar.dat'))
-        self.control = open(opj(scenario_directory, 'control')).read()

@@ -6,6 +6,10 @@ import subprocess
 
 from .data import Data
 from .parameters import Parameters
+from .util import load_statvar
+
+
+OPJ = os.path.join
 
 
 class SimulationSeries(object):
@@ -14,7 +18,9 @@ class SimulationSeries(object):
     '''
 
     def __init__(self, simulations):
-        self.series = simulations
+        # XXX TODO would love to not have to use list here, but otherwise can't
+        # access the simulations after they have run through map
+        self.series = list(simulations)
 
     def run(self, prms_exec='prms', nproc=None):
 
@@ -23,6 +29,45 @@ class SimulationSeries(object):
 
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
+
+        return self
+
+    def outputs_iter(self):
+        '''
+        Return an iterator of directories with the path to the simulation_dir
+        as well as a pandas.DataFrame of the statvar output, and the Data and
+        Parameters representations used in the simulation.
+
+        Example:
+            >>> ser = SimulationSeries(simulations)
+            >>> ser.run()
+            >>> g = ser.outputs_iter()
+            >>> print(g.next())
+
+        Would return something like
+
+            {'simulation_dir': 'path/to/sim/', 'statvar': <pandas.DataFrame>,
+             'data': <data.Data>, 'parameters': <parameters.Parameters>}
+
+        Returns:
+            (generator(dict)):
+        '''
+        dirs = (s.simulation_dir for s in self.series)
+
+        print(self.series)
+
+        return (
+            {
+                'simulation_dir': d,
+                'statvar': load_statvar(OPJ(d, 'outputs', 'statvar.dat')),
+                'data': Data(OPJ(d, 'inputs', 'data')),
+                'parameters': Parameters(OPJ(d, 'inputs', 'parameters'))
+            }
+            for d in dirs
+        )
+
+    def __len__(self):
+        return len(list(self.outputs_iter()))
 
 
 def _simulation_runner(sim):
@@ -118,7 +163,7 @@ class Simulation(object):
             raise TypeError('data must be instance of Data')
 
         if not isinstance(parameters, Parameters):
-            raise TypeError('parameters must be instance of Parameters')
+            raise TypeError('parameters must be instance of Parameters, not ' + str(type(parameters)))
 
         if os.path.exists(simulation_dir):
             shutil.rmtree(simulation_dir)
@@ -129,16 +174,14 @@ class Simulation(object):
         sim.simulation_dir = simulation_dir
 
         sd = simulation_dir
-        opj = os.path.join
 
-        data_path = opj(sd, 'data')
+        data_path = OPJ(sd, 'data')
         data.write(data_path)
-        params_path = opj(sd, 'parameters')
+        params_path = OPJ(sd, 'parameters')
         parameters.write(params_path)
-        shutil.copy(control_path, opj(sd, 'control'))
+        shutil.copy(control_path, OPJ(sd, 'control'))
 
         return sim
-
 
     def run(self, prms_exec='prms'):
 

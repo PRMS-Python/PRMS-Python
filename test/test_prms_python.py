@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import glob
 import numpy as np
@@ -10,8 +11,68 @@ from difflib import Differ
 from numpy.testing import assert_array_almost_equal
 
 from prms_python import (
-    modify_params, Parameters, Scenario, ScenarioSeries, Simulation, Data
+    modify_params, Parameters, Scenario, ScenarioSeries, Simulation,
+    SimulationSeries, Data
 )
+
+
+OPJ = os.path.join
+
+
+class TestSimulationSeries(unittest.TestCase):
+    '''
+    Expect that a SimulationSeries
+    '''
+    def setUp(self):
+        self.test_model_data_dir = os.path.join(
+            'test', 'data', 'models', 'lbcd'
+        )
+
+        self.simulation_dir = os.path.join(self.test_model_data_dir, 'tmp_sim')
+
+    def tearDown(self):
+        for g in glob.glob(OPJ(self.simulation_dir, '*')):
+            print g
+            shutil.rmtree(g)
+
+    def test_simulation_series(self):
+        tdd = self.test_model_data_dir
+        data = Data(OPJ(tdd, 'data'))
+        base_parameters = Parameters(OPJ(tdd, 'parameters'))
+
+        def _copy_mod(base_parameters, val):
+            ret = deepcopy(base_parameters)
+            ret['dday_intcp'][:] = val
+
+            return ret
+
+        parameters_gen = (
+            (val, _copy_mod(base_parameters, val))
+            for val in (-50, -40, -30)
+        )
+        control_path = OPJ(tdd, 'control')
+
+        series = SimulationSeries(
+            Simulation.from_data(
+                data, parameters, control_path,
+                self.simulation_dir + str(val)
+            )
+            for val, parameters in parameters_gen
+        )
+
+        outputs = list(series.run().outputs_iter())
+
+        self.assertEqual(len(series), 3)
+        self.assertEqual(len(outputs), 3)
+
+        for out in outputs:
+            sdir = out['simulation_dir']
+            assert os.path.isdir(out['simulation_dir'])
+            assert os.path.exists(OPJ(sdir, 'outputs', 'statvar.dat'))
+            assert os.path.exists(OPJ(sdir, 'inputs', 'data'))
+            assert os.path.exists(OPJ(sdir, 'inputs', 'parameters'))
+
+            shutil.rmtree(sdir)
 
 
 class TestSimulation(unittest.TestCase):
@@ -72,14 +133,13 @@ class TestSimulation(unittest.TestCase):
         """
         Use @classmethod from_data to build a simulation from Parameters and Data instances
         """
-        opj = os.path.join
         tdd = self.test_model_data_dir
 
-        data = Data(opj(tdd, 'data'))
-        parameters = Parameters(opj(tdd, 'parameters'))
-        ctrl = opj(tdd, 'control')
+        data = Data(OPJ(tdd, 'data'))
+        parameters = Parameters(OPJ(tdd, 'parameters'))
+        ctrl = OPJ(tdd, 'control')
 
-        test_dir = opj(tdd, 'test-sim-dir')
+        test_dir = OPJ(tdd, 'test-sim-dir')
         if os.path.isdir(test_dir):
             shutil.rmtree(test_dir)
 
@@ -89,7 +149,7 @@ class TestSimulation(unittest.TestCase):
 
         g = [
                 os.path.basename(f)
-                for f in glob.glob(opj(test_dir, 'outputs', '*'))
+                for f in glob.glob(OPJ(test_dir, 'outputs', '*'))
         ]
 
         self.assertIn('prms_ic.out', g)
@@ -99,6 +159,7 @@ class TestSimulation(unittest.TestCase):
 
         # clean up
         shutil.rmtree(test_dir)
+
 
 class TestScenario(unittest.TestCase):
 
@@ -179,50 +240,6 @@ class TestScenarios(unittest.TestCase):
 
         if os.path.exists(self.scenarios_dir):
             shutil.rmtree(self.scenarios_dir)
-
-    # def test_from_parameters_iter(self):
-        # opj = os.path.join
-        # tdd = self.test_model_data_dir
-
-        # # read parameters from which we create scenarios
-        # base_parameters = Parameters(opj(tdd, 'parameters'))
-
-        # # set up our base directory where data, control are found
-        # # and each scenario directory will be written
-        # base_dir = opj(tdd, 'from_parameters_base')
-        # if os.path.isdir(base_dir):
-            # shutil.rmtree(base_dir)
-
-        # os.mkdir(base_dir)
-
-        # shutil.copy(opj(tdd, 'data'), opj(base_dir, 'data'))
-        # shutil.copy(opj(tdd, 'control'), opj(base_dir, 'control'))
-
-        # def _modify_base(parameters, mod_val):
-            # parameters['dday_intcp'] = mod_val
-            # parameters['dday_slope'] = mod_val
-
-        # scenario_parameters = (
-            # {
-                # 'parameters': _modify_base(base_parameters, mod_val),
-                # 'title': '"mod_val":{0}'.format(mod_val)
-            # }
-            # for mod_val in np.arange(0.3, 0.4, 0.05)
-        # )
-
-        # series = ScenarioSeries.from_parameters_iter(
-            # base_dir,
-            # scenario_parameters,
-            # title='test title in from_params_iter',
-            # description='a pretty nice test, really.'
-        # )
-
-        # self.assertEqual(len(series), 3)
-
-        # series.run()
-
-        # self.assertEqual(len(series.outputs), 3)
-
 
     def test_scenario_series(self):
         "create_many_simulations should create many simulation directories and correct data"
