@@ -7,7 +7,9 @@ import uuid
 
 from datetime import datetime
 
-from .parameters import modify_params
+from .parameters import modify_params, Parameters
+from .data import Data
+from .util import load_statvar
 from .simulation import Simulation
 
 
@@ -90,6 +92,43 @@ class ScenarioSeries(object):
                              uuid_title_map={})
         self.scenarios = []
 
+        self.outputs = None
+
+    @classmethod
+    def from_parameters_iter(cls, base_directory, parameters_iter,
+                             title=None, description=None):
+        '''
+        Create a ScenarioSeries from a list of parameters and the path to a
+        directory in which scenarios should be saved and a data and control
+        file can be found.
+        '''
+        series = cls(base_directory, base_directory,
+                     title=title, description=description)
+
+        for parameters in parameters_iter:
+
+            title = parameters['title'] if 'title' in parameters else None
+
+            uu = str(uuid.uuid4())
+
+            series.metadata['uuid_title_map'].update({uu: title})
+
+            scenario_dir = os.path.join(series.scenarios_dir, uu)
+
+            scenario = Scenario(series.base_dir, scenario_dir, title=title)
+
+            scenario.build()
+
+            series.scenarios.append(scenario)
+
+        with open(
+            os.path.join(series.scenarios_dir, 'series_metadata.json'), 'w'
+        ) as f:
+            f.write(json.dumps(series.metadata, indent=2))
+
+    def __len__(self):
+        return len(self.scenarios)
+
     def build(self, scenarios_list):
         """
         Build the scenarios from a list of scenario definitions in dicitonary
@@ -154,6 +193,11 @@ class ScenarioSeries(object):
         pool = mp.Pool(processes=nproc)
         pool.map(_scenario_runner, self.scenarios)
 
+        # self.outputs = [
+            # ScenarioOutput(uu, os.path.join(os.curdir(), d))
+            # for uu, d in self.metadata['uuid_title_map'].items()
+        # ]
+
 
 # multiprocessing req the function be def'd at root scope so it's picklable
 def _scenario_runner(scenario, prms_exec='prms'):
@@ -183,36 +227,38 @@ class Scenario:
 
     def build(self, param_mod_funs=None):
 
-        if not isinstance(param_mod_funs, dict):
-            raise TypeError('param_mod_funs must be a dictionary')
+        if isinstance(param_mod_funs, dict):
 
-        # create scenario_dir that will be used as Simulation input dir
-        if os.path.isdir(self.scenario_dir):
-            shutil.rmtree(self.scenario_dir)
+            # create scenario_dir that will be used as Simulation input dir
+            if os.path.isdir(self.scenario_dir):
+                shutil.rmtree(self.scenario_dir)
 
-        os.makedirs(self.scenario_dir)
-        shutil.copy(
-            os.path.join(self.base_dir, 'control'), self.scenario_dir
-        )
-        shutil.copy(
-            os.path.join(self.base_dir, 'data'), self.scenario_dir
-        )
+            os.makedirs(self.scenario_dir)
+            shutil.copy(
+                os.path.join(self.base_dir, 'control'), self.scenario_dir
+            )
+            shutil.copy(
+                os.path.join(self.base_dir, 'data'), self.scenario_dir
+            )
 
-        old_params_path = os.path.join(self.base_dir, 'parameters')
-        new_params_path = os.path.join(self.scenario_dir, 'parameters')
-        if not param_mod_funs:
-            shutil.copy(old_params_path, self.scenario_dir)
+            old_params_path = os.path.join(self.base_dir, 'parameters')
+            new_params_path = os.path.join(self.scenario_dir, 'parameters')
+            if not param_mod_funs:
+                shutil.copy(old_params_path, self.scenario_dir)
+            else:
+                modify_params(old_params_path, new_params_path, param_mod_funs)
+
+            param_mod_funs_metadata = {
+                param_name: inspect.getsource(param_mod_fun)
+                for param_name, param_mod_fun in param_mod_funs.items()
+            }
+
+            self.metadata['mod_funs_dict'] = param_mod_funs_metadata
+
+            self.simulation = Simulation(self.scenario_dir, self.scenario_dir)
+
         else:
-            modify_params(old_params_path, new_params_path, param_mod_funs)
-
-        param_mod_funs_metadata = {
-            param_name: inspect.getsource(param_mod_fun)
-            for param_name, param_mod_fun in param_mod_funs.items()
-        }
-
-        self.metadata['mod_funs_dict'] = param_mod_funs_metadata
-
-        self.simulation = Simulation(self.scenario_dir, self.scenario_dir)
+            self.simulation = Simulation(self.scenario_dir)
 
         self.__simulation_ready = True
 
@@ -250,3 +296,16 @@ class ScenarioMetadata:
     def write(self, output_path):
         with open(output_path, 'w') as f:
             f.write(json.dumps(self.metadata_dict))
+
+
+class ScenarioOutput:
+
+    def __init__(self, scenario_uu, scenario_directory, title=None):
+        opj = os.path.join
+        self.uuid = scenario_uu
+        self.scenario_directory = scenario_directory
+        self.title = title
+        self.data = Data(opj(scenario_directory, 'data'))
+        self.parameters = Parameters(opj(scenario_directory, 'parameters'))
+        self.statvar = load_statvar(opj(scenario_directory, 'statvar.dat'))
+        self.control = open(opj(scenario_directory, 'control')).read()
