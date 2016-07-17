@@ -32,7 +32,6 @@ class TestSimulationSeries(unittest.TestCase):
 
     def tearDown(self):
         for g in glob.glob(OPJ(self.simulation_dir, '*')):
-            print g
             shutil.rmtree(g)
 
     def test_simulation_series(self):

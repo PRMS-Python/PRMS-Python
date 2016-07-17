@@ -1,4 +1,5 @@
 from .data import Data
+from .optimizer import Optimizer
 from .parameters import Parameters, modify_params
 from .simulation import Simulation, SimulationSeries
 from .scenario import Scenario, ScenarioSeries

@@ -1,8 +1,10 @@
 import glob
-import multiprocessing as mp
+# import multiprocessing as mp
+import multiprocess as mp
 import os
 import shutil
 import subprocess
+import time
 
 from .data import Data
 from .parameters import Parameters
@@ -30,6 +32,9 @@ class SimulationSeries(object):
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
 
+        # for s in self.series:
+            # s.run()
+
         return self
 
     def outputs_iter(self):
@@ -52,10 +57,8 @@ class SimulationSeries(object):
         Returns:
             (generator(dict)):
         '''
-        dirs = (s.simulation_dir for s in self.series)
-
-        print(self.series)
-
+        dirs = list(s.simulation_dir for s in self.series)
+        print dirs
         return (
             {
                 'simulation_dir': d,
@@ -199,11 +202,15 @@ class Simulation(object):
         )
 
         prms_finished = False
+        checked_once = False
         while not prms_finished:
-            p.communicate()
+
+            if not checked_once:
+                p.communicate()
+                checked_once = True
 
             poll = p.poll()
-            prms_finished = poll == 0
+            prms_finished = poll >= 0
 
         self.has_run = True
 

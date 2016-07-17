@@ -5,9 +5,15 @@ import pandas as pd
 import numpy as np
 import os
 
+from copy import deepcopy
+from numpy import log10
+
 from .data import Data
 from .parameters import Parameters
-from .scenario import ScenarioSeries
+from .simulation import Simulation, SimulationSeries
+
+
+OPJ = os.path.join
 
 
 class Optimizer:
@@ -26,7 +32,7 @@ class Optimizer:
 
     '''
 
-    def __init__(self, parameters, data, working_dir,
+    def __init__(self, parameters, data, control_file, working_dir,
                  title=None, description=None):
 
         if isinstance(parameters, Parameters):
@@ -39,13 +45,14 @@ class Optimizer:
         else:
             raise TypeError('data must be instance of Data')
 
+        self.control_file = control_file
         self.working_dir = working_dir
         self.title = title
         self.description = description
 
     def srad(self, reference_srad_path, station_nhru, method='',
              dday_intcp_range=None, dday_slope_range=None,
-             intcp_delta=None, slope_delta=None):
+             intcp_delta=None, slope_delta=None, nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters by one of
         two methods: 'uniform' or 'random' for uniform sampling
@@ -84,61 +91,87 @@ class Optimizer:
         intcps = np.arange(ir[0], ir[1], intcp_delta)
         slopes = np.arange(sr[0], sr[1], slope_delta)
 
-        param_grid = np.meshgrid(intcps, slopes)
+        pgrid = np.meshgrid(intcps, slopes)
 
-        def _mod_params(parameters, month, intcp, slope):
+        self.data.write(OPJ(self.working_dir, 'data'))
 
-            parameters['dday_intcp'][month] = intcp
-            parameters['dday_slope'][month] = slope
-
-        parameters_iter = (
-            {
-                'parameters':
-                    _mod_params(self.parameters, month, intcp, slope),
-
-                'title': '"month":{0},"dday_intcp":{1:.3f},'
-                         '"dday_slope":{2:.3f}'.format(month, intcp, slope),
-            }
+        series = SimulationSeries(
+            Simulation.from_data(
+                self.data, _mod_params(self.parameters, month, intcp, slope),
+                self.control_file,
+                os.path.join(
+                    self.working_dir,
+                    'month:{0}_intcp:{1}_slope:{2}'.format(month, intcp, slope)
+                )
+            )
+            for intcp in intcps.flatten()
+            for slope in slopes.flatten()
             for month in range(12)
-            for intcp, slope in param_grid
-        )
-
-        # create ScenarioSeries from parameters
-
-        # XXX TODO XXX TODO
-        series = ScenarioSeries.from_params_iter(
-            self.working_dir,
-            parameters_iter=parameters_iter,
-            title=self.title,
-            description=self.description
         )
 
         # run all scenarios
-        series.run()
+        outputs = series.run(nproc=nproc).outputs_iter()
 
         def _error(x, y):
-            return float(abs(x - y))/float(len(x))
+
+            ret = abs(log10(x) - log10(y)).dropna()
+
+            ret = sum(ret)
+
+            return ret
+
+        measured_srad = pd.Series.from_csv(
+            reference_srad_path, parse_dates=True
+        )
 
         # calculate the top performing
-        modeled_srads = (
-            (output['title'], output['statvar']['swrad_' + str(station_nhru)])
-
-            # XXX TODO XXX TODO
-            for output in series.outputs
-        )
-
-        measured_srad = pd.read_csv(reference_srad_path, parse_dates=True)
-
         errors = (
-            (modeled_srads[0], _error(measured_srad, modeled_srads[1]))
-            for modeled_srad in modeled_srads
+            (
+                output['simulation_dir'],
+                _error(measured_srad,
+                       output['statvar']['swrad_' + str(station_nhru)])
+            )
+
+            for output in outputs
         )
-        rankings = list(sorted(errors, key=lambda x: x[1]))
+
+        monthly_errors = {str(mo): [] for mo in range(12)}
+
+        for directory, error in errors:
+
+            month, intcp, slope = (el.split(':')[1] for el in
+                                   directory.split(os.sep)[-1].split('_'))
+
+            monthly_errors[month].append((intcp, slope, error))
+
+        rankings = {
+            str(mo): list(sorted(monthly_errors[str(mo)], key=lambda x: x[-1]))
+            for mo in range(12)
+        }
+
+        tops = [(mo, rankings[str(mo)][0]) for mo in range(12)]
 
         # update internal parameters
-        self.parameters = series.outputs[rankings[0]]['parameters']
+        for top in tops:
+            mo = top[0]
+            self.parameters['dday_intcp'][mo] = tops[mo][1][0]
+            self.parameters['dday_slope'][mo] = tops[mo][1][1]
 
-        return rankings
+        return {
+            'best': tops,
+            'all': rankings
+        }
+
+
+def _mod_params(parameters, month, intcp, slope):
+
+    ret = deepcopy(parameters)
+    print (month, intcp, slope)
+
+    ret['dday_intcp'][month] = intcp
+    ret['dday_slope'][month] = slope
+
+    return ret
 
 
 class OptimizationResult:
