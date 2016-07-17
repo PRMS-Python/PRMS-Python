@@ -21,7 +21,7 @@ git clone https://github.com/northwest-knowledge-network/prms-python
 then
 
 ```
-pip install -r requirements.txt
+pip install --editable .
 ```
 
 
