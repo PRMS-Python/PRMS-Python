@@ -108,7 +108,7 @@ class Parameters(object):
                         name_is_next = True
 
                     elif name_is_next:
-                        name = l.strip()
+                        name = l.strip().split()[0] 
                         if name not in self.param_arrays:
                             out_file.write('####\n')
                             out_file.write(name + '\n')
@@ -220,7 +220,7 @@ class Parameters(object):
                     dimnames_read = 0
 
             elif not name:
-                name = l.strip()
+                name = l.strip().split()[0] # in case old format with integer after name
 
             elif not ndims:
                 ndims = int(l.strip())

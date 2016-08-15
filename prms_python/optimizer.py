@@ -3,7 +3,7 @@ optimizer.py -- Optimization routines for PRMS parameters and data.
 '''
 import pandas as pd
 import numpy as np
-import os
+import os, sys
 
 from copy import deepcopy
 from numpy import log10
@@ -42,6 +42,7 @@ class Optimizer:
 
         if isinstance(data, Data):
             self.data = data
+
         else:
             raise TypeError('data must be instance of Data')
 

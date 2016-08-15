@@ -120,18 +120,20 @@ class Data(object):
 
     def write(self, out_path):
 
-        ## reconstruct PRMS data file format
-        self.data_frame['year'] = self.data_frame.index.year
-        self.data_frame['month'] = self.data_frame.index.month
-        self.data_frame['day'] = self.data_frame.index.day
-        self.data_frame['hh'] = self.data_frame['mm'] = self.data_frame['sec'] = 0
-        self.data_frame = self.data_frame[Data.date_header + self.metadata['data_variables']]
+        ## reconstruct PRMS data file format, don't overwrite date-indexed
+	df = self.data_frame[self.metadata['data_variables']]
+        df['year'] = self.data_frame.index.year
+        df['month'] = self.data_frame.index.month
+        df['day'] = self.data_frame.index.day
+        df['hh'] = df['mm'] = df['sec'] = 0
+        df = df[Data.date_header + self.metadata['data_variables']]
         with open(out_path,'w') as outf:
             with open(self.base_file) as data:
                 for idx, line in enumerate(data):
                     if idx == self.metadata['data_startline']:
-                        self.data_frame.to_csv(outf, sep=' ', header=None,\
+                        df.to_csv(outf, sep=' ', header=None,\
 						index=False, na_rep=Data.na_rep)
                         break
                     outf.write(line) # write line by line the header lines from base file
+
 

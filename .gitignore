@@ -20,4 +20,6 @@ docs/build
 **/utility_functions.ipynb
 **/scripts/*.data
 scripts/
+dry_creek
+**/dry_creek/
 prms_python.egg-info

@@ -1,0 +1,14 @@
+[optimixation_control_parameters]
+variable: solar_radiation
+iterations: 10
+obj_func: NSE
+
+[output_stats]
+time_period = month,year
+plot_all_opt_results = True
+print_stat_csv = True
+
+[data_file_paths]
+solrad: /home/user/PRMS-Python/dry_creek/climate/bogus_ridge_daily_shortwave_radiation_langleys.csv
+pet: 
+
