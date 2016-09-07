@@ -27,8 +27,12 @@ class Optimizer:
     >>> from prms_python import Data, Optimizer, Parameters
     >>> params = Parameters('path/to/parameters')
     >>> data = Data('path/to/data')
-    >>> optr = Optimizer(params, data, title='the title', description='desc')
-    >>> optr.srad('path/to/reference_data/measured_srad.csv')
+    >>> control = 'path/to/control'
+    >>> work_directory = 'path/to/create/simulations'
+    >>> optr = Optimizer(params, data, control, work_directory, \
+               title='the title', description='desc')
+    >>> srad_hru = 2490
+    >>> optr.srad('path/to/reference_data/measured_srad.csv', srad_hru)
 
     '''
 
@@ -130,7 +134,7 @@ class Optimizer:
             (
                 output['simulation_dir'],
                 _error(measured_srad,
-                       output['statvar']['swrad_' + str(station_nhru)])
+                       output['statvar']['swrad ' + str(station_nhru)])
             )
 
             for output in outputs
