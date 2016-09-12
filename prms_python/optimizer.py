@@ -35,6 +35,10 @@ class Optimizer:
     >>> optr.srad('path/to/reference_data/measured_srad.csv', srad_hru)
 
     '''
+    
+    ## constant attributes for allowable range of solrad parameters
+    dday_int = (-60.0, 10.0)
+    dday_slope = (0.2, 0.9)
 
     def __init__(self, parameters, data, control_file, working_dir,
                  title=None, description=None):
@@ -50,12 +54,15 @@ class Optimizer:
         else:
             raise TypeError('data must be instance of Data')
 
+        if not os.path.isdir(working_dir):
+            os.mkdir(working_dir)
+
         self.control_file = control_file
         self.working_dir = working_dir
         self.title = title
         self.description = description
 
-    def srad(self, reference_srad_path, station_nhru, method='',
+    def srad(self, reference_srad_path, station_nhru, method='', 
              dday_intcp_range=None, dday_slope_range=None,
              intcp_delta=None, slope_delta=None, nproc=None):
         '''
@@ -134,7 +141,7 @@ class Optimizer:
             (
                 output['simulation_dir'],
                 _error(measured_srad,
-                       output['statvar']['swrad ' + str(station_nhru)])
+                       output['statvar']['swrad_' + str(station_nhru)])
             )
 
             for output in outputs

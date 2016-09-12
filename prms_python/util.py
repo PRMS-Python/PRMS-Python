@@ -70,8 +70,10 @@ def load_statvar(statvar_file):
 def load_data_file(data_file):
     """
     Read the data file and load into a datetime indexed Pandas dataframe object
-    INPUT: data_file = data file path (string)
-    OUTPUT: df = Pandas dataframe of input time series data from data file with datetime index
+    Arguments: 
+	data_file (string): data file path 
+    Returns:
+	df (pandas.DataFrame): Pandas dataframe of input time series data from data file with datetime index
     """
     # valid input time series that can be put into a data file
     valid_input_variables = ('gate_ht',
