@@ -1,9 +1,11 @@
 '''
 optimizer.py -- Optimization routines for PRMS parameters and data.
 '''
+from __future__ import print_function
 import pandas as pd
 import numpy as np
-import os, sys
+import datetime as dt
+import os, sys, json
 
 from copy import deepcopy
 from numpy import log10
@@ -37,11 +39,11 @@ class Optimizer:
     '''
     
     ## constant attributes for allowable range of solrad parameters
-    dday_int = (-60.0, 10.0)
-    dday_slope = (0.2, 0.9)
+    ir = (-60.0, 10.0) # PRMS dday_intcp range
+    sr = (0.2, 0.9) # dday_slope range
 
     def __init__(self, parameters, data, control_file, working_dir,
-                 title=None, description=None):
+                 title, description=None):
 
         if isinstance(parameters, Parameters):
             self.parameters = parameters
@@ -57,131 +59,165 @@ class Optimizer:
         if not os.path.isdir(working_dir):
             os.mkdir(working_dir)
 
+        ## user needs to enter a title for output info now
+#	if not title: 
+#            title = 'unnamed_optimization_{}'.format(\
+#                    dt.datetime.today().strftime('%Y-%m-%d')) 
+
         self.control_file = control_file
         self.working_dir = working_dir
         self.title = title
         self.description = description
 
-    def srad(self, reference_srad_path, station_nhru, method='', 
-             dday_intcp_range=None, dday_slope_range=None,
-             intcp_delta=None, slope_delta=None, nproc=None):
+    def srad(self, reference_srad_path, station_nhru, n_sims=10, method='',\
+             nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters by one of
         two methods: 'uniform' or 'random' for uniform sampling
 
         Args:
             reference_srad_path (str): path to measured solar radiation data
+            station_nhru (int): hru index in PRMS that is geographically 
+                near the measured solar radiation location. You must
+                have swrad 'nhru' listed as a statvar output in your 
+                control file.
         Kwargs:
-            method (str): 'uniform' or 'random'; if 'random',
+            method (str): XXX not yet implemented- all uniform now 
+                'uniform' or 'random'; if 'random',
                 intcp_delta and slope_delta are ignored, if provided
-            dday_intcp_range ((float, float)): two-tuple of minimum and
-                maximum value to  consider for the dday_intcp parameter
-            dday_slope_range ((float, float)): two-tuple of minimum and
-                maximum value to  consider for the dday_slope parameter
-            intcp_delta (float): resolution of grid to test in intcp dimension
-            slope_delta (float): resolution of grid to test in slope dimension
-
+            n_sims (int): number of simulations to conduct 
+                parameter optimization/uncertaitnty analysis.
         Returns:
             (SradOptimizationResult)
         '''
-        if dday_intcp_range is None:
-            dday_intcp_range = (-60.0, 10.0)
-            intcp_delta = 10.0
-        elif intcp_delta is None:
-            intcp_delta = (dday_intcp_range[1] - dday_intcp_range[0]) / 4.0
 
-        if dday_slope_range is None:
-            dday_slope_range = (0.2, 0.9)
-            slope_delta = .05
-        elif slope_delta is None:
-            slope_delta = (dday_slope_range[1] - dday_slope_range[0]) / 4.0
+	srad_start_time = dt.datetime.now()
+        srad_start_time = srad_start_time.replace(second=0, microsecond=0)
+  
+	## shifting all monthly values by random amount from uniform distribution
+        ## resampling degree day slope and intercept simoultaneously
+        intcps = [_resample_param(self.parameters['dday_intcp'], Optimizer.ir[0],\
+			Optimizer.ir[1]) for i in range(n_sims)]
 
-        # create parameters
-        ir = dday_intcp_range
-        sr = dday_slope_range
-
-        intcps = np.arange(ir[0], ir[1], intcp_delta)
-        slopes = np.arange(sr[0], sr[1], slope_delta)
-
-        pgrid = np.meshgrid(intcps, slopes)
+        slopes = [_resample_param(self.parameters['dday_slope'], Optimizer.sr[0],\
+			Optimizer.sr[1]) for i in range(n_sims)]
 
         self.data.write(OPJ(self.working_dir, 'data'))
 
         series = SimulationSeries(
             Simulation.from_data(
-                self.data, _mod_params(self.parameters, month, intcp, slope),
+                self.data, _mod_params(self.parameters, intcps[i], slopes[i]),
                 self.control_file,
-                os.path.join(
+                OPJ(
                     self.working_dir,
-                    'month:{0}_intcp:{1}_slope:{2}'.format(month, intcp, slope)
+                    'intcp:{0:.2f}_slope:{1:.2f}'.format(np.mean(intcps[i]),\
+                                                         np.mean(slopes[i]))
                 )
             )
-            for intcp in intcps.flatten()
-            for slope in slopes.flatten()
-            for month in range(12)
+            for i in range(n_sims)
         )
 
         # run all scenarios
         outputs = series.run(nproc=nproc).outputs_iter()
 
+	srad_end_time = dt.datetime.now()
+        srad_end_time = srad_end_time.replace(second=0, microsecond=0)
+
         def _error(x, y):
-
             ret = abs(log10(x) - log10(y)).dropna()
-
             ret = sum(ret)
-
             return ret
 
         measured_srad = pd.Series.from_csv(
             reference_srad_path, parse_dates=True
         )
 
-        # calculate the top performing
-        errors = (
-            (
-                output['simulation_dir'],
-                _error(measured_srad,
-                       output['statvar']['swrad_' + str(station_nhru)])
-            )
+        srad_meta = {'optimization_title' : self.title,
+                        'optimization_description' : self.description,
+                        'srad_start_time' : str(srad_start_time),
+			'srad_end_time' : str(srad_end_time),
+                        'measured_rad' : reference_srad_path,
+			'sim_dirs' : []}
 
-            for output in outputs
-        )
+        for output in outputs:
+            srad_meta['sim_dirs'].append(output['simulation_dir'])
 
-        monthly_errors = {str(mo): [] for mo in range(12)}
+        json_outfile = OPJ(self.working_dir, '{0}.json'.format(self.title))  
 
-        for directory, error in errors:
+        with open(json_outfile, 'w') as outf:  
+            json.dump(srad_meta, outf, sort_keys = True, indent = 4, ensure_ascii = False)
 
-            month, intcp, slope = (el.split(':')[1] for el in
-                                   directory.split(os.sep)[-1].split('_'))
+        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
-            monthly_errors[month].append((intcp, slope, error))
+#         # calculate the top performing                                    
+#         errors = (                                                        
+#             (                                                             
+#                 output['simulation_dir'],                                 
+#                 _error(measured_srad,                                     
+#                        output['statvar']['swrad_' + str(station_nhru)])   
+#             )                                                             
+#                                                                           
+#             for output in outputs                                         
+#         )                                                                 
+#
+#         print("directory, error (swrad)")
+#         for directory, error in errors:
+#             print(directory, error)                        #
+#
+#        monthly_errors = {str(mo): [] for mo in range(12)}
+#
+#        for directory, error in errors:
+#
+#            month, intcp, slope = (el.split(':')[1] for el in
+#                                   directory.split(os.sep)[-1].split('_'))
+#
+#            monthly_errors[month].append((intcp, slope, error))
+#
+#        rankings = {
+#            str(mo): list(sorted(monthly_errors[str(mo)], key=lambda x: x[-1]))
+#            for mo in range(12)
+#        }
+#
+#        tops = [(mo, rankings[str(mo)][0]) for mo in range(12)]
+#
+#        # update internal parameters
+#        for top in tops:
+#            mo = top[0]
+#            self.parameters['dday_intcp'][mo] = tops[mo][1][0]
+#            self.parameters['dday_slope'][mo] = tops[mo][1][1]
+#
+#        return {
+#            'best': tops,
+#            'all': rankings
+#        }
 
-        rankings = {
-            str(mo): list(sorted(monthly_errors[str(mo)], key=lambda x: x[-1]))
-            for mo in range(12)
-        }
+def _resample_param(param, p_min, p_max):
+    """
+    Resample PRMS parameter by shifting all values by a constant that is 
+    taken from a uniform distribution, where the range of the shift 
+    values is equal to the difference between the min(max) of the parameter
+    set and the min(max) of the allowable range from PRMS
+    
+    Arguments:
+        param (numpy.ndarray): ndarray of parameter to be resampled
+        p_min (float): lower bound of PRMS allowable range for param
+        p_max (float): upper bound of PRMS allowable range for param
+    Returns:
+        param with randomly sampled linear shift applied 
+    """
 
-        tops = [(mo, rankings[str(mo)][0]) for mo in range(12)]
+    low_bnd = p_min - np.min(param) # lowest param value minus allowable min
+    up_bnd = p_max - np.max(param)
 
-        # update internal parameters
-        for top in tops:
-            mo = top[0]
-            self.parameters['dday_intcp'][mo] = tops[mo][1][0]
-            self.parameters['dday_slope'][mo] = tops[mo][1][1]
+    return np.random.uniform(low=low_bnd, high=up_bnd) + param
 
-        return {
-            'best': tops,
-            'all': rankings
-        }
-
-
-def _mod_params(parameters, month, intcp, slope):
+def _mod_params(parameters, intcp, slope):
 
     ret = deepcopy(parameters)
-    print (month, intcp, slope)
+    #print (intcp, slope)
 
-    ret['dday_intcp'][month] = intcp
-    ret['dday_slope'][month] = slope
+    ret['dday_intcp'] = intcp
+    ret['dday_slope'] = slope
 
     return ret
 
