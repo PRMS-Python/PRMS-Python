@@ -133,16 +133,18 @@ class Optimizer:
         )
 
         srad_meta = {'optimization_title' : self.title,
-                        'optimization_description' : self.description,
-                        'srad_start_time' : str(srad_start_time),
-			'srad_end_time' : str(srad_end_time),
-                        'measured_rad' : reference_srad_path,
-			'sim_dirs' : []}
+                     'optimization_description' : self.description,
+                     'swrad_start_time' : str(srad_start_time),
+                     'swrad_end_time' : str(srad_end_time),
+                     'measured_swrad' : reference_srad_path,
+		     'sim_dirs' : [],
+                     'original_params' : self.parameters.base_file
+                    }
 
         for output in outputs:
             srad_meta['sim_dirs'].append(output['simulation_dir'])
 
-        json_outfile = OPJ(self.working_dir, '{0}.json'.format(self.title))  
+        json_outfile = OPJ(self.working_dir, '{0}_swrad_opt.json'.format(self.title))  
 
         with open(json_outfile, 'w') as outf:  
             json.dump(srad_meta, outf, sort_keys = True, indent = 4, ensure_ascii = False)
@@ -196,21 +198,30 @@ def _resample_param(param, p_min, p_max):
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the shift 
     values is equal to the difference between the min(max) of the parameter
-    set and the min(max) of the allowable range from PRMS
+    set and the min(max) of the allowable range from PRMS. Next add noise
+    to each parameter element by adding a RV from a normal distribution 
+    with mean 0, sigma = param allowable range / 10.  
     
     Arguments:
         param (numpy.ndarray): ndarray of parameter to be resampled
         p_min (float): lower bound of PRMS allowable range for param
         p_max (float): upper bound of PRMS allowable range for param
     Returns:
-        param with randomly sampled linear shift applied 
+        tmp (numpy.ndarry): ndarray of param after uniform random mean 
+            shift and element-wise noise addition (normal r.v.) 
     """
-
+    
     low_bnd = p_min - np.min(param) # lowest param value minus allowable min
     up_bnd = p_max - np.max(param)
-
-    return np.random.uniform(low=low_bnd, high=up_bnd) + param
-
+    s = (p_max - p_min) / 10 # one tenth of the range- small for noise
+    
+    shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
+    ## add noise to each point keeping result within allowable range  
+    while True:
+        tmp = shifted_param + np.random.normal(0,s,size=(np.shape(param)))
+        if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
+            return tmp
+        
 def _mod_params(parameters, intcp, slope):
 
     ret = deepcopy(parameters)
@@ -222,11 +233,13 @@ def _mod_params(parameters, intcp, slope):
     return ret
 
 
-class OptimizationResult:
+class OptimizationResult(Optimizer):
 
-    pass
+    pass    
 
 
 class SradOptimizationResult(OptimizationResult):
 
     pass
+
+ 
