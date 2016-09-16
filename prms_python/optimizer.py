@@ -132,10 +132,12 @@ class Optimizer:
             reference_srad_path, parse_dates=True
         )
 
-        srad_meta = {'optimization_title' : self.title,
+        srad_meta = {'stage' : 'swrad',
+                     'hru_id' : station_nhru,
+                     'optimization_title' : self.title,
                      'optimization_description' : self.description,
-                     'swrad_start_time' : str(srad_start_time),
-                     'swrad_end_time' : str(srad_end_time),
+                     'start_time' : str(srad_start_time),
+                     'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
 		     'sim_dirs' : [],
                      'original_params' : self.parameters.base_file
@@ -233,13 +235,59 @@ def _mod_params(parameters, intcp, slope):
     return ret
 
 
-class OptimizationResult(Optimizer):
+class OptimizationResult:
+    
+    def __init__(self, working_dir, stage='all'):
+        self.working_dir = working_dir 
+        self.metadata_json_paths = self.\
+                                get_optr_jsons(self.working_dir, stage)     
+    @staticmethod 
+    def get_optr_jsons(work_dir, stage='all'):
+	"""
+        Retrieve locations of optimization output jsons which contain 
+        important metadata needed to understand optimization results.
+        Create dictionary of each optimization stage as keys, and lists
+        of corresponding json file paths for each stage as values. 
 
-    pass    
+        Arguments:
+            work_dir (str): path to simulation directory where 
+                optimization simulations were conducted and where 
+                corresponding json files should exist. 
+            stage (str): the stage ('swrad', 'pet', 'flow', etc.) of 
+                the optimization in which to gather the jsons, if
+                stage is 'all' then each stage will be gathered.
+        Returns:
+            ret (dict): dictionary of stage (keys) and lists of 
+                json file paths for that stage (values).  
+	"""
 
+        ret = {}
+        if stage != 'all':
+            ret[stage] = [OPJ(work_dir, f) for f in\
+                              os.listdir(work_dir) if\
+                              f.endswith('_{0}_opt.json'.format(stage)) ]
+        else: 
+            stages = ['swrad', 'pet', 'flow']
+            for s in stages:
+                ret[s] = OptimizationResult.get_optr_jsons(work_dir, s)        
+
+        return ret
 
 class SradOptimizationResult(OptimizationResult):
 
-    pass
+    def __init__(self, working_dir, stage='swrad'):
+        self.working_dir = working_dir
+        self.stage = stage
 
+        self.metadata_json_paths =  OptimizationResult.get_optr_jsons(self.working_dir, stage)
+
+        
+        
+class PetOptimizationResult(OptimizationResult):
+
+    def __init__(self, working_dir, stage='pet'):
+        self.working_dir = working_dir
+        self.stage = stage
+
+        self.metadata_json_paths =  OptimizationResult.get_optr_jsons(self.working_dir, stage)
  
