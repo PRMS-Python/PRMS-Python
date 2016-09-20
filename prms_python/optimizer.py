@@ -110,7 +110,7 @@ class Optimizer:
                 self.control_file,
                 OPJ(
                     self.working_dir,
-                    'intcp:{0:.2f}_slope:{1:.2f}'.format(np.mean(intcps[i]),\
+                    'intcp:{0:.3f}_slope:{1:.3f}'.format(np.mean(intcps[i]),\
                                                          np.mean(slopes[i]))
                 )
             )
@@ -195,7 +195,7 @@ class Optimizer:
 #            'all': rankings
 #        }
 
-def _resample_param(param, p_min, p_max):
+def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
     """
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the shift 
@@ -208,6 +208,11 @@ def _resample_param(param, p_min, p_max):
         param (numpy.ndarray): ndarray of parameter to be resampled
         p_min (float): lower bound of PRMS allowable range for param
         p_max (float): upper bound of PRMS allowable range for param
+        noise_factor (float): factor to multiply parameter range by, 
+            use the result as the standard deviation for the normal rand.
+            variable used to add element wise noise. i.e. higher 
+            noise facter will result in higher noise added to each param
+            element.
     Returns:
         tmp (numpy.ndarry): ndarray of param after uniform random mean 
             shift and element-wise noise addition (normal r.v.) 
@@ -215,7 +220,7 @@ def _resample_param(param, p_min, p_max):
     
     low_bnd = p_min - np.min(param) # lowest param value minus allowable min
     up_bnd = p_max - np.max(param)
-    s = (p_max - p_min) / 10 # one tenth of the range- small for noise
+    s = (p_max - p_min) * noise_factor # default is one tenth rangee (0.1)
     
     shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
     ## add noise to each point keeping result within allowable range  
@@ -239,10 +244,10 @@ class OptimizationResult:
     
     def __init__(self, working_dir, stage='all'):
         self.working_dir = working_dir 
-        self.metadata_json_paths = self.\
-                                get_optr_jsons(self.working_dir, stage)     
-    @staticmethod 
-    def get_optr_jsons(work_dir, stage='all'):
+        self.stage = stage
+        self.metadata_json_paths = self.get_optr_jsons(working_dir, stage)     
+
+    def get_optr_jsons(self, work_dir, stage):
 	"""
         Retrieve locations of optimization output jsons which contain 
         important metadata needed to understand optimization results.
@@ -269,25 +274,19 @@ class OptimizationResult:
         else: 
             stages = ['swrad', 'pet', 'flow']
             for s in stages:
-                ret[s] = OptimizationResult.get_optr_jsons(work_dir, s)        
+                ret[s] = self.get_optr_jsons(work_dir, s)        
 
         return ret
 
 class SradOptimizationResult(OptimizationResult):
 
-    def __init__(self, working_dir, stage='swrad'):
-        self.working_dir = working_dir
-        self.stage = stage
-
-        self.metadata_json_paths =  OptimizationResult.get_optr_jsons(self.working_dir, stage)
+    def __init__(self, working_dir, stage='swrad' ):
+        OptimizationResult.__init__(self, working_dir, stage)
 
         
         
 class PetOptimizationResult(OptimizationResult):
 
     def __init__(self, working_dir, stage='pet'):
-        self.working_dir = working_dir
-        self.stage = stage
-
-        self.metadata_json_paths =  OptimizationResult.get_optr_jsons(self.working_dir, stage)
+        OptimizationResult.__init__(self, working_dir, stage)
  
