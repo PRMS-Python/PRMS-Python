@@ -5,6 +5,44 @@ appropriate to put elsewhere at this time.
 
 import numpy as np
 import pandas as pd
+import os
+
+def delete_ic_files(work_directory, file_name='prms_ic.out'):
+    """
+    Delete all initial condition output files from PRMS simulations,
+    can be useful since files can be large and may not be being used.
+
+    Arguments:
+        work_directory (str): path to directory with simulation outputs
+            two directories above where the actual prms_ic.out files exist.
+        file_name (str) = Name of the PRMS output initial condition file(s)
+            to be removed, default='prms_ic.out' (user may change in control
+            file).             
+
+            e.g. if you have several simulation directories:
+
+			"test/results/intcp:-26.50_slope:0.49", 
+			"test/results/intcp:-11.68_slope:0.54", 
+			"test/results/intcp:-4.70_slope:0.51", 
+			"test/results/intcp:-35.39_slope:0.39", 
+			"test/results/intcp:-20.91_slope:0.41"
+
+            each of these contains an '/outputs' folder with a prms_ic.out 
+            file that you would like to delete. In this case, delete all ic 
+            files like so:
+
+            >>> work_dir = 'test/results/'
+            >>> delete_ic_files(work_dir)
+		    
+    Returns:
+        None     
+    """
+    for fd in os.listdir(work_directory):
+        if os.path.isdir(os.path.join(work_directory,fd)):
+            try:
+                os.remove(os.path.join(work_directory, fd, 'outputs', file_name))
+            except: # file might not exist
+                continue
 
 
 def load_statvar(statvar_file):
