@@ -7,17 +7,18 @@ import numpy as np
 import pandas as pd
 import os
 
-def delete_ic_files(work_directory, file_name='prms_ic.out'):
+def delete_out_files(work_directory, file_name=''):
     """
-    Delete all initial condition output files from PRMS simulations,
+    Delete all output files of a certain name from PRMS simulations,
     can be useful since files can be large and may not be being used.
+    For example initial condition output files are often large and not
+    always used, alternatively animation files may no longer be needed.
 
     Arguments:
         work_directory (str): path to directory with simulation outputs
             two directories above where the actual prms_ic.out files exist.
-        file_name (str) = Name of the PRMS output initial condition file(s)
-            to be removed, default='prms_ic.out' (user may change in control
-            file).             
+        file_name (str) = Name of the PRMS output file(s) to be removed, 
+            default='' empty string- nothing will be deleted.             
 
             e.g. if you have several simulation directories:
 
@@ -32,7 +33,7 @@ def delete_ic_files(work_directory, file_name='prms_ic.out'):
             files like so:
 
             >>> work_dir = 'test/results/'
-            >>> delete_ic_files(work_dir)
+            >>> delete_ic_files(work_dir, file_name='prms_ic.out')
 		    
     Returns:
         None     
