@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import os, sys, json, re
 
-from copy import deepcopy
+from copy import copy
+#from copy import deepcopy
 from numpy import log10
 
 from .data import Data
@@ -59,11 +60,6 @@ class Optimizer:
 
         if not os.path.isdir(working_dir):
             os.mkdir(working_dir)
-
-        ## user needs to enter a title for output info now
-#    if not title: 
-#            title = 'unnamed_optimization_{}'.format(\
-#                    dt.datetime.today().strftime('%Y-%m-%d')) 
 
         self.control_file = control_file
         self.working_dir = working_dir
@@ -146,7 +142,7 @@ class Optimizer:
                      'start_time' : str(srad_start_time),
                      'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
-             'sim_dirs' : [],
+                     'sim_dirs' : [],
                      'original_params' : self.parameters.base_file,
                      'n_sims' : n_sims
                     }
@@ -175,7 +171,7 @@ class Optimizer:
 
         Kwargs:
             freq (str): frequency of time series plots, value can be 'daily'
-                or 'monthly' for solar radiation !!!need to finish monthly!!!
+                or 'monthly' for solar radiation TODO:need to finish monthly!!!
             method (str): 'time_series' for time series sub plot of each
                 simulation alongside measured radiation. Other choice is 
                 'correlation' which plots each measured daily solar radiation
@@ -256,14 +252,14 @@ def _create_metafile_name(out_dir, opt_title, stage):
             location where simulation series outputs and optimization
             json files are located, aka Optimizer.working_dir
         opt_title (str): optimization instance title for file search
-    stage (str): stage of optimization, e.g. 'swrad', 'pet' 
+        stage (str): stage of optimization, e.g. 'swrad', 'pet' 
 
     Returns:
-    name (str): file name for the current optimization simulation series
-        metadata json file. E.g 'dry_creek_swrad_opt.json', or if
-        this is the second time you have run an optimization titled
-        'dry_creek' the next json file will be returned as 
-        'dry_creek_swrad_opt1.json' and so on with integer increments     
+        name (str): file name for the current optimization simulation series
+            metadata json file. E.g 'dry_creek_swrad_opt.json', or if
+            this is the second time you have run an optimization titled
+            'dry_creek' the next json file will be returned as 
+            'dry_creek_swrad_opt1.json' and so on with integer increments     
     """
     swrad_meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
     reps = []
@@ -319,8 +315,9 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
             return tmp
         
 def _mod_params(parameters, intcp, slope):
-
-    ret = deepcopy(parameters)
+    # deepcopy on parameters was rasining: 
+    # TypeError: cannot serialize '_io.TextIOWrapper' object
+    ret = copy(parameters)
     #print (intcp, slope)
 
     ret['dday_intcp'] = intcp
