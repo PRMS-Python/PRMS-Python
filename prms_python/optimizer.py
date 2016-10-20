@@ -4,8 +4,9 @@ optimizer.py -- Optimization routines for PRMS parameters and data.
 from __future__ import print_function
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import datetime as dt
-import os, sys, json
+import os, sys, json, re
 
 from copy import deepcopy
 from numpy import log10
@@ -60,7 +61,7 @@ class Optimizer:
             os.mkdir(working_dir)
 
         ## user needs to enter a title for output info now
-#	if not title: 
+#    if not title: 
 #            title = 'unnamed_optimization_{}'.format(\
 #                    dt.datetime.today().strftime('%Y-%m-%d')) 
 
@@ -68,6 +69,9 @@ class Optimizer:
         self.working_dir = working_dir
         self.title = title
         self.description = description
+        self.srad_outputs = []
+        self.measured_srad = None
+        self.srad_hru = None
 
     def srad(self, reference_srad_path, station_nhru, n_sims=10, method='',\
              nproc=None):
@@ -90,17 +94,23 @@ class Optimizer:
         Returns:
             (SradOptimizationResult)
         '''
+        # assign the optimization object a copy of measured srad for plots
+        self.measured_srad = pd.Series.from_csv(
+            reference_srad_path, parse_dates=True
+        )
 
-	srad_start_time = dt.datetime.now()
+        self.srad_hru = station_nhru
+
+        srad_start_time = dt.datetime.now()
         srad_start_time = srad_start_time.replace(second=0, microsecond=0)
-  
-	## shifting all monthly values by random amount from uniform distribution
+
+        ## shifting all monthly values by random amount from uniform distribution
         ## resampling degree day slope and intercept simoultaneously
         intcps = [_resample_param(self.parameters['dday_intcp'], Optimizer.ir[0],\
-			Optimizer.ir[1]) for i in range(n_sims)]
+            Optimizer.ir[1]) for i in range(n_sims)]
 
         slopes = [_resample_param(self.parameters['dday_slope'], Optimizer.sr[0],\
-			Optimizer.sr[1]) for i in range(n_sims)]
+            Optimizer.sr[1]) for i in range(n_sims)]
 
         self.data.write(OPJ(self.working_dir, 'data'))
 
@@ -118,9 +128,10 @@ class Optimizer:
         )
 
         # run all scenarios
-        outputs = series.run(nproc=nproc).outputs_iter()
+        outputs = list(series.run(nproc=nproc).outputs_iter())        
+        self.srad_outputs.extend(outputs) 
 
-	srad_end_time = dt.datetime.now()
+        srad_end_time = dt.datetime.now()
         srad_end_time = srad_end_time.replace(second=0, microsecond=0)
 
         def _error(x, y):
@@ -128,72 +139,149 @@ class Optimizer:
             ret = sum(ret)
             return ret
 
-        measured_srad = pd.Series.from_csv(
-            reference_srad_path, parse_dates=True
-        )
-
         srad_meta = {'stage' : 'swrad',
-                     'hru_id' : station_nhru,
+                     'swrad_hru_id' : self.srad_hru,
                      'optimization_title' : self.title,
                      'optimization_description' : self.description,
                      'start_time' : str(srad_start_time),
                      'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
-		     'sim_dirs' : [],
-                     'original_params' : self.parameters.base_file
+             'sim_dirs' : [],
+                     'original_params' : self.parameters.base_file,
+                     'n_sims' : n_sims
                     }
 
         for output in outputs:
             srad_meta['sim_dirs'].append(output['simulation_dir'])
-
-        json_outfile = OPJ(self.working_dir, '{0}_swrad_opt.json'.format(self.title))  
-
+        
+        json_outfile = OPJ(self.working_dir, _create_metafile_name(\
+                          self.working_dir, self.title, 'swrad'))
+      
         with open(json_outfile, 'w') as outf:  
-            json.dump(srad_meta, outf, sort_keys = True, indent = 4, ensure_ascii = False)
+            json.dump(srad_meta, outf, sort_keys = True, indent = 4,\
+                      ensure_ascii = False)
 
         print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
-#         # calculate the top performing                                    
-#         errors = (                                                        
-#             (                                                             
-#                 output['simulation_dir'],                                 
-#                 _error(measured_srad,                                     
-#                        output['statvar']['swrad_' + str(station_nhru)])   
-#             )                                                             
-#                                                                           
-#             for output in outputs                                         
-#         )                                                                 
-#
-#         print("directory, error (swrad)")
-#         for directory, error in errors:
-#             print(directory, error)                        #
-#
-#        monthly_errors = {str(mo): [] for mo in range(12)}
-#
-#        for directory, error in errors:
-#
-#            month, intcp, slope = (el.split(':')[1] for el in
-#                                   directory.split(os.sep)[-1].split('_'))
-#
-#            monthly_errors[month].append((intcp, slope, error))
-#
-#        rankings = {
-#            str(mo): list(sorted(monthly_errors[str(mo)], key=lambda x: x[-1]))
-#            for mo in range(12)
-#        }
-#
-#        tops = [(mo, rankings[str(mo)][0]) for mo in range(12)]
-#
-#        # update internal parameters
-#        for top in tops:
-#            mo = top[0]
-#            self.parameters['dday_intcp'][mo] = tops[mo][1][0]
-#            self.parameters['dday_slope'][mo] = tops[mo][1][1]
-#
-#        return {
-#            'best': tops,
-#            'all': rankings
-#        }
+    def plot_srad_optimization(self, freq='daily', method='time_series'):
+        """
+        Basic plotting of current srad optimization results with 
+        limited options for quick viewing, measured, original, 
+        and simulated swrad at the correspinding HRU is plotted
+        either as time series (all three) or  scatter (measured
+        versus simulated). Not recommended for plotting results 
+        when n_sims is very high, use plotting options from
+        an OptimizationResult object
+
+        Kwargs:
+            freq (str): frequency of time series plots, value can be 'daily'
+                or 'monthly' for solar radiation !!!need to finish monthly!!!
+            method (str): 'time_series' for time series sub plot of each
+                simulation alongside measured radiation. Other choice is 
+                'correlation' which plots each measured daily solar radiation
+                value versus the corresponding simulated variable as subplots
+                one for each simulation in the optimization. With coefficients
+                of determiniationi i.e. square of pearson correlation coef.  
+        """
+        if not self.srad_outputs:
+            raise ValueError('You have not run any srad optimizations')
+            
+        # indices that measured and simulated swrad share (the intersection)
+        X = self.measured_srad
+        idx = X.index.intersection(self.srad_outputs[0]['statvar']\
+                          ['swrad_{}'.format(self.srad_hru)].index)
+        X = X[idx]
+        n = len(self.srad_outputs) # number of simulations to plot
+
+        if freq == 'daily' and method == 'time_series':
+            fig, ax = plt.subplots(n, sharex=True, sharey=True,\
+                                   figsize=(12,n*3.5))
+            axs = ax.ravel()
+            for i,out in enumerate(self.srad_outputs):
+                axs[i].plot(out['statvar']['swrad_{}'.format(self.srad_hru)]\
+                       [idx], 'r.', markersize=3, label='Simulated')
+                axs[i].plot(self.measured_srad[idx], 'k.', markersize=3,\
+                       label='Measured')
+                axs[i].set_ylabel('sim: {}'.format(out['simulation_dir'].\
+                       split(os.sep)[-1].replace('_', ' ')))
+                if i == 0: axs[i].legend(markerscale=5, loc='best')
+            fig.subplots_adjust(hspace=0)
+            fig.autofmt_xdate()
+            plt.show()  
+
+        elif method == 'correlation':
+            ## number of subplots and rows (two plots per row) 
+            nrow = n//2 # round down if odd n
+            ncol = 2
+            odd_n = False
+            if n/2. - nrow == 0.5: 
+                nrow+=1 # odd number need extra row
+                odd_n = True
+            ## figure
+            fig, ax = plt.subplots(nrows=nrow, ncols=ncol, figsize=(12,n*3))
+            axs = ax.ravel()
+            ## subplot dimensions
+            meas_min = min(X) 
+            meas_max = max(X)
+            
+            for i, out in enumerate(self.srad_outputs):
+                Y = out['statvar']['swrad_{}'.format(self.srad_hru)][idx]
+                sim_max = max(Y)
+                sim_min = min(Y)
+                m = max(meas_max,sim_max)
+                axs[i].plot([0, m], [0, m], 'k--', lw=2) ## one to one line
+                axs[i].set_xlim(meas_min,meas_max)
+                axs[i].set_ylim(sim_min, sim_max)
+                axs[i].scatter(X, Y, facecolors='none', edgecolor='r', s=3)
+                axs[i].set_ylabel('sim: {}'.format(out['simulation_dir']\
+                      .split(os.sep)[-1].replace('_', ' ')))
+                axs[i].set_xlabel('Measured shortwave radiation')
+                axs[i].text(0.05, 0.95,r'$R^2 = {0:.2f}$'.format(\
+                            X.corr(Y)**2), fontsize=16,\
+                            ha='left', va='center', transform=axs[i].transAxes)  
+            if odd_n: # empty subplot if odd number of simulations 
+                fig.delaxes(axs[n])      
+
+def _create_metafile_name(out_dir, opt_title, stage):
+    """
+    Search through output directory where simulations are conducted
+    look for all metadata simulation json files and find out if the
+    current simulation is a replicate. Then use that information to 
+    build the correct file name for the output json file. The series
+    are typically run in parallelel that is why this step has to be 
+    done after running multiple simulations from an optimization stage.
+
+    Args:
+        out_dir (str): path to directory with model results, i.e. 
+            location where simulation series outputs and optimization
+            json files are located, aka Optimizer.working_dir
+        opt_title (str): optimization instance title for file search
+    stage (str): stage of optimization, e.g. 'swrad', 'pet' 
+
+    Returns:
+    name (str): file name for the current optimization simulation series
+        metadata json file. E.g 'dry_creek_swrad_opt.json', or if
+        this is the second time you have run an optimization titled
+        'dry_creek' the next json file will be returned as 
+        'dry_creek_swrad_opt1.json' and so on with integer increments     
+    """
+    swrad_meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
+    reps = []
+    for f in os.listdir(out_dir): 
+        if swrad_meta_re.match(f):
+            nrep = swrad_meta_re.match(f).group(1)
+            if nrep == '': 
+                reps.append(0)
+            else:
+                reps.append(nrep)
+
+    if not reps: 
+        name = '{}_{}_opt.json'.format(opt_title, stage)
+    else:
+        # this is the nth optimization done under the same title
+        n = max(map(int, reps)) + 1
+        name = '{}_{}_opt{}.json'.format(opt_title, stage, n)
+    return name
 
 def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
     """
@@ -204,10 +292,11 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
     to each parameter element by adding a RV from a normal distribution 
     with mean 0, sigma = param allowable range / 10.  
     
-    Arguments:
+    Args:
         param (numpy.ndarray): ndarray of parameter to be resampled
         p_min (float): lower bound of PRMS allowable range for param
         p_max (float): upper bound of PRMS allowable range for param
+    Kwargs: 
         noise_factor (float): factor to multiply parameter range by, 
             use the result as the standard deviation for the normal rand.
             variable used to add element wise noise. i.e. higher 
@@ -220,7 +309,7 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
     
     low_bnd = p_min - np.min(param) # lowest param value minus allowable min
     up_bnd = p_max - np.max(param)
-    s = (p_max - p_min) * noise_factor # default is one tenth rangee (0.1)
+    s = (p_max - p_min) * noise_factor # stddev noise, default: range*(1/10)  
     
     shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
     ## add noise to each point keeping result within allowable range  
@@ -248,34 +337,37 @@ class OptimizationResult:
         self.metadata_json_paths = self.get_optr_jsons(working_dir, stage)     
 
     def get_optr_jsons(self, work_dir, stage):
-	"""
+        """
         Retrieve locations of optimization output jsons which contain 
         important metadata needed to understand optimization results.
         Create dictionary of each optimization stage as keys, and lists
         of corresponding json file paths for each stage as values. 
 
         Arguments:
-            work_dir (str): path to simulation directory where 
-                optimization simulations were conducted and where 
-                corresponding json files should exist. 
+            work_dir (str): path to directory with model results, i.e. 
+                location where simulation series outputs and optimization
+                json files are located, aka Optimizer.working_dir
             stage (str): the stage ('swrad', 'pet', 'flow', etc.) of 
                 the optimization in which to gather the jsons, if
                 stage is 'all' then each stage will be gathered.
         Returns:
             ret (dict): dictionary of stage (keys) and lists of 
                 json file paths for that stage (values).  
-	"""
+        """
 
         ret = {}
         if stage != 'all':
+            optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.format(stage))
             ret[stage] = [OPJ(work_dir, f) for f in\
                               os.listdir(work_dir) if\
-                              f.endswith('_{0}_opt.json'.format(stage)) ]
+                              optr_metafile_re.match(f) ]
         else: 
             stages = ['swrad', 'pet', 'flow']
             for s in stages:
-                ret[s] = self.get_optr_jsons(work_dir, s)        
-
+                optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.format(s))
+                ret[s] =  [OPJ(work_dir, f) for f in\
+                               os.listdir(work_dir) if\
+                               optr_metafile_re.match(f) ]
         return ret
 
 class SradOptimizationResult(OptimizationResult):

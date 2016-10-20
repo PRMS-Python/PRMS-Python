@@ -1,3 +1,4 @@
+from __future__ import print_function
 import glob
 import multiprocessing as mp
 #import multiprocess as mp
@@ -58,7 +59,7 @@ class SimulationSeries(object):
             (generator(dict)):
         '''
         dirs = list(s.simulation_dir for s in self.series)
-        print dirs
+        print(dirs)
         return (
             {
                 'simulation_dir': d,

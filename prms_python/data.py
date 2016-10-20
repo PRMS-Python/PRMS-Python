@@ -68,11 +68,11 @@ class Data(object):
                          'tmin',
                          'wind_speed')
 
-    na_rep = -999
 
-    def __init__(self, base_file):
+    def __init__(self, base_file, na_rep=-999):
 
         self.base_file = base_file
+        self.na_rep = na_rep
         self.metadata = self.__load_metadata()
         self.data_frame = self.__load_data()
 
@@ -105,23 +105,46 @@ class Data(object):
     def __load_data(self):
 
         df = pd.read_csv(self.base_file, header = -1, skiprows = self.metadata['data_startline'],
-                         delim_whitespace = True, na_values = [Data.na_rep]) ## read data file
+                         delim_whitespace = True, na_values = [self.na_rep]) ## read data file
         df.columns = Data.date_header + self.metadata['data_variables']
         date = pd.Series(pd.to_datetime(df.year * 10000 + df.month * 100 +\
-			 df.day, format = '%Y%m%d'), index = df.index)
+             df.day, format = '%Y%m%d'), index = df.index)
         df.index = pd.to_datetime(date) ## assign datetime index
         df.drop(Data.date_header, axis = 1, inplace = True) ## unneeded columns
         df.columns.name = 'input variables' ; df.index.name = 'date'
         return df
 
     def modify(self, func, vars_to_adjust):
+        """
+        Apply a user defined function to one or more variable in the data file
+
+        Args:
+            func (function): function to apply to each variable in vars_to_adjust
+               e.g.: 
+                   >>> def f(x):
+                           return np.sin(x)
+
+            vars_to_adjust (list or tuple): collection of variable names to apply
+               func to.
+        Returns: 
+            None: data.data_frame is modified inplace
+        """
         for v in vars_to_adjust:
             self.data_frame[v] = self.data_frame[v].apply(func)
 
     def write(self, out_path):
+        """
+        Writes the current state of the data to PRMS text format,
+        particularly useful after modifying the data variable values in place.
+
+        Args:
+            out_path (str): path to save the new PRMS data file
+        Returns:
+            None
+        """
 
         ## reconstruct PRMS data file format, don't overwrite date-indexed
-	df = self.data_frame[self.metadata['data_variables']]
+        df = self.data_frame[self.metadata['data_variables']]
         df['year'] = self.data_frame.index.year
         df['month'] = self.data_frame.index.month
         df['day'] = self.data_frame.index.day
@@ -132,7 +155,7 @@ class Data(object):
                 for idx, line in enumerate(data):
                     if idx == self.metadata['data_startline']:
                         df.to_csv(outf, sep=' ', header=None,\
-						index=False, na_rep=Data.na_rep)
+                        index=False, na_rep=self.na_rep)
                         break
                     outf.write(line) # write line by line the header lines from base file
 
