@@ -15,7 +15,7 @@ from numpy import log10
 from .data import Data
 from .parameters import Parameters
 from .simulation import Simulation, SimulationSeries
-
+from .util import load_statvar
 
 OPJ = os.path.join
 
@@ -58,9 +58,18 @@ class Optimizer:
         else:
             raise TypeError('data must be instance of Data')
 
+        input_dir = '{}'.format(os.sep).join(control_file.split(os.sep)[:-1])
+        if not os.path.isfile(OPJ(input_dir, 'statvar.dat')):
+            print('You have no statvar.dat file in your current model directory')
+            print('Running PRMS on original data in {} for later comparison'\
+                  .format(input_dir))
+            sim = Simulation(input_dir)
+            sim.run()
+
         if not os.path.isdir(working_dir):
             os.mkdir(working_dir)
-
+        
+        self.input_dir = input_dir
         self.control_file = control_file
         self.working_dir = working_dir
         self.title = title
@@ -142,7 +151,7 @@ class Optimizer:
                      'start_time' : str(srad_start_time),
                      'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
-                     'sim_dirs' : [],
+             'sim_dirs' : [],
                      'original_params' : self.parameters.base_file,
                      'n_sims' : n_sims
                     }
@@ -159,7 +168,8 @@ class Optimizer:
 
         print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
-    def plot_srad_optimization(self, freq='daily', method='time_series'):
+    def plot_srad_optimization(self, freq='daily', method='time_series',\
+                               plot_vars='both', return_fig=False):
         """
         Basic plotting of current srad optimization results with 
         limited options for quick viewing, measured, original, 
@@ -171,13 +181,17 @@ class Optimizer:
 
         Kwargs:
             freq (str): frequency of time series plots, value can be 'daily'
-                or 'monthly' for solar radiation TODO:need to finish monthly!!!
+                or 'monthly' for solar radiation !!!need to finish monthly!!!
             method (str): 'time_series' for time series sub plot of each
                 simulation alongside measured radiation. Other choice is 
                 'correlation' which plots each measured daily solar radiation
                 value versus the corresponding simulated variable as subplots
                 one for each simulation in the optimization. With coefficients
                 of determiniationi i.e. square of pearson correlation coef.  
+            plot_vars (str): what to plot alongside simulated srad: 
+                'meas': plot simulated along with measured swrad
+                'orig': plot simulated along with the original simulated swrad
+                'both': plot simulated, with original simulation and measured
         """
         if not self.srad_outputs:
             raise ValueError('You have not run any srad optimizations')
@@ -187,32 +201,75 @@ class Optimizer:
         idx = X.index.intersection(self.srad_outputs[0]['statvar']\
                           ['swrad_{}'.format(self.srad_hru)].index)
         X = X[idx]
+        orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['swrad_{}'\
+                            .format(self.srad_hru)][idx]
+        meas = self.measured_srad[idx]
+        # styles for each plot
+        ms = 4 # markersize for all points
+        orig_sty = dict(linestyle='none',markersize=ms,\
+                           markerfacecolor='none', marker='s',\
+                           markeredgecolor='royalblue', color='royalblue') 
+        meas_sty = dict(linestyle='none',markersize=ms+1,\
+                           markerfacecolor='none', marker='1',\
+                           markeredgecolor='k', color='k') 
+        sim_sty = dict(linestyle='none',markersize=ms,\
+                           markerfacecolor='none', marker='o',\
+                           markeredgecolor='r', color='r') 
         n = len(self.srad_outputs) # number of simulations to plot
-
+        ## number of subplots and rows (two plots per row) 
+        nrow = n//2 # round down if odd n
+        ncol = 2
+        odd_n = False
+        if n/2. - nrow == 0.5: 
+            nrow+=1 # odd number need extra row
+            odd_n = True
+        ########
+        ## Start plots depnding on key word arguments
+        ########
         if freq == 'daily' and method == 'time_series':
             fig, ax = plt.subplots(n, sharex=True, sharey=True,\
                                    figsize=(12,n*3.5))
             axs = ax.ravel()
             for i,out in enumerate(self.srad_outputs):
+                if plot_vars in ('meas', 'both'):
+                    axs[i].plot(meas, label='Measured', **meas_sty)
+                if plot_vars in ('orig', 'both'):
+                    axs[i].plot(orig, label='Original sim.', **orig_sty)
                 axs[i].plot(out['statvar']['swrad_{}'.format(self.srad_hru)]\
-                       [idx], 'r.', markersize=3, label='Simulated')
-                axs[i].plot(self.measured_srad[idx], 'k.', markersize=3,\
-                       label='Measured')
+                       [idx], **sim_sty)
                 axs[i].set_ylabel('sim: {}'.format(out['simulation_dir'].\
-                       split(os.sep)[-1].replace('_', ' ')))
+                       split(os.sep)[-1].replace('_', ' ')), fontsize=10)
                 if i == 0: axs[i].legend(markerscale=5, loc='best')
             fig.subplots_adjust(hspace=0)
             fig.autofmt_xdate()
-            plt.show()  
+
+        elif freq == 'monthly' and method == 'time_series':
+            # compute monthly means
+            meas = meas.groupby(meas.index.month).mean()
+            orig = orig.groupby(orig.index.month).mean()
+            # change line styles for monthly plots to lines not points
+            for d in (orig_sty, meas_sty, sim_sty):
+                d['linestyle'] = '-'
+                d['marker'] = None
+
+            fig, ax = plt.subplots(nrows=nrow, ncols=ncol, figsize=(12,n*3.5))
+            axs = ax.ravel()
+            for i,out in enumerate(self.srad_outputs):
+                if plot_vars in ('meas', 'both'):
+                    axs[i].plot(meas, label='Measured', **meas_sty)
+                if plot_vars in ('orig', 'both'):
+                    axs[i].plot(orig, label='Original sim.', **orig_sty)
+                sim = out['statvar']['swrad_{}'.format(self.srad_hru)][idx]
+                sim = sim.groupby(sim.index.month).mean()
+                axs[i].plot(sim, **sim_sty)
+                axs[i].set_ylabel('sim: {}\nmean swrad'.format(out['simulation_dir'].\
+                       split(os.sep)[-1].replace('_', ' ')), fontsize=10)
+                axs[i].set_xlim(0.5,12.5)
+                if i == 0: axs[i].legend(markerscale=5, loc='best')
+            if odd_n: # empty subplot if odd number of simulations 
+                fig.delaxes(axs[n])
 
         elif method == 'correlation':
-            ## number of subplots and rows (two plots per row) 
-            nrow = n//2 # round down if odd n
-            ncol = 2
-            odd_n = False
-            if n/2. - nrow == 0.5: 
-                nrow+=1 # odd number need extra row
-                odd_n = True
             ## figure
             fig, ax = plt.subplots(nrows=nrow, ncols=ncol, figsize=(12,n*3))
             axs = ax.ravel()
@@ -228,7 +285,7 @@ class Optimizer:
                 axs[i].plot([0, m], [0, m], 'k--', lw=2) ## one to one line
                 axs[i].set_xlim(meas_min,meas_max)
                 axs[i].set_ylim(sim_min, sim_max)
-                axs[i].scatter(X, Y, facecolors='none', edgecolor='r', s=3)
+                axs[i].plot(X, Y, **sim_sty)
                 axs[i].set_ylabel('sim: {}'.format(out['simulation_dir']\
                       .split(os.sep)[-1].replace('_', ' ')))
                 axs[i].set_xlabel('Measured shortwave radiation')
@@ -237,6 +294,9 @@ class Optimizer:
                             ha='left', va='center', transform=axs[i].transAxes)  
             if odd_n: # empty subplot if odd number of simulations 
                 fig.delaxes(axs[n])      
+        
+        if return_fig:
+            return fig
 
 def _create_metafile_name(out_dir, opt_title, stage):
     """
@@ -252,14 +312,14 @@ def _create_metafile_name(out_dir, opt_title, stage):
             location where simulation series outputs and optimization
             json files are located, aka Optimizer.working_dir
         opt_title (str): optimization instance title for file search
-        stage (str): stage of optimization, e.g. 'swrad', 'pet' 
+    stage (str): stage of optimization, e.g. 'swrad', 'pet' 
 
     Returns:
-        name (str): file name for the current optimization simulation series
-            metadata json file. E.g 'dry_creek_swrad_opt.json', or if
-            this is the second time you have run an optimization titled
-            'dry_creek' the next json file will be returned as 
-            'dry_creek_swrad_opt1.json' and so on with integer increments     
+    name (str): file name for the current optimization simulation series
+        metadata json file. E.g 'dry_creek_swrad_opt.json', or if
+        this is the second time you have run an optimization titled
+        'dry_creek' the next json file will be returned as 
+        'dry_creek_swrad_opt1.json' and so on with integer increments     
     """
     swrad_meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
     reps = []
@@ -315,7 +375,7 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
             return tmp
         
 def _mod_params(parameters, intcp, slope):
-    # deepcopy on parameters was rasining: 
+    # deepcopy was crashing, raising:
     # TypeError: cannot serialize '_io.TextIOWrapper' object
     ret = copy(parameters)
     #print (intcp, slope)
