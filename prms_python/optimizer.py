@@ -151,7 +151,7 @@ class Optimizer:
                      'start_time' : str(srad_start_time),
                      'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
-             'sim_dirs' : [],
+                     'sim_dirs' : [],
                      'original_params' : self.parameters.base_file,
                      'n_sims' : n_sims
                     }
@@ -171,19 +171,18 @@ class Optimizer:
     def plot_srad_optimization(self, freq='daily', method='time_series',\
                                plot_vars='both', return_fig=False):
         """
-        Basic plotting of current srad optimization results with 
-        limited options for quick viewing, measured, original, 
-        and simulated swrad at the correspinding HRU is plotted
-        either as time series (all three) or  scatter (measured
-        versus simulated). Not recommended for plotting results 
-        when n_sims is very high, use plotting options from
-        an OptimizationResult object
+        Basic plotting of current srad optimization results with limited options. 
+        Plots measured, original simluated, and optimization simulated swrad at 
+        the correspinding HRU either as time series (all three) or scatter (measured
+        versus simulated). Not recommended for plotting results when n_sims, 
+        instead use plotting options from an OptimizationResult object, or employ 
+        a user-defined method using the result data if necessary.
 
         Kwargs:
             freq (str): frequency of time series plots, value can be 'daily'
-                or 'monthly' for solar radiation !!!need to finish monthly!!!
+                or 'monthly' for solar radiation 
             method (str): 'time_series' for time series sub plot of each
-                simulation alongside measured radiation. Other choice is 
+                simulation alongside measured radiation. Another choice is 
                 'correlation' which plots each measured daily solar radiation
                 value versus the corresponding simulated variable as subplots
                 one for each simulation in the optimization. With coefficients
@@ -192,6 +191,10 @@ class Optimizer:
                 'meas': plot simulated along with measured swrad
                 'orig': plot simulated along with the original simulated swrad
                 'both': plot simulated, with original simulation and measured
+            return_fig (bool): flag whether to return matplotlib figure 
+        Returns: 
+            f (matplotlib.figure.Figure): If kwarg return_fig=True, then return
+                copy of the figure that is generated to the user. 
         """
         if not self.srad_outputs:
             raise ValueError('You have not run any srad optimizations')
@@ -268,6 +271,7 @@ class Optimizer:
                 if i == 0: axs[i].legend(markerscale=5, loc='best')
             if odd_n: # empty subplot if odd number of simulations 
                 fig.delaxes(axs[n])
+            fig.text(0.5, 0.1, 'month') 
 
         elif method == 'correlation':
             ## figure
@@ -294,7 +298,7 @@ class Optimizer:
                             ha='left', va='center', transform=axs[i].transAxes)  
             if odd_n: # empty subplot if odd number of simulations 
                 fig.delaxes(axs[n])      
-        
+
         if return_fig:
             return fig
 
@@ -339,7 +343,7 @@ def _create_metafile_name(out_dir, opt_title, stage):
         name = '{}_{}_opt{}.json'.format(opt_title, stage, n)
     return name
 
-def _resample_param(param, p_min, p_max, noise_factor=0.1 ):
+def _resample_param(param, p_min, p_max, noise_factor=0.1):
     """
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the shift 
