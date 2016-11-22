@@ -40,9 +40,10 @@ class Optimizer:
 
     '''
     
-    ## constant attributes for allowable range of solrad parameters
+    ## constant attributes for allowable range of select PRMS parameters
     ir = (-60.0, 10.0) # PRMS dday_intcp range
     sr = (0.2, 0.9) # dday_slope range
+    jh = (0.005, 0.06) # jh_coef range
 
     def __init__(self, parameters, data, control_file, working_dir,
                  title, description=None):
@@ -76,13 +77,17 @@ class Optimizer:
         self.description = description
         self.srad_outputs = []
         self.measured_srad = None
-        self.srad_hru = None
+        self.srad_hru = None 
+        self.pet_outputs = []
+        self.measured_pet = None
+        self.pet_hru = None
 
     def srad(self, reference_srad_path, station_nhru, n_sims=10, method='',\
              nproc=None):
         '''
-        Optimize the monthly dday_intcp and dday_slope parameters by one of
-        two methods: 'uniform' or 'random' for uniform sampling
+        Optimize the monthly dday_intcp and dday_slope parameters 
+        (two key parameters in the ddsolrad module in PRMS) by one of
+        multiple methods (in development): Monte Carlo default method
 
         Args:
             reference_srad_path (str): path to measured solar radiation data
@@ -91,13 +96,9 @@ class Optimizer:
                 have swrad 'nhru' listed as a statvar output in your 
                 control file.
         Kwargs:
-            method (str): XXX not yet implemented- all uniform now 
-                'uniform' or 'random'; if 'random',
-                intcp_delta and slope_delta are ignored, if provided
+            method (str): XXX not yet implemented- 
             n_sims (int): number of simulations to conduct 
                 parameter optimization/uncertaitnty analysis.
-        Returns:
-            (SradOptimizationResult)
         '''
         # assign the optimization object a copy of measured srad for plots
         self.measured_srad = pd.Series.from_csv(
@@ -121,7 +122,8 @@ class Optimizer:
 
         series = SimulationSeries(
             Simulation.from_data(
-                self.data, _mod_params(self.parameters, intcps[i], slopes[i]),
+                self.data, _mod_params(self.parameters, [intcps[i], slopes[i]],\
+                                       'swrad'),
                 self.control_file,
                 OPJ(
                     self.working_dir,
@@ -168,6 +170,86 @@ class Optimizer:
 
         print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
+    def pet(self, reference_pet_path, station_nhru, n_sims=10, method='',\
+             nproc=None):
+        '''
+        Optimize the monthly Jenson Haise coefficients (jh_coef) parameters 
+        (a key parameter in the potet_jh et module in PRMS) by one of
+        multiple methods (in development): Monte Carlo default method
+        Future development- implement for other PRMS et modules (e.g. Penmen Monteith) 
+
+        Args:
+            reference_pet_path (str): path to measured pet data
+            station_nhru (int or str): hru index in PRMS that is geographically 
+                near the measured/estimated pet location. TODO: if value
+                if 'basin' then you wish to compare to area-weighted 
+                simulated pet (`basin_potet_1` in PRMS).
+        Kwargs:
+            method (str): XXX not yet implemented- (default-Monte Carlo)
+            n_sims (int): number of simulations to conduct 
+                parameter optimization/uncertaitnty analysis.
+        '''
+        # assign the optimization object a copy of measured pet 
+        self.measured_pet = pd.Series.from_csv(
+            reference_pet_path, parse_dates=True
+        )
+
+        self.pet_hru = station_nhru
+
+        pet_start_time = dt.datetime.now()
+        pet_start_time = pet_start_time.replace(second=0, microsecond=0)
+
+        ## shifting all parameter values by small random amount from normal distribution
+        ## generate parameter set for each simulation
+        jh_coefs = [_resample_param(self.parameters['jh_coef'], Optimizer.jh[0],\
+            Optimizer.jh[1]) for i in range(n_sims)]
+
+        self.data.write(OPJ(self.working_dir, 'data'))
+
+        series = SimulationSeries(
+            Simulation.from_data(
+                self.data, _mod_params(self.parameters, [jh_coefs[i]], 'pet'),
+                self.control_file,
+                OPJ(
+                    self.working_dir,
+                    'jh_coef:{0:.3f}'.format(np.mean(jh_coefs[i]))
+                )
+            )
+            for i in range(n_sims)
+        )
+
+        # run all scenarios
+        outputs = list(series.run(nproc=nproc).outputs_iter())        
+        self.pet_outputs.extend(outputs) 
+
+        pet_end_time = dt.datetime.now()
+        pet_end_time = pet_end_time.replace(second=0, microsecond=0)
+
+        pet_meta = {'stage' : 'pet',
+                     'pet_hru_id' : self.pet_hru,
+                     'optimization_title' : self.title,
+                     'optimization_description' : self.description,
+                     'start_time' : str(pet_start_time),
+                     'end_time' : str(pet_end_time),
+                     'measured_pet' : reference_pet_path,
+                     'sim_dirs' : [],
+                     'original_params' : self.parameters.base_file,
+                     'n_sims' : n_sims
+                    }
+
+        for output in outputs:
+            pet_meta['sim_dirs'].append(output['simulation_dir'])
+        
+        json_outfile = OPJ(self.working_dir, _create_metafile_name(\
+                          self.working_dir, self.title, 'pet'))
+      
+        with open(json_outfile, 'w') as outf:  
+            json.dump(pet_meta, outf, sort_keys = True, indent = 4,\
+                      ensure_ascii = False)
+
+        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
+
+    #TODO: make single plot function that takes stage as input (swrad, pet, flow...)
     def plot_srad_optimization(self, freq='daily', method='time_series',\
                                plot_vars='both', return_fig=False):
         """
@@ -308,7 +390,7 @@ def _create_metafile_name(out_dir, opt_title, stage):
     look for all metadata simulation json files and find out if the
     current simulation is a replicate. Then use that information to 
     build the correct file name for the output json file. The series
-    are typically run in parallelel that is why this step has to be 
+    are typically run in parallel that is why this step has to be 
     done after running multiple simulations from an optimization stage.
 
     Args:
@@ -325,11 +407,11 @@ def _create_metafile_name(out_dir, opt_title, stage):
         'dry_creek' the next json file will be returned as 
         'dry_creek_swrad_opt1.json' and so on with integer increments     
     """
-    swrad_meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
+    meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
     reps = []
     for f in os.listdir(out_dir): 
-        if swrad_meta_re.match(f):
-            nrep = swrad_meta_re.match(f).group(1)
+        if meta_re.match(f):
+            nrep = meta_re.match(f).group(1)
             if nrep == '': 
                 reps.append(0)
             else:
@@ -378,15 +460,16 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1):
         if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
             return tmp
         
-def _mod_params(parameters, intcp, slope):
+def _mod_params(parameters, params, stage):
     # deepcopy was crashing, raising:
     # TypeError: cannot serialize '_io.TextIOWrapper' object
     ret = copy(parameters)
     #print (intcp, slope)
-
-    ret['dday_intcp'] = intcp
-    ret['dday_slope'] = slope
-
+    if stage == 'swrad':
+        ret['dday_intcp'] = params[0]
+        ret['dday_slope'] = params[1]
+    elif stage == 'pet':
+        ret['jh_coef'] = params[0]
     return ret
 
 
