@@ -181,9 +181,9 @@ class Optimizer:
         Args:
             reference_pet_path (str): path to measured pet data
             station_nhru (int or str): hru index in PRMS that is geographically 
-                near the measured/estimated pet location. TODO: if value
-                if 'basin' then you wish to compare to area-weighted 
-                simulated pet (`basin_potet_1` in PRMS).
+                near the measured/estimated pet location. If value
+                is 'basin' then you wish to compare to area-weighted 
+                basin-wide simulated pet (`basin_potet_1` in PRMS).
         Kwargs:
             method (str): XXX not yet implemented- (default-Monte Carlo)
             n_sims (int): number of simulations to conduct 
@@ -212,7 +212,7 @@ class Optimizer:
                 self.control_file,
                 OPJ(
                     self.working_dir,
-                    'jh_coef:{0:.3f}'.format(np.mean(jh_coefs[i]))
+                    'jh_coef:{0:.5f}'.format(np.mean(jh_coefs[i]))
                 )
             )
             for i in range(n_sims)
@@ -249,18 +249,19 @@ class Optimizer:
 
         print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
-    #TODO: make single plot function that takes stage as input (swrad, pet, flow...)
-    def plot_srad_optimization(self, freq='daily', method='time_series',\
-                               plot_vars='both', return_fig=False):
+    def plot_optimization(self, stage, freq='daily', method='time_series',\
+                          plot_vars='both', plot_1to1=True, return_fig=False):
         """
-        Basic plotting of current srad optimization results with limited options. 
-        Plots measured, original simluated, and optimization simulated swrad at 
-        the correspinding HRU either as time series (all three) or scatter (measured
-        versus simulated). Not recommended for plotting results when n_sims, 
-        instead use plotting options from an OptimizationResult object, or employ 
-        a user-defined method using the result data if necessary.
+        Basic plotting of current optimization results with limited options. 
+        Plots measured, original simluated, and optimization simulated variabes
+        either swrad, pet, or streamflow (TODO) depending on stage at the 
+        corresponding HRU or basin-wide scale either as time series (all three) 
+        or scatter (measured versus simulated). Not recommended for plotting 
+        results when n_sims, instead use options from an OptimizationResult 
+        object, or employ a user-defined method using the result data if necessary.
 
         Kwargs:
+            stage (str): stage of optimization to plot (swrad,pet,flow)
             freq (str): frequency of time series plots, value can be 'daily'
                 or 'monthly' for solar radiation 
             method (str): 'time_series' for time series sub plot of each
@@ -273,22 +274,55 @@ class Optimizer:
                 'meas': plot simulated along with measured swrad
                 'orig': plot simulated along with the original simulated swrad
                 'both': plot simulated, with original simulation and measured
+            plot_1to1 (bool): if True plot one to one line on correlation 
+                scatter plot, otherwise exclude.
             return_fig (bool): flag whether to return matplotlib figure 
         Returns: 
             f (matplotlib.figure.Figure): If kwarg return_fig=True, then return
                 copy of the figure that is generated to the user. 
         """
-        if not self.srad_outputs:
-            raise ValueError('You have not run any srad optimizations')
-            
-        # indices that measured and simulated swrad share (the intersection)
-        X = self.measured_srad
-        idx = X.index.intersection(self.srad_outputs[0]['statvar']\
-                          ['swrad_{}'.format(self.srad_hru)].index)
-        X = X[idx]
-        orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['swrad_{}'\
-                            .format(self.srad_hru)][idx]
-        meas = self.measured_srad[idx]
+        #use optimization stage to set plot parameters and get appropriate data
+        if (stage=='swrad'):
+            if not self.srad_outputs:
+                raise ValueError('You have not run any srad optimizations')
+            if self.srad_hru == 'basin': 
+                pet_srad_name = 'basin_swrad_1'
+            else: 
+                srad_var_name = 'swrad_{}'.format(self.srad_hru)
+            #indices that measured and simulated share (intersection)
+            X = self.measured_srad
+            idx = X.index.intersection(self.srad_outputs[0]['statvar']\
+                              ['{}_{}'.format(stage, self.srad_hru)].index)
+            X = X[idx]
+            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
+                                .format(srad_var_name)][idx]
+            meas = self.measured_srad[idx]
+            sims = [out['statvar']['{}'.format(srad_var_name)][idx] for \
+                    out in self.srad_outputs]
+            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
+                       for out in self.srad_outputs]
+            var_name = 'shortwave radiation'
+            n = len(self.srad_outputs) # number of simulations to plot
+        elif (stage=='pet'):
+            if not self.pet_outputs:
+                raise ValueError('You have not run any pet optimizations')
+            if self.pet_hru == 'basin': 
+                pet_var_name = 'basin_potet_1'
+            else: 
+                pet_var_name = 'potet_{}'.format(self.pet_hru)
+            X = self.measured_pet
+            idx = X.index.intersection(self.pet_outputs[0]['statvar']\
+                              ['{}'.format(pet_var_name)].index)
+            X = X[idx]
+            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
+                                .format(pet_var_name)][idx]
+            meas = self.measured_pet[idx]
+            sims = [out['statvar']['{}'.format(pet_var_name)][idx] for \
+                    out in self.pet_outputs]
+            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
+                       for out in self.pet_outputs]
+            var_name = 'potential ET'
+            n = len(self.pet_outputs) # number of simulations to plot
         # styles for each plot
         ms = 4 # markersize for all points
         orig_sty = dict(linestyle='none',markersize=ms,\
@@ -300,7 +334,6 @@ class Optimizer:
         sim_sty = dict(linestyle='none',markersize=ms,\
                            markerfacecolor='none', marker='o',\
                            markeredgecolor='r', color='r') 
-        n = len(self.srad_outputs) # number of simulations to plot
         ## number of subplots and rows (two plots per row) 
         nrow = n//2 # round down if odd n
         ncol = 2
@@ -315,19 +348,17 @@ class Optimizer:
             fig, ax = plt.subplots(n, sharex=True, sharey=True,\
                                    figsize=(12,n*3.5))
             axs = ax.ravel()
-            for i,out in enumerate(self.srad_outputs):
+            for i,sim in enumerate(sims):
                 if plot_vars in ('meas', 'both'):
                     axs[i].plot(meas, label='Measured', **meas_sty)
                 if plot_vars in ('orig', 'both'):
                     axs[i].plot(orig, label='Original sim.', **orig_sty)
-                axs[i].plot(out['statvar']['swrad_{}'.format(self.srad_hru)]\
-                       [idx], **sim_sty)
-                axs[i].set_ylabel('sim: {}'.format(out['simulation_dir'].\
-                       split(os.sep)[-1].replace('_', ' ')), fontsize=10)
+                axs[i].plot(sim, **sim_sty)
+                axs[i].set_ylabel('sim: {}'.format(simdirs[i]), fontsize=10)
                 if i == 0: axs[i].legend(markerscale=5, loc='best')
             fig.subplots_adjust(hspace=0)
             fig.autofmt_xdate()
-
+        #monthly means
         elif freq == 'monthly' and method == 'time_series':
             # compute monthly means
             meas = meas.groupby(meas.index.month).mean()
@@ -339,22 +370,21 @@ class Optimizer:
 
             fig, ax = plt.subplots(nrows=nrow, ncols=ncol, figsize=(12,n*3.5))
             axs = ax.ravel()
-            for i,out in enumerate(self.srad_outputs):
+            for i,sim in enumerate(sims):
                 if plot_vars in ('meas', 'both'):
                     axs[i].plot(meas, label='Measured', **meas_sty)
                 if plot_vars in ('orig', 'both'):
                     axs[i].plot(orig, label='Original sim.', **orig_sty)
-                sim = out['statvar']['swrad_{}'.format(self.srad_hru)][idx]
                 sim = sim.groupby(sim.index.month).mean()
                 axs[i].plot(sim, **sim_sty)
-                axs[i].set_ylabel('sim: {}\nmean swrad'.format(out['simulation_dir'].\
-                       split(os.sep)[-1].replace('_', ' ')), fontsize=10)
+                axs[i].set_ylabel('sim: {}\nmean {}'.format(simdirs[i], stage),\
+                                  fontsize=10)
                 axs[i].set_xlim(0.5,12.5)
                 if i == 0: axs[i].legend(markerscale=5, loc='best')
             if odd_n: # empty subplot if odd number of simulations 
                 fig.delaxes(axs[n])
             fig.text(0.5, 0.1, 'month') 
-
+        #x-y scatter
         elif method == 'correlation':
             ## figure
             fig, ax = plt.subplots(nrows=nrow, ncols=ncol, figsize=(12,n*3))
@@ -363,18 +393,18 @@ class Optimizer:
             meas_min = min(X) 
             meas_max = max(X)
             
-            for i, out in enumerate(self.srad_outputs):
-                Y = out['statvar']['swrad_{}'.format(self.srad_hru)][idx]
+            for i, sim in enumerate(sims):
+                Y = sim
                 sim_max = max(Y)
                 sim_min = min(Y)
                 m = max(meas_max,sim_max)
-                axs[i].plot([0, m], [0, m], 'k--', lw=2) ## one to one line
+                if plot_1to1:
+                    axs[i].plot([0, m], [0, m], 'k--', lw=2) ## one to one line
                 axs[i].set_xlim(meas_min,meas_max)
                 axs[i].set_ylim(sim_min, sim_max)
                 axs[i].plot(X, Y, **sim_sty)
-                axs[i].set_ylabel('sim: {}'.format(out['simulation_dir']\
-                      .split(os.sep)[-1].replace('_', ' ')))
-                axs[i].set_xlabel('Measured shortwave radiation')
+                axs[i].set_ylabel('sim: {}'.format(simdirs[i]))
+                axs[i].set_xlabel('Measured {}'.format(var_name))
                 axs[i].text(0.05, 0.95,r'$R^2 = {0:.2f}$'.format(\
                             X.corr(Y)**2), fontsize=16,\
                             ha='left', va='center', transform=axs[i].transAxes)  
