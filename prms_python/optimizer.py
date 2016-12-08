@@ -9,7 +9,7 @@ import datetime as dt
 import os, sys, json, re
 
 from copy import copy
-#from copy import deepcopy
+from copy import deepcopy
 from numpy import log10
 
 from .data import Data
@@ -39,11 +39,12 @@ class Optimizer:
     >>> optr.srad('path/to/reference_data/measured_srad.csv', srad_hru)
 
     '''
-    
-    ## constant attributes for allowable range of select PRMS parameters
-    ir = (-60.0, 10.0) # PRMS dday_intcp range
-    sr = (0.2, 0.9) # dday_slope range
-    jh = (0.005, 0.06) # jh_coef range
+        
+    #dic for min/max of parameter allowable ranges, add more when needed
+    param_ranges = {'dday_intcp': (-60.0, 10.0), 'dday_slope': (0.2, 0.9),\
+                    'jh_coef': (0.005, 0.06), 'pt_alpha': (1.0, 2.0), \
+                    'potet_coef_hru_mo': (1.0, 2.0)\
+                    } 
 
     def __init__(self, parameters, data, control_file, working_dir,
                  title, description=None):
@@ -83,7 +84,7 @@ class Optimizer:
         self.pet_hru = None
 
     def srad(self, reference_srad_path, station_nhru, n_sims=10, method='',\
-             nproc=None):
+             srad_mod='ddsolrad', nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters 
         (two key parameters in the ddsolrad module in PRMS) by one of
@@ -92,9 +93,9 @@ class Optimizer:
         Args:
             reference_srad_path (str): path to measured solar radiation data
             station_nhru (int): hru index in PRMS that is geographically 
-                near the measured solar radiation location. You must
+                near the measured solar radiation location. Must
                 have swrad 'nhru' listed as a statvar output in your 
-                control file.
+                control file. If 'basin' then statvar variable 'basin_swrad_1'
         Kwargs:
             method (str): XXX not yet implemented- 
             n_sims (int): number of simulations to conduct 
@@ -104,31 +105,35 @@ class Optimizer:
         self.measured_srad = pd.Series.from_csv(
             reference_srad_path, parse_dates=True
         )
-
-        self.srad_hru = station_nhru
+        # for retrieving statistical variable output at basin or hru scale 
+        if station_nhru == 'basin': 
+            self.srad_hru = 'basin_swrad_1' 
+        else: # get variable at a specific hru
+            self.srad_hru = 'swrad_{}'.format(station_hru)
 
         srad_start_time = dt.datetime.now()
         srad_start_time = srad_start_time.replace(second=0, microsecond=0)
 
         ## shifting all monthly values by random amount from uniform distribution
         ## resampling degree day slope and intercept simoultaneously
-        intcps = [_resample_param(self.parameters['dday_intcp'], Optimizer.ir[0],\
-            Optimizer.ir[1]) for i in range(n_sims)]
-
-        slopes = [_resample_param(self.parameters['dday_slope'], Optimizer.sr[0],\
-            Optimizer.sr[1]) for i in range(n_sims)]
-
+        if srad_mod == 'ddsolrad':
+            param_names = ['dday_intcp', 'dday_slope'] 
+            intcps = [resample_param(self.parameters, 'dday_intcp') for i in range(n_sims)]
+            slopes = [resample_param(self.parameters, 'dday_slope') for i in range(n_sims)] 
+            params = [intcps, slopes]
+            
         self.data.write(OPJ(self.working_dir, 'data'))
 
+        # TODO: better file naming for output folders
         series = SimulationSeries(
             Simulation.from_data(
                 self.data, _mod_params(self.parameters, [intcps[i], slopes[i]],\
-                                       'swrad'),
+                                       'swrad', srad_mod),
                 self.control_file,
                 OPJ(
                     self.working_dir,
-                    'intcp:{0:.3f}_slope:{1:.3f}'.format(np.mean(intcps[i]),\
-                                                         np.mean(slopes[i]))
+                    'intcp:{0:.3f}_slope:{1:.3f}'.format(np.mean(params[0][i]),\
+                                                         np.mean(params[1][i]))
                 )
             )
             for i in range(n_sims)
@@ -147,6 +152,7 @@ class Optimizer:
             return ret
 
         srad_meta = {'stage' : 'swrad',
+                     'params_adjusted' : param_names,
                      'swrad_hru_id' : self.srad_hru,
                      'optimization_title' : self.title,
                      'optimization_description' : self.description,
@@ -170,13 +176,11 @@ class Optimizer:
 
         print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
 
-    def pet(self, reference_pet_path, station_nhru, n_sims=10, method='',\
-             nproc=None):
+    def pet(self, reference_pet_path, station_nhru, n_sims=10,\
+             pet_mod='potet_pt', method='', nproc=None):
         '''
-        Optimize the monthly Jenson Haise coefficients (jh_coef) parameters 
-        (a key parameter in the potet_jh et module in PRMS) by one of
-        multiple methods (in development): Monte Carlo default method
-        Future development- implement for other PRMS et modules (e.g. Penmen Monteith) 
+        Optimize the monthly coefficients (depending on module) parameters 
+        by one of multiple methods (in development): Monte Carlo default method
 
         Args:
             reference_pet_path (str): path to measured pet data
@@ -194,25 +198,33 @@ class Optimizer:
             reference_pet_path, parse_dates=True
         )
 
-        self.pet_hru = station_nhru
+        if station_nhru == 'basin': 
+            self.pet_hru = 'basin_potet_1' 
+        else: # get variable at a specific hru
+            self.pet_hru = 'potet_{}'.format(station_hru)
 
+        if pet_mod == 'potet_pt':
+            param_names = ['potet_coef_hru_mo'] 
+            params = [resample_param(self.parameters, 'potet_coef_hru_mo')\
+                      for i in range(n_sims)]
+        elif pet_mod == 'potet_jh':
+            param_names = ['jh_coef']
+            params = [resample_param(self.parameters, 'jh_coef') for i in range(n_sims)]
+
+        
         pet_start_time = dt.datetime.now()
         pet_start_time = pet_start_time.replace(second=0, microsecond=0)
 
-        ## shifting all parameter values by small random amount from normal distribution
         ## generate parameter set for each simulation
-        jh_coefs = [_resample_param(self.parameters['jh_coef'], Optimizer.jh[0],\
-            Optimizer.jh[1]) for i in range(n_sims)]
-
-        self.data.write(OPJ(self.working_dir, 'data'))
+        #self.data.write(OPJ(self.working_dir, 'data'))
 
         series = SimulationSeries(
             Simulation.from_data(
-                self.data, _mod_params(self.parameters, [jh_coefs[i]], 'pet'),
+                self.data, _mod_params(self.parameters, [params[i]], 'pet', pet_mod),
                 self.control_file,
                 OPJ(
                     self.working_dir,
-                    'jh_coef:{0:.5f}'.format(np.mean(jh_coefs[i]))
+                    '{0}:{1:.5f}'.format('_'.join(param_names), np.mean(params[i]))
                 )
             )
             for i in range(n_sims)
@@ -226,6 +238,7 @@ class Optimizer:
         pet_end_time = pet_end_time.replace(second=0, microsecond=0)
 
         pet_meta = {'stage' : 'pet',
+                     'params_adjusted' : param_names,
                      'pet_hru_id' : self.pet_hru,
                      'optimization_title' : self.title,
                      'optimization_description' : self.description,
@@ -285,44 +298,41 @@ class Optimizer:
         if (stage=='swrad'):
             if not self.srad_outputs:
                 raise ValueError('You have not run any srad optimizations')
-            if self.srad_hru == 'basin': 
-                pet_srad_name = 'basin_swrad_1'
-            else: 
-                srad_var_name = 'swrad_{}'.format(self.srad_hru)
+            var_name = self.srad_hru
             #indices that measured and simulated share (intersection)
             X = self.measured_srad
             idx = X.index.intersection(self.srad_outputs[0]['statvar']\
                               ['{}_{}'.format(stage, self.srad_hru)].index)
             X = X[idx]
             orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
-                                .format(srad_var_name)][idx]
+                                .format(var_name)][idx]
             meas = self.measured_srad[idx]
-            sims = [out['statvar']['{}'.format(srad_var_name)][idx] for \
-                    out in self.srad_outputs]
+            sims = [out['statvar']['{}'.format(var_name)][idx] for \
+                    out in self.srad_outputs] # list of pd.Series
             simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
-                       for out in self.srad_outputs]
+                       for out in self.srad_outputs] # names from simulation dirs
             var_name = 'shortwave radiation'
             n = len(self.srad_outputs) # number of simulations to plot
         elif (stage=='pet'):
             if not self.pet_outputs:
                 raise ValueError('You have not run any pet optimizations')
-            if self.pet_hru == 'basin': 
-                pet_var_name = 'basin_potet_1'
-            else: 
-                pet_var_name = 'potet_{}'.format(self.pet_hru)
+            var_name = self.pet_hru
             X = self.measured_pet
             idx = X.index.intersection(self.pet_outputs[0]['statvar']\
-                              ['{}'.format(pet_var_name)].index)
+                              ['{}'.format(var_name)].index)
             X = X[idx]
             orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
-                                .format(pet_var_name)][idx]
+                                .format(var_name)][idx]
             meas = self.measured_pet[idx]
-            sims = [out['statvar']['{}'.format(pet_var_name)][idx] for \
+            sims = [out['statvar']['{}'.format(var_name)][idx] for \
                     out in self.pet_outputs]
             simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
                        for out in self.pet_outputs]
             var_name = 'potential ET'
             n = len(self.pet_outputs) # number of simulations to plot
+        else:
+            raise ValueError('{} is not a valid optimization stage.'.format(stage))
+
         # styles for each plot
         ms = 4 # markersize for all points
         orig_sty = dict(linestyle='none',markersize=ms,\
@@ -455,19 +465,19 @@ def _create_metafile_name(out_dir, opt_title, stage):
         name = '{}_{}_opt{}.json'.format(opt_title, stage, n)
     return name
 
-def _resample_param(param, p_min, p_max, noise_factor=0.1):
+def resample_param(params, param_name, noise_factor=0.1):
     """
     Resample PRMS parameter by shifting all values by a constant that is 
-    taken from a uniform distribution, where the range of the shift 
+    taken from a uniform distribution, where the range of the uniform 
     values is equal to the difference between the min(max) of the parameter
-    set and the min(max) of the allowable range from PRMS. Next add noise
-    to each parameter element by adding a RV from a normal distribution 
-    with mean 0, sigma = param allowable range / 10.  
+    set and the min(max) of the allowable range from PRMS. For parameters 
+    that have array length <= 366 add noise to each parameter element by 
+    adding a RV from a normal distribution with mean 0, sigma = param 
+    allowable range / 10.  
     
     Args:
-        param (numpy.ndarray): ndarray of parameter to be resampled
-        p_min (float): lower bound of PRMS allowable range for param
-        p_max (float): upper bound of PRMS allowable range for param
+        params (parameters.Parameters): parameter object 
+        param_name (str): name of PRMS parameter to resample
     Kwargs: 
         noise_factor (float): factor to multiply parameter range by, 
             use the result as the standard deviation for the normal rand.
@@ -475,31 +485,94 @@ def _resample_param(param, p_min, p_max, noise_factor=0.1):
             noise facter will result in higher noise added to each param
             element.
     Returns:
-        tmp (numpy.ndarry): ndarray of param after uniform random mean 
-            shift and element-wise noise addition (normal r.v.) 
+        ret (numpy.ndarry): ndarray of param after uniform random mean 
+            shift or element-wise noise addition (normal r.v.) 
     """
+    p_min, p_max = Optimizer.param_ranges.get(param_name,(-1,-1))
     
+    # create dictionary of parameter basic info (not values)
+    param_dic = {param['name']: param for param in params.base_params}
+    if not param_dic.get(param_name):
+        raise KeyError('{} is not a valid parameter'.format(param_name))
+        
+    if p_min == p_max == -1:
+        raise ValueError("""{} has not been added to the dictionary of
+        parameters to resample, add it's allowable min and max value
+        to the param_ranges dictionary in the resample function in
+        Optimizer.py""".format(param_name))
+        
+    dim_case = None
+    nhru = params.dimensions['nhru']
+    ndims = param_dic.get(param_name)['ndims']
+    dimnames = param_dic.get(param_name)['dimnames']
+    length = param_dic.get(param_name)['length']
+    param = params[param_name]
+    
+    # could expand list and check parameter name also e.g. cascade_flg
+    # is a parameter that should not be changed 
+    dims_to_not_change = set(['ncascade','ncascdgw','nreach',\
+                             'nsegment']) 
+    if (len(set.intersection(dims_to_not_change, set(dimnames))) > 0):
+        raise ValueError("""{} should not be resampled as
+                          it relates to the location of cascade flow
+                          parameters.""".format(param_name))
+        
+    # use param info to get dimension info- e.g. if multidimensional
+    if (ndims == 1 and length <= 366):
+        dim_case = 'resample_each_value' # covers anything above one outside of nhru
+    elif (ndims == 1 and length > 366):
+        dim_case = 'resample_all_values_once' # covers nssr, ngw, etc. 
+    elif (ndims == 2 and dimnames[1] == 'nmonths' and \
+          nhru == params.dimensions[dimnames[0]]):
+        dim_case = 'nhru_nmonths'   
+    elif not dim_case:
+        raise ValueError('The {} parameter should not be resampled'.\
+                         format(param_name))        
+#     #testing purposes    
+#     print('name: ', param_name)
+#     print('max_val: ', p_max)
+#     print('min_val: ', p_min)
+#     print('ndims: ', ndims)
+#     print('dimnames: ', dimnames)
+#     print('length: ', length)
+#     print('resample_method: ', dim_case)
+
     low_bnd = p_min - np.min(param) # lowest param value minus allowable min
     up_bnd = p_max - np.max(param)
     s = (p_max - p_min) * noise_factor # stddev noise, default: range*(1/10)  
-    
-    shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
-    ## add noise to each point keeping result within allowable range  
-    while True:
-        tmp = shifted_param + np.random.normal(0,s,size=(np.shape(param)))
-        if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
-            return tmp
-        
-def _mod_params(parameters, params, stage):
+    #do resampling differently based on param dimensions 
+    if dim_case == 'resample_all_values_once': 
+        #uniform RV for shifting all values once
+        shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
+        ret = shifted_param
+    elif dim_case == 'resample_each_value':
+        shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
+        while True:
+            ## add noise to each value from ~N(0,s)
+            tmp = shifted_param + np.random.normal(0,s,size=(np.shape(param)))
+            if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
+                ret = tmp
+                break
+    elif dim_case == 'nhru_nmonths':
+        ret = copy(param)
+        rvs = [np.random.uniform(low=low_bnd, high=up_bnd) for i in range(12)]
+        for month in range(12):
+            ret[month] += rvs[month]
+
+    return ret
+
+def _mod_params(parameters, params, stage, module):
     # deepcopy was crashing, raising:
     # TypeError: cannot serialize '_io.TextIOWrapper' object
     ret = copy(parameters)
     #print (intcp, slope)
-    if stage == 'swrad':
+    if ((stage == 'swrad') and (module=='ddsolrad')):
         ret['dday_intcp'] = params[0]
         ret['dday_slope'] = params[1]
-    elif stage == 'pet':
+    elif ((stage == 'pet') and (module=='potet_jh')):
         ret['jh_coef'] = params[0]
+    elif ((stage == 'pet') and (module=='potet_pt')):
+        ret['potet_coef_hru_mo'] = params[0]
     return ret
 
 
