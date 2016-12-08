@@ -109,7 +109,7 @@ class Optimizer:
         if station_nhru == 'basin': 
             self.srad_hru = 'basin_swrad_1' 
         else: # get variable at a specific hru
-            self.srad_hru = 'swrad_{}'.format(station_hru)
+            self.srad_hru = 'swrad_{}'.format(station_nhru)
 
         srad_start_time = dt.datetime.now()
         srad_start_time = srad_start_time.replace(second=0, microsecond=0)
@@ -298,11 +298,11 @@ class Optimizer:
         if (stage=='swrad'):
             if not self.srad_outputs:
                 raise ValueError('You have not run any srad optimizations')
-            var_name = self.srad_hru
+            var_name = self.srad_hru # name in statvar file 
             #indices that measured and simulated share (intersection)
             X = self.measured_srad
             idx = X.index.intersection(self.srad_outputs[0]['statvar']\
-                              ['{}_{}'.format(stage, self.srad_hru)].index)
+                              ['{}'.format(var_name)].index)
             X = X[idx]
             orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
                                 .format(var_name)][idx]
