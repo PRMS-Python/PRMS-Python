@@ -200,3 +200,29 @@ def nash_sutcliffe(observed, modeled):
     denominator = sum((observed - np.mean(observed))**2)
 
     return 1 - (numerator/denominator)
+
+def percent_bias(observed, modeled):
+    """
+    Calculates percent bias 
+    
+    Arguments:
+        observed (numpy.ndarray): historic observational data
+
+        modeled (numpy.ndarray): model output with matching time index
+    """
+    return 100 * ( sum( modeled - observed ) / sum( observed ) )
+
+
+def rmse(observed, modeled):
+    """
+    Calculates root mean squared error
+    
+    Arguments:
+        observed (numpy.ndarray): historic observational data
+
+        modeled (numpy.ndarray): model output with matching time index
+    """    
+    return np.sqrt( sum((observed - modeled)**2) / len(observed) )
+
+
+
