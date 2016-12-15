@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime as dt
 import os, sys, json, re
+import multiprocessing as mp
 
 from copy import copy
 from copy import deepcopy
@@ -43,7 +44,7 @@ class Optimizer:
     #dic for min/max of parameter allowable ranges, add more when needed
     param_ranges = {'dday_intcp': (-60.0, 10.0), 'dday_slope': (0.2, 0.9),\
                     'jh_coef': (0.005, 0.06), 'pt_alpha': (1.0, 2.0), \
-                    'potet_coef_hru_mo': (1.0, 1.6)\
+                    'potet_coef_hru_mo': (1.0, 1.6), 'tmax_index': (-10.0, 110.0)\
                     } #changed potet max 
 
     def __init__(self, parameters, data, control_file, working_dir,
@@ -82,8 +83,101 @@ class Optimizer:
         self.pet_outputs = []
         self.measured_pet = None
         self.pet_hru = None
+        self.measured_arb = None # for arbitrary output methods
+        self.arb_statvar = None
+        self.arb_outputs = []
 
-    def srad(self, reference_srad_path, station_nhru, n_sims=10, method='',\
+    def monte_carlo(self, reference_path, param_names, statvar_name, stage='custom',\
+                   n_sims=10, method='uniform', noise_factor=0.1, nproc=None):
+        '''
+        Optimize the monthly dday_intcp and dday_slope parameters 
+        (two key parameters in the ddsolrad module in PRMS) by one of
+        multiple methods (in development): Monte Carlo default method
+
+        Args:
+            reference_srad_path (str): path to measured solar radiation data
+            station_nhru (int): hru index in PRMS that is geographically 
+                near the measured solar radiation location. Must
+                have swrad 'nhru' listed as a statvar output in your 
+                control file. If 'basin' then statvar variable 'basin_swrad_1'
+        Kwargs:
+            method (str): XXX not yet implemented- 
+            n_sims (int): number of simulations to conduct 
+                parameter optimization/uncertaitnty analysis.
+        '''
+        # assign the optimization object a copy of measured srad for plots
+        self.measured_arb = pd.Series.from_csv(
+            reference_path, parse_dates=True
+        )
+        # for retrieving statistical variable output at basin or hru scale 
+        self.arb_statvar = statvar_name
+
+        start_time = dt.datetime.now()
+        start_time = start_time.replace(second=0, microsecond=0)
+
+        ## shifting all monthly values by random amount from uniform distribution
+        ## resampling degree day slope and intercept simoultaneously
+
+        params = []
+        for name in param_names: # list of lists of resampled params
+            tmp = []
+            for idx in range(n_sims):
+                tmp.append(resample_param(self.parameters, name, how=method,\
+                                          noise_factor=noise_factor))
+            params.append(list(tmp))
+            
+        # sim dirs named after first resampled param name and mean value
+        series = SimulationSeries(
+            Simulation.from_data(
+                self.data, _mod_params(self.parameters,\
+                                       [params[n][i] for n in range(len(params))],\
+                                       param_names),
+                self.control_file,
+                OPJ(
+                    self.working_dir,
+                    '{0}:{1:.6f}'.format(param_names[0], np.mean(params[0][i]))
+                )
+            )
+            for i in range(n_sims)
+        )
+
+        # run all scenarios
+        outputs = list(series.run(nproc=nproc).outputs_iter())        
+        self.arb_outputs.extend(outputs) 
+
+        end_time = dt.datetime.now()
+        end_time = end_time.replace(second=0, microsecond=0)
+        
+        if not nproc: nproc = mp.cpu_count() // 2        
+
+        meta = { 'params_adjusted' : param_names,
+                 '{}_statvar_name'.format(stage) : self.arb_statvar,
+                 'optimization_title' : self.title,
+                 'optimization_description' : self.description,
+                 'start_time' : str(start_time),
+                 'end_time' : str(end_time),
+                 'measured_{}'.format(stage) : reference_path,
+                 'resample': method,
+                 'sim_dirs' : [],
+                 'stage': '{}'.format(stage),
+                 'original_params' : self.parameters.base_file,
+                 'nproc': nproc,
+                 'n_sims' : n_sims
+               }
+
+        for output in outputs:
+            meta['sim_dirs'].append(output['simulation_dir'])
+        
+        json_outfile = OPJ(self.working_dir, _create_metafile_name(\
+                          self.working_dir, self.title, stage))
+      
+        with open(json_outfile, 'w') as outf:  
+            json.dump(meta, outf, sort_keys = True, indent = 4,\
+                      ensure_ascii = False)
+
+        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
+
+    def srad(self, reference_srad_path, station_nhru, n_sims=10, method='uniform',\
              noise_factor=0.1, srad_mod='ddsolrad', nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters 
@@ -151,21 +245,20 @@ class Optimizer:
         srad_end_time = dt.datetime.now()
         srad_end_time = srad_end_time.replace(second=0, microsecond=0)
 
-        def _error(x, y):
-            ret = abs(log10(x) - log10(y)).dropna()
-            ret = sum(ret)
-            return ret
+        if not nproc: nproc = mp.cpu_count() // 2        
 
         srad_meta = {'stage' : 'swrad',
                      'params_adjusted' : param_names,
-                     'swrad_hru_id' : self.srad_hru,
+                     'swrad_statvar_name' : self.srad_hru,
                      'optimization_title' : self.title,
                      'optimization_description' : self.description,
                      'start_time' : str(srad_start_time),
                      'end_time' : str(srad_end_time),
                      'measured_swrad' : reference_srad_path,
+                     'resample': method,
                      'sim_dirs' : [],
                      'original_params' : self.parameters.base_file,
+                     'nproc': nproc,
                      'n_sims' : n_sims
                     }
 
@@ -239,7 +332,6 @@ class Optimizer:
             for i in range(n_sims)
         )
         
-
         # run all scenarios
         outputs = list(series.run(nproc=nproc).outputs_iter())        
         self.pet_outputs.extend(outputs) 
@@ -247,16 +339,20 @@ class Optimizer:
         pet_end_time = dt.datetime.now()
         pet_end_time = pet_end_time.replace(second=0, microsecond=0)
 
+        if not nproc: nproc = mp.cpu_count() // 2        
+
         pet_meta = {'stage' : 'pet',
                      'params_adjusted' : param_names,
-                     'pet_hru_id' : self.pet_hru,
+                     'pet_statvar_name' : self.pet_hru,
                      'optimization_title' : self.title,
                      'optimization_description' : self.description,
                      'start_time' : str(pet_start_time),
                      'end_time' : str(pet_end_time),
                      'measured_pet' : reference_pet_path,
+                     'resample': method,
                      'sim_dirs' : [],
                      'original_params' : self.parameters.base_file,
+                     'nproc': nproc,
                      'n_sims' : n_sims
                     }
 
@@ -341,6 +437,23 @@ class Optimizer:
                        for out in self.pet_outputs]
             var_name = 'potential ET'
             n = len(self.pet_outputs) # number of simulations to plot
+        elif (stage=='custom'):
+            if not self.arb_outputs:
+                raise ValueError('You have not run any custom optimizations')
+            var_name = self.arb_statvar
+            X = self.measured_arb
+            idx = X.index.intersection(self.arb_outputs[0]['statvar']\
+                               ['{}'.format(var_name)].index)
+            X = X[idx]
+            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
+                                .format(var_name)][idx]
+            meas = self.measured_arb[idx]
+            sims = [out['statvar']['{}'.format(var_name)][idx] for \
+                    out in self.arb_outputs]
+            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
+                       for out in self.arb_outputs]
+            var_name = '{}'.format(self.arb_statvar)
+            n = len(self.arb_outputs) # number of simulations to plot
         else:
             raise ValueError('{} is not a valid optimization stage.'.format(stage))
         # user defined number of subplots from first n_plots results 
@@ -498,7 +611,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
             use the result as the standard deviation for the normal rand.
             variable used to add element wise noise. i.e. higher 
             noise facter will result in higher noise added to each param
-            element.
+            element. Must be > 0.
     Returns:
         ret (numpy.ndarry): ndarray of param after uniform random mean 
             shift or element-wise noise addition (normal r.v.) 
@@ -564,20 +677,14 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
         ret = copy(param)
         if how == 'uniform':
             for i, el in enumerate(param):
-                while True:
-                    low_bnd = p_min - np.min(el) 
-                    up_bnd = p_max - np.max(el)
-                    
-                    tmp = el + np.random.uniform(low=low_bnd, high=up_bnd)
-                    if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
-                        ret[i] = tmp
-                        break
+                low_bnd = p_min - np.min(el) # a,b for uniform RV to add 
+                up_bnd = p_max - np.max(el)
+                ret[i] = el + np.random.uniform(low=low_bnd, high=up_bnd)
         elif how == 'normal':
             for i, el in enumerate(param):
                 while True:
                     low_bnd = p_min - np.min(el) 
                     up_bnd = p_max - np.max(el)
-                    
                     tmp = el + np.random.normal(0, s)
                     if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
                         ret[i] = tmp
@@ -637,7 +744,7 @@ class OptimizationResult:
                               os.listdir(work_dir) if\
                               optr_metafile_re.match(f) ]
         else: 
-            stages = ['swrad', 'pet', 'flow']
+            stages = ['swrad', 'pet', 'flow', 'custom']
             for s in stages:
                 optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.format(s))
                 ret[s] =  [OPJ(work_dir, f) for f in\
@@ -675,7 +782,7 @@ class OptimizationResult:
         first_json = self.metadata_json_paths[stage][0]
         with open(first_json) as json_file:
             json_data = json.load(json_file)
-        var_name = json_data.get('{}_hru_id'.format(stage))
+        var_name = json_data.get('{}_statvar_name'.format(stage))
 
         return var_name
 
@@ -683,7 +790,7 @@ class OptimizationResult:
         ##TODO: add stats for freq options monthly, annual (means or sum)
 
         sim_dirs = self.get_sim_dirs(stage)
-        if top_n >= len(sim_dirs): top_n = len(sim_dirs) - 1
+        if top_n >= len(sim_dirs): top_n = len(sim_dirs) 
         sim_names = [path.split(os.sep)[-1] for path in sim_dirs] 
         meas_var = self.get_measured(stage)
         statvar_name = self.get_statvar_name(stage)
