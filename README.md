@@ -55,6 +55,7 @@ PRMS-Python documentation directory
 git cob new-docs \
     && git add -f docs/build/html \
     && git cm -m"built updated docs" \
+    && git filter-branch -f --prune-empty --subdirectory-filter docs/build/html new-docs \
     && git push -u docs HEAD:new-docs
 ```
 
@@ -68,8 +69,9 @@ First, change directories to the PRMS-Python/docs repository. Then,
 git fetch origin \
     && git checkout new-docs \
     && git push --delete gh-pages \
-    && git push -u origin HEAD:gh-pages |
-    && git push --delete new-docs
+    && git push -u origin HEAD:gh-pages \
+    && git push --delete origin new-docs \
+    && git br -D new-docs
 ```
 
 
