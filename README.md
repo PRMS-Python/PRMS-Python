@@ -52,9 +52,9 @@ of this built html by running the following command from the root of the
 PRMS-Python documentation directory
 
 ```
-git cob new-docs \
+git checkout -b new-docs \
     && git add -f docs/build/html \
-    && git cm -m"built updated docs" \
+    && git commit -m"built updated docs" \
     && git filter-branch -f --prune-empty --subdirectory-filter docs/build/html new-docs \
     && git push -u docs HEAD:new-docs
 ```
@@ -71,7 +71,7 @@ git fetch origin \
     && git push --delete gh-pages \
     && git push -u origin HEAD:gh-pages \
     && git push --delete origin new-docs \
-    && git br -D new-docs
+    && git branch -D new-docs
 ```
 
 
