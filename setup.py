@@ -11,6 +11,7 @@ tests_require = []
 classifiers = [
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.4',    
     'Environment :: Console',
     'Development Status :: 4 - Beta',
     'Topic :: Scientific/Engineering',
@@ -29,6 +30,8 @@ iterative perturbation of one or many parameters. Another example
 "scenario-based" modeling exercise would be climate scenario modeling: what
 will happen to modeled outputs if the input meteorological data were to change?
     ''',
+    author='John Volk and Matthew Turner',
+    author_email='jmvolk@unr.edu',
     license='BSD3',
     version='0.1',
     classifiers=classifiers,
