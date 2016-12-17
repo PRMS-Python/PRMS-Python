@@ -14,6 +14,8 @@ filesystem with metadata. A series of scenarios (``ScenarioSeries``) are stored
 in a single root directory for each new series with metadata for later 
 analysis.
 
+Contact: `John Volk <mailto:johnvolk08@gmail.com>`
+
 
 Install
 -------
