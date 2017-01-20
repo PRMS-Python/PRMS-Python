@@ -14,7 +14,7 @@ filesystem with metadata. A series of scenarios (``ScenarioSeries``) are stored
 in a single root directory for each new series with metadata for later 
 analysis.
 
-Contact: `John Volk <mailto:johnvolk08@gmail.com>`
+Questions or comments? Contact `John Volk <mailto:johnvolk08@gmail.com>`_
 
 
 Install
@@ -25,8 +25,7 @@ Install
 Developer Install
 `````````````````
 
-
-Clone from GitHub
+First, clone from GitHub
 
 .. code-block:: sh
 
@@ -49,6 +48,8 @@ command-line interface to the PRMS-Python tools.
 If instead you would rather get acquainted with the Python API for direct use,
 see the :doc:`tutorial` page for usage recipes and examples, and consult the
 :doc:`api` for more details.
+
+Happy coding, y'all!
 
 
 .. toctree::
