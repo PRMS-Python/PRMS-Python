@@ -33,9 +33,6 @@ class SimulationSeries(object):
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
 
-        # for s in self.series:
-            # s.run()
-
         return self
 
     def outputs_iter(self):

@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy
 import json
 import glob
 import numpy as np
@@ -40,7 +40,7 @@ class TestSimulationSeries(unittest.TestCase):
         base_parameters = Parameters(OPJ(tdd, 'parameters'))
 
         def _copy_mod(base_parameters, val):
-            ret = deepcopy(base_parameters)
+            ret = copy(base_parameters)
             ret['dday_intcp'][:] = val
 
             return ret
@@ -107,7 +107,6 @@ class TestSimulation(unittest.TestCase):
         self.assertIn('prms_ic.out', g)
         self.assertIn('prms.out', g)
         self.assertIn('statvar.dat', g)
-        self.assertIn('animation.out.nhru', g)
 
     def test_simulation_w_simdir(self):
         "Simulation should create sim dir with inputs and outputs directory when simulation_dir is specified"
@@ -154,7 +153,6 @@ class TestSimulation(unittest.TestCase):
         self.assertIn('prms_ic.out', g)
         self.assertIn('prms.out', g)
         self.assertIn('statvar.dat', g)
-        self.assertIn('animation.out.nhru', g)
 
         # clean up
         shutil.rmtree(test_dir)
@@ -178,7 +176,9 @@ class TestScenario(unittest.TestCase):
             shutil.rmtree(self.scenario_dir)
 
     def test_create_scenario(self):
-        """a simulation setup should create a simulation directory with correct scenario data"""
+        """
+        a simulation setup should create a simulation directory with correct scenario data
+        """
 
         s = Scenario(
             self.test_model_data_dir, self.scenario_dir,
@@ -372,7 +372,6 @@ def assert_valid_output_dir(test_case, d):
     test_case.assertIn('prms_ic.out', go)
     test_case.assertIn('prms.out', go)
     test_case.assertIn('statvar.dat', go)
-    test_case.assertIn('animation.out.nhru', go)
 
 
 class TestParameters(unittest.TestCase):

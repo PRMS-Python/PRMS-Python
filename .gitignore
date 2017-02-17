@@ -10,10 +10,6 @@
 **/.ipynb_checkpoints/
 
 venv
-*animation*
-test/data/models/lbcd/prms.out
-test/data/models/lbcd/prms_ic.out
-test/data/models/lbcd/statvar.dat
 notebooks/jupyternb-scenario-series-example/
 docs/build
 
@@ -23,3 +19,14 @@ scripts/
 dry_creek
 **/dry_creek/
 prms_python.egg-info
+
+## test data
+test/data/tmp_scenarios/*
+test/data/models/lbcd/test-sim-dir/*
+*tmp_sim*
+
+test/data/models/lbcd/prms.out
+test/data/models/lbcd/prms_ic.out
+test/data/models/lbcd/statvar.dat
+
+*animation*
