@@ -23,8 +23,8 @@ OPJ = os.path.join
 
 class Optimizer:
     '''
-    Container for a PRMS parameter optimization routine consisting of the
-    four stages as described in Hay, et al, 2006
+    Container for a PRMS parameter optimization routine consisting of 
+    stages similar to what is described in Hay, et al, 2006
     (ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf).
 
     Example:
@@ -36,16 +36,19 @@ class Optimizer:
     >>> work_directory = 'path/to/create/simulations'
     >>> optr = Optimizer(params, data, control, work_directory, \
                title='the title', description='desc')
-    >>> srad_hru = 2490
-    >>> optr.srad('path/to/reference_data/measured_srad.csv', srad_hru)
+    >>> measured = 'path/to/measured/csv' 
+    >>> statvar_name = 'basin_cfs' # or any other valid statvar 
+    >>> params_to_resample = ['dday_intcp', 'dday_slope'] # list
+    >>> optr.monte_carlo(measured, params_to_resample, statvar_name)
 
     '''
         
     #dic for min/max of parameter allowable ranges, add more when needed
     param_ranges = {'dday_intcp': (-60.0, 10.0), 'dday_slope': (0.2, 0.9),\
                     'jh_coef': (0.005, 0.06), 'pt_alpha': (1.0, 2.0), \
-                    'potet_coef_hru_mo': (1.0, 1.6), 'tmax_index': (-10.0, 110.0)\
-                    } #changed potet max 
+                    'potet_coef_hru_mo': (1.0, 1.6), 'tmax_index': \
+                    (-10.0, 110.0)\
+                   } #changed potet max 
 
     def __init__(self, parameters, data, control_file, working_dir,
                  title, description=None):
@@ -63,7 +66,7 @@ class Optimizer:
 
         input_dir = '{}'.format(os.sep).join(control_file.split(os.sep)[:-1])
         if not os.path.isfile(OPJ(input_dir, 'statvar.dat')):
-            print('You have no statvar.dat file in your current model directory')
+            print('You have no statvar.dat file in your model directory')
             print('Running PRMS on original data in {} for later comparison'\
                   .format(input_dir))
             sim = Simulation(input_dir)
@@ -77,86 +80,85 @@ class Optimizer:
         self.working_dir = working_dir
         self.title = title
         self.description = description
-        self.srad_outputs = []
-        self.measured_srad = None
-        self.srad_hru = None 
-        self.pet_outputs = []
-        self.measured_pet = None
-        self.pet_hru = None
         self.measured_arb = None # for arbitrary output methods
-        self.arb_statvar = None
+        self.statvar_name = None
         self.arb_outputs = []
 
-    def monte_carlo(self, reference_path, param_names, statvar_name, stage='custom',\
-                   n_sims=10, method='uniform', noise_factor=0.1, nproc=None):
+    def monte_carlo(self, reference_path, param_names, statvar_name, \
+                    stage, n_sims=10, method='uniform',\
+                    noise_factor=0.1, nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters 
         (two key parameters in the ddsolrad module in PRMS) by one of
         multiple methods (in development): Monte Carlo default method
 
         Args:
-            reference_srad_path (str): path to measured solar radiation data
-            station_nhru (int): hru index in PRMS that is geographically 
-                near the measured solar radiation location. Must
-                have swrad 'nhru' listed as a statvar output in your 
-                control file. If 'basin' then statvar variable 'basin_swrad_1'
+            reference_path (str): path to measured data for optimization
+            param_names (list): list of parameter names to resample
+            statvar_name (str): name of statisical variable output name for
+                optimization 
+            stage (str): custom name of optimization stage e.g. 'ddsolrad' 
         Kwargs:
-            method (str): XXX not yet implemented- 
             n_sims (int): number of simulations to conduct 
                 parameter optimization/uncertaitnty analysis.
+            method (str): resampling method for parameters (normal or uniform)
+            noise_factor (float): scales the variance of noise to add to
+                parameter values when adding normal rv (method='normal')
+            nproc (int): number of processors available to run PRMS simulations
         '''
+        if '_' in stage: 
+            raise ValueError('stage name cannot contain an underscore')
         # assign the optimization object a copy of measured srad for plots
         self.measured_arb = pd.Series.from_csv(
             reference_path, parse_dates=True
         )
-        # for retrieving statistical variable output at basin or hru scale 
-        self.arb_statvar = statvar_name
+        # statistical variable output name  
+        self.statvar_name = statvar_name
 
         start_time = dt.datetime.now()
         start_time = start_time.replace(second=0, microsecond=0)
-
-        ## shifting all monthly values by random amount from uniform distribution
-        ## resampling degree day slope and intercept simoultaneously
-
+        # resample params for all simulations- potential place to serialize
         params = []
-        for name in param_names: # list of lists of resampled params
+        for name in param_names: # create list of lists of resampled params
             tmp = []
             for idx in range(n_sims):
                 tmp.append(resample_param(self.parameters, name, how=method,\
                                           noise_factor=noise_factor))
             params.append(list(tmp))
             
-        # sim dirs named after first resampled param name and mean value
+        # SimulationSeries comprised of each resampled param set
         series = SimulationSeries(
             Simulation.from_data(
                 self.data, _mod_params(self.parameters,\
-                                       [params[n][i] for n in range(len(params))],\
-                                       param_names),
+                                   [params[n][i] for n in range(len(params))],\
+                                   param_names),
                 self.control_file,
                 OPJ(
-                    self.working_dir,
+                    self.working_dir, # name of sim: first param and mean value
                     '{0}:{1:.6f}'.format(param_names[0], np.mean(params[0][i]))
                 )
             )
             for i in range(n_sims)
         )
 
-        # run all scenarios
+        # run 
+        if not nproc: nproc = mp.cpu_count() // 2        
         outputs = list(series.run(nproc=nproc).outputs_iter())        
-        self.arb_outputs.extend(outputs) 
+        self.arb_outputs.extend(outputs) # for current instance- add outputs 
 
         end_time = dt.datetime.now()
         end_time = end_time.replace(second=0, microsecond=0)
         
-        if not nproc: nproc = mp.cpu_count() // 2        
-
+        # json metadata for Monte Carlo method
         meta = { 'params_adjusted' : param_names,
-                 '{}_statvar_name'.format(stage) : self.arb_statvar,
+                 'statvar_name' : self.statvar_name,
                  'optimization_title' : self.title,
                  'optimization_description' : self.description,
                  'start_time' : str(start_time),
                  'end_time' : str(end_time),
-                 'measured_{}'.format(stage) : reference_path,
+                 'measured' : reference_path,
+                 'method' : 'Monte Carlo',
+                 'noise_factor' : noise_factor,
                  'resample': method,
                  'sim_dirs' : [],
                  'stage': '{}'.format(stage),
@@ -167,7 +169,7 @@ class Optimizer:
 
         for output in outputs:
             meta['sim_dirs'].append(output['simulation_dir'])
-        
+       
         json_outfile = OPJ(self.working_dir, _create_metafile_name(\
                           self.working_dir, self.title, stage))
       
@@ -175,213 +177,20 @@ class Optimizer:
             json.dump(meta, outf, sort_keys = True, indent = 4,\
                       ensure_ascii = False)
 
-        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
+        print('{0}\nOutput information sent to {1}\n'.\
+                                               format('-' * 80, json_outfile))
 
-    def srad(self, reference_srad_path, station_nhru, n_sims=10, method='uniform',\
-             noise_factor=0.1, srad_mod='ddsolrad', nproc=None):
-        '''
-        Optimize the monthly dday_intcp and dday_slope parameters 
-        (two key parameters in the ddsolrad module in PRMS) by one of
-        multiple methods (in development): Monte Carlo default method
-
-        Args:
-            reference_srad_path (str): path to measured solar radiation data
-            station_nhru (int): hru index in PRMS that is geographically 
-                near the measured solar radiation location. Must
-                have swrad 'nhru' listed as a statvar output in your 
-                control file. If 'basin' then statvar variable 'basin_swrad_1'
-        Kwargs:
-            method (str): XXX not yet implemented- 
-            n_sims (int): number of simulations to conduct 
-                parameter optimization/uncertaitnty analysis.
-        '''
-        # assign the optimization object a copy of measured srad for plots
-        self.measured_srad = pd.Series.from_csv(
-            reference_srad_path, parse_dates=True
-        )
-        # for retrieving statistical variable output at basin or hru scale 
-        if station_nhru == 'basin': 
-            self.srad_hru = 'basin_swrad_1' 
-        else: # get variable at a specific hru
-            self.srad_hru = 'swrad_{}'.format(station_nhru)
-
-        srad_start_time = dt.datetime.now()
-        srad_start_time = srad_start_time.replace(second=0, microsecond=0)
-
-        ## shifting all monthly values by random amount from uniform distribution
-        ## resampling degree day slope and intercept simoultaneously
-        if srad_mod == 'ddsolrad':
-            param_names = ['dday_intcp', 'dday_slope'] 
-
-        params = []
-        for name in param_names: # list of lists of resampled params
-            tmp = []
-            for idx in range(n_sims):
-                tmp.append(resample_param(self.parameters, name, how=method,\
-                                          noise_factor=noise_factor))
-            params.append(list(tmp))
-            
-        self.data.write(OPJ(self.working_dir, 'data'))
-
-        # sim dirs named after first resampled param name and mean value
-        series = SimulationSeries(
-            Simulation.from_data(
-                self.data, _mod_params(self.parameters,\
-                                       [params[n][i] for n in range(len(params))],\
-                                       param_names),
-                self.control_file,
-                OPJ(
-                    self.working_dir,
-                    '{0}:{1:.6f}'.format(param_names[0], np.mean(params[0][i]))
-                )
-            )
-            for i in range(n_sims)
-        )
-
-        # run all scenarios
-        outputs = list(series.run(nproc=nproc).outputs_iter())        
-        self.srad_outputs.extend(outputs) 
-
-        srad_end_time = dt.datetime.now()
-        srad_end_time = srad_end_time.replace(second=0, microsecond=0)
-
-        if not nproc: nproc = mp.cpu_count() // 2        
-
-        srad_meta = {'stage' : 'swrad',
-                     'params_adjusted' : param_names,
-                     'swrad_statvar_name' : self.srad_hru,
-                     'optimization_title' : self.title,
-                     'optimization_description' : self.description,
-                     'start_time' : str(srad_start_time),
-                     'end_time' : str(srad_end_time),
-                     'measured_swrad' : reference_srad_path,
-                     'resample': method,
-                     'sim_dirs' : [],
-                     'original_params' : self.parameters.base_file,
-                     'nproc': nproc,
-                     'n_sims' : n_sims
-                    }
-
-        for output in outputs:
-            srad_meta['sim_dirs'].append(output['simulation_dir'])
-        
-        json_outfile = OPJ(self.working_dir, _create_metafile_name(\
-                          self.working_dir, self.title, 'swrad'))
-      
-        with open(json_outfile, 'w') as outf:  
-            json.dump(srad_meta, outf, sort_keys = True, indent = 4,\
-                      ensure_ascii = False)
-
-        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
-
-    def pet(self, reference_pet_path, station_nhru, n_sims=10,\
-             pet_mod='potet_pt', method='uniform', noise_factor=0.1, nproc=None):
-        '''
-        Optimize the monthly coefficients (depending on module) parameters 
-        by one of multiple methods (in development): Monte Carlo default method
-
-        Args:
-            reference_pet_path (str): path to measured pet data
-            station_nhru (int or str): hru index in PRMS that is geographically 
-                near the measured/estimated pet location. If value
-                is 'basin' then you wish to compare to area-weighted 
-                basin-wide simulated pet (`basin_potet_1` in PRMS).
-        Kwargs:
-            method (str): XXX not yet implemented- (default-Monte Carlo)
-            n_sims (int): number of simulations to conduct 
-                parameter optimization/uncertaitnty analysis.
-        '''
-        # assign the optimization object a copy of measured pet 
-        self.measured_pet = pd.Series.from_csv(
-            reference_pet_path, parse_dates=True
-        )
-
-        if station_nhru == 'basin': 
-            self.pet_hru = 'basin_potet_1' 
-        else: # get variable at a specific hru
-            self.pet_hru = 'potet_{}'.format(station_hru)
-
-        pet_start_time = dt.datetime.now()
-        pet_start_time = pet_start_time.replace(second=0, microsecond=0)
-
-        if pet_mod == 'potet_pt':
-            param_names = ['potet_coef_hru_mo'] 
-        elif pet_mod == 'potet_jh':
-            param_names = ['jh_coef']
-        # list of lists of resampled params
-        params = []
-        for name in param_names: 
-            tmp = []
-            for idx in range(n_sims):
-                tmp.append(resample_param(self.parameters, name, how=method,\
-                                          noise_factor=noise_factor))
-            params.append(list(tmp))
-            
-        # sim dirs named after first resampled param name and mean value
-        series = SimulationSeries(
-            Simulation.from_data(
-                self.data, _mod_params(self.parameters,\
-                                       [params[n][i] for n in range(len(params))],\
-                                       param_names),
-                self.control_file,
-                OPJ(
-                    self.working_dir,
-                    '{0}:{1:.6f}'.format(param_names[0], np.mean(params[0][i]))
-                )
-            )
-            for i in range(n_sims)
-        )
-        
-        # run all scenarios
-        outputs = list(series.run(nproc=nproc).outputs_iter())        
-        self.pet_outputs.extend(outputs) 
-
-        pet_end_time = dt.datetime.now()
-        pet_end_time = pet_end_time.replace(second=0, microsecond=0)
-
-        if not nproc: nproc = mp.cpu_count() // 2        
-
-        pet_meta = {'stage' : 'pet',
-                     'params_adjusted' : param_names,
-                     'pet_statvar_name' : self.pet_hru,
-                     'optimization_title' : self.title,
-                     'optimization_description' : self.description,
-                     'start_time' : str(pet_start_time),
-                     'end_time' : str(pet_end_time),
-                     'measured_pet' : reference_pet_path,
-                     'resample': method,
-                     'sim_dirs' : [],
-                     'original_params' : self.parameters.base_file,
-                     'nproc': nproc,
-                     'n_sims' : n_sims
-                    }
-
-        for output in outputs:
-            pet_meta['sim_dirs'].append(output['simulation_dir'])
-        
-        json_outfile = OPJ(self.working_dir, _create_metafile_name(\
-                          self.working_dir, self.title, 'pet'))
-      
-        with open(json_outfile, 'w') as outf:  
-            json.dump(pet_meta, outf, sort_keys = True, indent = 4,\
-                      ensure_ascii = False)
-
-        print('{0}\nOutput information sent to {1}\n'.format('-' * 80, json_outfile))
-
-    def plot_optimization(self, stage, freq='daily', method='time_series',\
+    def plot_optimization(self, freq='daily', method='time_series',\
                           plot_vars='both', plot_1to1=True, return_fig=False,\
                           n_plots=4):
         """
         Basic plotting of current optimization results with limited options. 
         Plots measured, original simluated, and optimization simulated variabes
-        either swrad, pet, or streamflow (TODO) depending on stage at the 
-        corresponding HRU or basin-wide scale either as time series (all three) 
-        or scatter (measured versus simulated). Not recommended for plotting 
-        results when n_sims, instead use options from an OptimizationResult 
-        object, or employ a user-defined method using the result data if necessary.
+        Not recommended for plotting results when n_sims is very large, instead 
+        use options from an OptimizationResult object, or employ a user-defined 
+        method using the result data.
 
         Kwargs:
-            stage (str): stage of optimization to plot (swrad,pet,flow)
             freq (str): frequency of time series plots, value can be 'daily'
                 or 'monthly' for solar radiation 
             method (str): 'time_series' for time series sub plot of each
@@ -401,61 +210,22 @@ class Optimizer:
             f (matplotlib.figure.Figure): If kwarg return_fig=True, then return
                 copy of the figure that is generated to the user. 
         """
-        #use optimization stage to set plot parameters and get appropriate data
-        if (stage=='swrad'):
-            if not self.srad_outputs:
-                raise ValueError('You have not run any srad optimizations')
-            var_name = self.srad_hru # name in statvar file 
-            #indices that measured and simulated share (intersection)
-            X = self.measured_srad
-            idx = X.index.intersection(self.srad_outputs[0]['statvar']\
-                              ['{}'.format(var_name)].index)
-            X = X[idx]
-            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
-                                .format(var_name)][idx]
-            meas = self.measured_srad[idx]
-            sims = [out['statvar']['{}'.format(var_name)][idx] for \
-                    out in self.srad_outputs] # list of pd.Series
-            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
-                       for out in self.srad_outputs] # names from simulation dirs
-            var_name = 'shortwave radiation'
-            n = len(self.srad_outputs) # number of simulations to plot
-        elif (stage=='pet'):
-            if not self.pet_outputs:
-                raise ValueError('You have not run any pet optimizations')
-            var_name = self.pet_hru
-            X = self.measured_pet
-            idx = X.index.intersection(self.pet_outputs[0]['statvar']\
-                              ['{}'.format(var_name)].index)
-            X = X[idx]
-            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
-                                .format(var_name)][idx]
-            meas = self.measured_pet[idx]
-            sims = [out['statvar']['{}'.format(var_name)][idx] for \
-                    out in self.pet_outputs]
-            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
-                       for out in self.pet_outputs]
-            var_name = 'potential ET'
-            n = len(self.pet_outputs) # number of simulations to plot
-        elif (stage=='custom'):
-            if not self.arb_outputs:
-                raise ValueError('You have not run any custom optimizations')
-            var_name = self.arb_statvar
-            X = self.measured_arb
-            idx = X.index.intersection(self.arb_outputs[0]['statvar']\
-                               ['{}'.format(var_name)].index)
-            X = X[idx]
-            orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
-                                .format(var_name)][idx]
-            meas = self.measured_arb[idx]
-            sims = [out['statvar']['{}'.format(var_name)][idx] for \
-                    out in self.arb_outputs]
-            simdirs = [out['simulation_dir'].split(os.sep)[-1].replace('_', ' ')\
-                       for out in self.arb_outputs]
-            var_name = '{}'.format(self.arb_statvar)
-            n = len(self.arb_outputs) # number of simulations to plot
-        else:
-            raise ValueError('{} is not a valid optimization stage.'.format(stage))
+        if not self.arb_outputs:
+            raise ValueError('You have not run any optimizations')
+        var_name = self.statvar_name
+        X = self.measured_arb
+        idx = X.index.intersection(self.arb_outputs[0]['statvar']\
+                           ['{}'.format(var_name)].index)
+        X = X[idx]
+        orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
+                            .format(var_name)][idx]
+        meas = self.measured_arb[idx]
+        sims = [out['statvar']['{}'.format(var_name)][idx] for \
+                out in self.arb_outputs]
+        simdirs = [out['simulation_dir'].split(os.sep)[-1].\
+                   replace('_', ' ') for out in self.arb_outputs]
+        var_name = '{}'.format(self.statvar_name)
+        n = len(self.arb_outputs) # number of simulations to plot
         # user defined number of subplots from first n_plots results 
         if (n > n_plots): n = n_plots  
         # styles for each plot
@@ -512,7 +282,7 @@ class Optimizer:
                     axs[i].plot(orig, label='Original sim.', **orig_sty)
                 sim = sim.groupby(sim.index.month).mean()
                 axs[i].plot(sim, **sim_sty)
-                axs[i].set_ylabel('sim: {}\nmean {}'.format(simdirs[i], stage),\
+                axs[i].set_ylabel('sim: {}\nmean'.format(simdirs[i]),\
                                   fontsize=10)
                 axs[i].set_xlim(0.5,12.5)
                 if i == 0: axs[i].legend(markerscale=5, loc='best')
@@ -647,7 +417,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
         
     # use param info to get dimension info- e.g. if multidimensional
     if (ndims == 1 and length <= 366):
-        dim_case = 'resample_each_value' # covers anything above one outside of nhru
+        dim_case = 'resample_each_value' # for smaller param dimensions
     elif (ndims == 1 and length > 366):
         dim_case = 'resample_all_values_once' # covers nssr, ngw, etc. 
     elif (ndims == 2 and dimnames[1] == 'nmonths' and \
@@ -670,9 +440,16 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
     s = (p_max - p_min) * noise_factor # variance noise, default: range*(1/10)  
     #do resampling differently based on param dimensions 
     if dim_case == 'resample_all_values_once': 
-        #uniform RV for shifting all values once
-        shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
-        ret = shifted_param
+        if how == 'uniform':
+            #uniform RV for shifting all values once
+            shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
+            ret = shifted_param
+        elif how == 'normal':
+            while True:
+                tmp = np.random.normal(0, s, size=param.shape) + param
+                if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
+                    ret = tmp
+                    break
     elif dim_case == 'resample_each_value':
         ret = copy(param)
         if how == 'uniform':
@@ -689,18 +466,27 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
                     if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
                         ret[i] = tmp
                         break
-        
+    # nhru by nmonth dimensional params
     elif dim_case == 'nhru_nmonths':
         ret = copy(param)
-        rvs = [np.random.uniform(low=low_bnd, high=up_bnd) for i in range(12)]
-        for month in range(12):
-            ret[month] += rvs[month]
+        if how == 'uniform':
+            rvs = [np.random.uniform(low=low_bnd, high=up_bnd)\
+                   for i in range(12)]
+            for month in range(12):
+                ret[month] += rvs[month]
+        elif how == 'normal':
+            for i, el in enumerate(param):
+                while True:
+                    low_bnd = p_min - np.min(el) 
+                    up_bnd = p_max - np.max(el)
+                    tmp = el + np.random.normal(0, s)
+                    if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
+                        ret[i] = tmp
+                        break
 
     return ret
 
 def _mod_params(parameters, params, param_names):
-    # deepcopy was crashing, raising:
-    # TypeError: cannot serialize '_io.TextIOWrapper' object
     ret = copy(parameters)
     for idx, param in enumerate(params):
         ret[param_names[idx]] = param
@@ -709,48 +495,66 @@ def _mod_params(parameters, params, param_names):
 
 class OptimizationResult:
     
-    def __init__(self, working_dir, stage='all'):
+    def __init__(self, working_dir, stage):
         self.working_dir = working_dir 
         self.stage = stage
-        self.metadata_json_paths = self.get_optr_jsons(working_dir, stage)     
-        self.meas_swrad = self.get_measured('swrad')
-        self.meas_pet = self.get_measured('pet')
-        self.swrad_statvar_name = self.get_statvar_name('swrad')
-        self.pet_statvar_name = self.get_statvar_name('pet')
+        self.metadata_json_paths = self._get_optr_jsons(working_dir, stage)     
+        self.statvar_name = self.get_statvar_name(stage)
+        self.measured = self.get_measured(stage)
+        self.input_dir = self._get_input_dir(stage)
+        self.input_params = self._get_input_params(stage)
 
-    def get_optr_jsons(self, work_dir, stage):
+        # if there are more than one input param for given stage
+        if len(self.input_params) > 1:
+            print(
+"""Warning: there were more than one initial parameter sets used for the 
+    optimization for stage: {}. Make sure to compare the the correct input 
+    params with their corresponding output sims.""".format(stage))
+            print('\nThis optimization stage used the\
+ following input parameter files:\n{}'.format('\n'.join(self.input_params)))
+
+    def _get_optr_jsons(self, work_dir, stage):
         """
         Retrieve locations of optimization output jsons which contain 
-        important metadata needed to understand optimization results.
-        Create dictionary of each optimization stage as keys, and lists
-        of corresponding json file paths for each stage as values. 
+        metadata needed to understand optimization results.
+        Create dictionary of each optimization with stage as key and lists
+        of corresponding json file paths as values. 
 
         Arguments:
             work_dir (str): path to directory with model results, i.e. 
                 location where simulation series outputs and optimization
                 json files are located, aka Optimizer.working_dir
-            stage (str): the stage ('swrad', 'pet', 'flow', etc.) of 
-                the optimization in which to gather the jsons, if
-                stage is 'all' then each stage will be gathered.
+            stage (str): the stage ('ddsolrad', 'jhpet', 'flow', etc.) of 
+                the optimization in which to gather the jsons
         Returns:
             ret (dict): dictionary of stage (keys) and lists of 
                 json file paths for that stage (values).  
         """
 
         ret = {}
-        if stage != 'all':
-            optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.format(stage))
-            ret[stage] = [OPJ(work_dir, f) for f in\
-                              os.listdir(work_dir) if\
-                              optr_metafile_re.match(f) ]
-        else: 
-            stages = ['swrad', 'pet', 'flow', 'custom']
-            for s in stages:
-                optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.format(s))
-                ret[s] =  [OPJ(work_dir, f) for f in\
-                               os.listdir(work_dir) if\
-                               optr_metafile_re.match(f) ]
+        optr_metafile_re = re.compile(r'^.*_{}_opt(\d*)\.json'.\
+                                      format(stage))
+        ret[stage] = [OPJ(work_dir, f) for f in\
+                          os.listdir(work_dir) if\
+                          optr_metafile_re.match(f)]
         return ret
+
+    def _get_input_dir(self, stage):
+        # retrieves the input directory from the first json file of given stage
+        json_file = self.metadata_json_paths[stage][0]
+        with open(json_file) as jf:
+            meta_dic = json.load(jf)
+        return '{}'.format(os.sep).join(meta_dic['original_params'].\
+                                                            split(os.sep)[:-1]) 
+
+    def _get_input_params(self, stage):
+        json_files = self.metadata_json_paths[stage]
+        param_paths = []
+        for json_file in json_files:
+            with open(json_file) as jf:
+                meta_dic = json.load(jf)
+                param_paths.append(meta_dic['original_params'])
+        return list(set(param_paths))
 
     def get_sim_dirs(self, stage):
         jsons = self.metadata_json_paths[stage]
@@ -771,29 +575,31 @@ class OptimizationResult:
         first_json = self.metadata_json_paths[stage][0]
         with open(first_json) as json_file:
             json_data = json.load(json_file)
-        measured_series = pd.Series.from_csv(json_data.get('measured_{}'.\
-                                            format(stage)), parse_dates=True)
+        measured_series = pd.Series.from_csv(json_data.get('measured'),\
+                                             parse_dates=True)
         return measured_series 
 
     def get_statvar_name(self, stage):
         # only need to open one json file to get this information
-        if not self.metadata_json_paths.get(stage):
-            return # no optimization json files exist for given stage
-        first_json = self.metadata_json_paths[stage][0]
+        try:
+            first_json = self.metadata_json_paths[stage][0]
+        except:
+            raise ValueError("""No optimizatin has been run for
+                              stage: {}""".format(stage))    
         with open(first_json) as json_file:
             json_data = json.load(json_file)
-        var_name = json_data.get('{}_statvar_name'.format(stage))
+        var_name = json_data.get('statvar_name')
 
         return var_name
 
-    def result_table(self, stage, freq='daily', top_n=5, latex=False):
+    def result_table(self,  freq='daily', top_n=5, latex=False):
         ##TODO: add stats for freq options monthly, annual (means or sum)
 
-        sim_dirs = self.get_sim_dirs(stage)
+        sim_dirs = self.get_sim_dirs(self.stage)
         if top_n >= len(sim_dirs): top_n = len(sim_dirs) 
         sim_names = [path.split(os.sep)[-1] for path in sim_dirs] 
-        meas_var = self.get_measured(stage)
-        statvar_name = self.get_statvar_name(stage)
+        meas_var = self.get_measured(self.stage)
+        statvar_name = self.get_statvar_name(self.stage)
         result_df = pd.DataFrame(columns=\
                             ['NSE','RMSE','PBIAS','COEF_DET','ABS(PBIAS)'])
         for i, sim in enumerate(sim_dirs):
@@ -803,7 +609,8 @@ class OptimizationResult:
             meas_var = copy(meas_var[idx])
             sim_out = sim_out[idx]    
             if freq == 'daily':
-                result_df.loc[sim_names[i]] = [nash_sutcliffe(meas_var, sim_out),\
+                result_df.loc[sim_names[i]] = [\
+                              nash_sutcliffe(meas_var, sim_out),\
                               rmse(meas_var, sim_out),\
                               percent_bias(meas_var,sim_out),\
                               meas_var.corr(sim_out)**2,\
@@ -811,7 +618,8 @@ class OptimizationResult:
             elif freq == 'monthly':
                 meas_mo = meas_var.groupby(meas_var.index.month).mean()
                 sim_out = sim_out.groupby(sim_out.index.month).mean()
-                result_df.loc[sim_names[i]] = [nash_sutcliffe(meas_mo, sim_out),\
+                result_df.loc[sim_names[i]] = [\
+                              nash_sutcliffe(meas_mo, sim_out),\
                               rmse(meas_mo, sim_out),\
                               percent_bias(meas_mo, sim_out),\
                               meas_mo.corr(sim_out)**2,\
@@ -819,7 +627,7 @@ class OptimizationResult:
    
         sorted_result = result_df.sort_values(by=['NSE','RMSE','ABS(PBIAS)',\
                                'COEF_DET'], ascending=[False,True,True,False])
-        sorted_result.columns.name = '{} parameters'.format(stage)
+        sorted_result.columns.name = '{} parameters'.format(self.stage)
         sorted_result = sorted_result[['NSE','RMSE','PBIAS','COEF_DET']] 
 
         if latex: return sorted_result[:top_n].to_latex(escape=False)
@@ -836,26 +644,11 @@ class OptimizationResult:
 
         for i,el in enumerate(sorted_df.index):
             ret['dir_name'].append(el)
-            ret['param_path'].append(OPJ(self.working_dir,el,'inputs','parameters'))
-            ret['statvar_path'].append(OPJ(self.working_dir,el,'outputs','statvar.dat'))
+            ret['param_path'].append(OPJ(self.working_dir,el,'inputs',\
+                                                                 'parameters'))
+            ret['statvar_path'].append(OPJ(self.working_dir,el,'outputs',\
+                                                                'statvar.dat'))
         
         return ret
 
         
-class SradOptimizationResult(OptimizationResult):
-
-    def __init__(self, working_dir, stage='swrad' ):
-        OptimizationResult.__init__(self, working_dir, stage)
-        self.swrad_sim_dirs = self.get_sim_dirs(stage)
-        self.meas_swrad = self.get_measured(stage)
-        self.swrad_statvar_name = self.get_statvar_name(stage)
-        
-        
-class PetOptimizationResult(OptimizationResult):
-
-    def __init__(self, working_dir, stage='pet'):
-        OptimizationResult.__init__(self, working_dir, stage)
-        self.pet_sim_dirs = self.get_sim_dirs(stage)
-        self.meas_pet = self.get_measured(stage)
-        self.pet_statvar_name = self.get_statvar_name(stage)
- 
