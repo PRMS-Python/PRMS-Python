@@ -50,6 +50,8 @@ class Parameters(object):
         self.param_arrays = dict()
 
     def write(self, out_name):
+        data_type_dic = {'1': 'int', 
+                         '2': 'float'} # retain PRMS data types
 
         with open(self.base_file, 'r') as base_file:
             with open(out_name, 'w') as out_file:
@@ -102,7 +104,9 @@ class Parameters(object):
                     out_file.write(str(param_info['length']) + '\n')
                     out_file.write(str(param_info['vartype']) + '\n')
                     out_file.writelines([str(a) + '\n'
-                                         for a in new_arr.flatten()])
+                                         for a in new_arr.flatten().\
+                                        astype(data_type_dic[param_info\
+                                        ['vartype']])])
 
     def plot(self, nrows, which='all', out_dir=None, xlabel=None,\
                     ylabel=None, cbar_label=None, title=None, mpl_style=None):
