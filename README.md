@@ -15,7 +15,7 @@ input meteorological data were to change?
 Currently it's clone-then-pip:
 
 ```
-git clone https://github.com/northwest-knowledge-network/prms-python
+git clone https://github.com/JohnVolk/PRMS-Python.git
 ```
 
 then
