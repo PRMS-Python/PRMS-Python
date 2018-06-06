@@ -28,5 +28,6 @@ test/data/models/lbcd/test-sim-dir/*
 test/data/models/lbcd/prms.out
 test/data/models/lbcd/prms_ic.out
 test/data/models/lbcd/statvar.dat
+test/results
 
 *animation*
