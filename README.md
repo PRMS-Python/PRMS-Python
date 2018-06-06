@@ -39,6 +39,9 @@ If it fails because of missing dependencies, just install the dependencies
 it says it's missing. I don't know why it's asking for some dependencies
 right now.
 
+
+<!---  commented the modification of online docs for now
+
 If it succeds and this is your first time making the html docs you will see a 
 new directory, `build/html`. If this is the first time you've 
 built and updated the documentation you'll need to run this first
@@ -74,10 +77,12 @@ git fetch origin \
     && git branch -D new-docs
 ```
 
+-->
 
 ## Usage
 
-Please read the [Online Documentation](https://prms-python.github.io/docs).
+Please read the [Online Documentation](https://prms-python.github.io/docs) and view 
+the included Jupyter notebooks for further documentation and examples.
 
 
 ## Unit tests
