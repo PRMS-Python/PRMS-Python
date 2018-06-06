@@ -108,10 +108,9 @@ class Optimizer:
         '''
         if '_' in stage: 
             raise ValueError('stage name cannot contain an underscore')
-        # assign the optimization object a copy of measured srad for plots
-        self.measured_arb = pd.Series.from_csv(
-            reference_path, parse_dates=True
-        )
+        # assign the optimization object a copy of measured data for plots 
+        self.measured_arb = pd.Series.from_csv(reference_path,\
+                                               parse_dates=True)
         # statistical variable output name  
         self.statvar_name = statvar_name
 
@@ -149,7 +148,7 @@ class Optimizer:
         end_time = dt.datetime.now()
         end_time = end_time.replace(second=0, microsecond=0)
         
-        # json metadata for Monte Carlo method
+        # json metadata for Monte Carlo run 
         meta = { 'params_adjusted' : param_names,
                  'statvar_name' : self.statvar_name,
                  'optimization_title' : self.title,
@@ -424,7 +423,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
           nhru == params.dimensions[dimnames[0]]):
         dim_case = 'nhru_nmonths'   
     elif not dim_case:
-        raise ValueError('The {} parameter should not be resampled'.\
+        raise ValueError('The {} parameter is not set for resampling'.\
                          format(param_name))        
 #     #testing purposes    
 #     print('name: ', param_name)
@@ -499,8 +498,8 @@ class OptimizationResult:
         self.working_dir = working_dir 
         self.stage = stage
         self.metadata_json_paths = self._get_optr_jsons(working_dir, stage)     
-        self.statvar_name = self.get_statvar_name(stage)
-        self.measured = self.get_measured(stage)
+        self.statvar_name = self._get_statvar_name(stage)
+        self.measured = self._get_measured(stage)
         self.input_dir = self._get_input_dir(stage)
         self.input_params = self._get_input_params(stage)
 
@@ -556,7 +555,7 @@ class OptimizationResult:
                 param_paths.append(meta_dic['original_params'])
         return list(set(param_paths))
 
-    def get_sim_dirs(self, stage):
+    def _get_sim_dirs(self, stage):
         jsons = self.metadata_json_paths[stage]
         json_files = []
         sim_dirs = []
@@ -568,7 +567,7 @@ class OptimizationResult:
         # list of all simulation directory paths for stage 
         return sim_dirs
 
-    def get_measured(self, stage):
+    def _get_measured(self, stage):
         # only need to open one json file to get this information
         if not self.metadata_json_paths.get(stage):
             return # no optimization json files exist for given stage
@@ -576,15 +575,15 @@ class OptimizationResult:
         with open(first_json) as json_file:
             json_data = json.load(json_file)
         measured_series = pd.Series.from_csv(json_data.get('measured'),\
-                                             parse_dates=True)
+                                              parse_dates=True)
         return measured_series 
 
-    def get_statvar_name(self, stage):
+    def _get_statvar_name(self, stage):
         # only need to open one json file to get this information
         try:
             first_json = self.metadata_json_paths[stage][0]
         except:
-            raise ValueError("""No optimizatin has been run for
+            raise ValueError("""No optimization has been run for
                               stage: {}""".format(stage))    
         with open(first_json) as json_file:
             json_data = json.load(json_file)
@@ -593,13 +592,13 @@ class OptimizationResult:
         return var_name
 
     def result_table(self,  freq='daily', top_n=5, latex=False):
-        ##TODO: add stats for freq options monthly, annual (means or sum)
+        ##TODO: add stats for freq options annual (means or sum)
 
-        sim_dirs = self.get_sim_dirs(self.stage)
+        sim_dirs = self._get_sim_dirs(self.stage)
         if top_n >= len(sim_dirs): top_n = len(sim_dirs) 
         sim_names = [path.split(os.sep)[-1] for path in sim_dirs] 
-        meas_var = self.get_measured(self.stage)
-        statvar_name = self.get_statvar_name(self.stage)
+        meas_var = self._get_measured(self.stage)
+        statvar_name = self._get_statvar_name(self.stage)
         result_df = pd.DataFrame(columns=\
                             ['NSE','RMSE','PBIAS','COEF_DET','ABS(PBIAS)'])
         for i, sim in enumerate(sim_dirs):
@@ -634,21 +633,30 @@ class OptimizationResult:
         else: return  sorted_result[:top_n]
 
     def get_top_ranked_sims(self, sorted_df):
-        ## use result table to make dic with best param and statvar paths 
+        # use result table to make dic with best param and statvar paths 
         # index of table is the simulation directory names
         ret = {
               'dir_name' : [],
               'param_path' : [],
-              'statvar_path' : []
+              'statvar_path' : [],
+              'params_adjusted' : []
               }
-
+        
+        json_paths = self.metadata_json_paths[self.stage] 
+        
         for i,el in enumerate(sorted_df.index):
             ret['dir_name'].append(el)
             ret['param_path'].append(OPJ(self.working_dir,el,'inputs',\
                                                                  'parameters'))
             ret['statvar_path'].append(OPJ(self.working_dir,el,'outputs',\
                                                                 'statvar.dat'))
-        
+            for f in json_paths:
+                with open(f) as fh:
+                    json_data = json.load(fh)
+                    if OPJ(self.working_dir, el) in json_data.get('sim_dirs'):
+                        ret['params_adjusted'].append(\
+                                             json_data.get('params_adjusted'))  
+                  
         return ret
 
         
