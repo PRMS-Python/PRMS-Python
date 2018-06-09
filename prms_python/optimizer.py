@@ -141,7 +141,7 @@ class Optimizer:
         )
 
         # run 
-        if not nproc: nproc = mp.cpu_count() // 2        
+        # if not nproc: nproc = mp.cpu_count() // 2        
         outputs = list(series.run(nproc=nproc).outputs_iter())        
         self.arb_outputs.extend(outputs) # for current instance- add outputs 
 
@@ -213,13 +213,13 @@ class Optimizer:
             raise ValueError('You have not run any optimizations')
         var_name = self.statvar_name
         X = self.measured_arb
-        idx = X.index.intersection(self.arb_outputs[0]['statvar']\
-                           ['{}'.format(var_name)].index)
+        idx = X.index.intersection(load_statvar(self.arb_outputs[0]\
+                           ['statvar'])['{}'.format(var_name)].index)
         X = X[idx]
         orig = load_statvar(OPJ(self.input_dir, 'statvar.dat'))['{}'\
                             .format(var_name)][idx]
         meas = self.measured_arb[idx]
-        sims = [out['statvar']['{}'.format(var_name)][idx] for \
+        sims = [load_statvar(out['statvar'])['{}'.format(var_name)][idx] for \
                 out in self.arb_outputs]
         simdirs = [out['simulation_dir'].split(os.sep)[-1].\
                    replace('_', ' ') for out in self.arb_outputs]

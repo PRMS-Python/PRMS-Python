@@ -27,7 +27,7 @@ class SimulationSeries(object):
     def run(self, prms_exec='prms', nproc=None):
 
         if not nproc:
-            nproc = mp.cpu_count()//2
+            nproc = mp.cpu_count()//2 
 
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
@@ -56,15 +56,16 @@ class SimulationSeries(object):
         '''
         dirs = list(s.simulation_dir for s in self.series)
         print(dirs)
+
         return (
             {
                 'simulation_dir': d,
-                'statvar': load_statvar(OPJ(d, 'outputs', 'statvar.dat')),
+                'statvar': OPJ(d, 'outputs', 'statvar.dat'),
                 'data': Data(OPJ(d, 'inputs', 'data')),
                 'parameters': Parameters(OPJ(d, 'inputs', 'parameters'))
             }
             for d in dirs
-        )
+        )        
 
     def __len__(self):
         return len(list(self.outputs_iter()))
