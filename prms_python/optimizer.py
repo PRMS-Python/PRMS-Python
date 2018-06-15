@@ -599,13 +599,28 @@ class OptimizationResult:
         sim_names = [path.split(os.sep)[-1] for path in sim_dirs] 
         meas_var = self._get_measured(self.stage)
         statvar_name = self._get_statvar_name(self.stage)
+        orig_statvar = load_statvar(OPJ(self.input_dir,'statvar.dat'))\
+                       [statvar_name]
+
         result_df = pd.DataFrame(columns=\
                             ['NSE','RMSE','PBIAS','COEF_DET','ABS(PBIAS)'])
+        orig_results = pd.DataFrame(index=['orig_params'],\
+                                 columns=['NSE','RMSE','PBIAS','COEF_DET'])
+        # get datetime indices that overlap from measured and simulated
+        sim_out = load_statvar(OPJ(sim_dirs[0], 'outputs', 'statvar.dat'))\
+                                               [statvar_name]
+        idx = meas_var.index.intersection(sim_out.index)
+        meas_var = copy(meas_var[idx])
+        #sim_out = sim_out[idx]    
+        orig_statvar = orig_statvar[idx]
+        
+        if freq == 'monthly':
+            meas_mo = meas_var.groupby(meas_var.index.month).mean()
+            orig_mo = orig_statvar.groupby(orig_statvar.index.month).mean()            
+        
         for i, sim in enumerate(sim_dirs):
             sim_out = load_statvar(OPJ(sim, 'outputs', 'statvar.dat'))\
                                                ['{}'.format(statvar_name)]
-            idx = meas_var.index.intersection(sim_out.index)
-            meas_var = copy(meas_var[idx])
             sim_out = sim_out[idx]    
             if freq == 'daily':
                 result_df.loc[sim_names[i]] = [\
@@ -613,9 +628,14 @@ class OptimizationResult:
                               rmse(meas_var, sim_out),\
                               percent_bias(meas_var,sim_out),\
                               meas_var.corr(sim_out)**2,\
-                              np.abs(percent_bias(meas_var, sim_out)) ]    
+                              np.abs(percent_bias(meas_var, sim_out)) ]                                  
+                orig_results.loc['orig_params'] = [\
+                              nash_sutcliffe(orig_statvar,meas_var),\
+                              rmse(orig_statvar,meas_var),\
+                              percent_bias(orig_statvar,meas_var),\
+                              orig_statvar.corr(meas_var)**2]
+                              
             elif freq == 'monthly':
-                meas_mo = meas_var.groupby(meas_var.index.month).mean()
                 sim_out = sim_out.groupby(sim_out.index.month).mean()
                 result_df.loc[sim_names[i]] = [\
                               nash_sutcliffe(meas_mo, sim_out),\
@@ -623,11 +643,17 @@ class OptimizationResult:
                               percent_bias(meas_mo, sim_out),\
                               meas_mo.corr(sim_out)**2,\
                               np.abs(percent_bias(meas_mo, sim_out)) ]    
-   
+                orig_results.loc['orig_params'] = [\
+                              nash_sutcliffe(orig_mo,meas_mo),\
+                              rmse(orig_mo,meas_mo),\
+                              percent_bias(orig_mo,meas_mo),\
+                              orig_mo.corr(meas_mo)**2]
+                                 
         sorted_result = result_df.sort_values(by=['NSE','RMSE','ABS(PBIAS)',\
                                'COEF_DET'], ascending=[False,True,True,False])
         sorted_result.columns.name = '{} parameters'.format(self.stage)
         sorted_result = sorted_result[['NSE','RMSE','PBIAS','COEF_DET']] 
+        sorted_result = pd.concat([orig_results,sorted_result])
 
         if latex: return sorted_result[:top_n].to_latex(escape=False)
         else: return  sorted_result[:top_n]

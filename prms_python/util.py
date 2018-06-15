@@ -2,22 +2,53 @@
 Utilities for working with PRMS data or other functionality that aren't
 appropriate to put elsewhere at this time.
 """
-import os
+import os, shutil, json
 import numpy as np
 import pandas as pd
 
-def delete_out_files(work_directory, file_name=''):
+from .optimizer import OptimizationResult
+
+def remove_all_optimization_sims_of_other_stage(work_directory,stage):
     """
-    Delete all output files of a certain name from PRMS simulations,
-    can be useful since files can be large and may not be being used.
+
+    """
+    result = OptimizationResult(work_directory,stage=stage)
+    
+    tracked_dirs = []
+    
+    for f in result.metadata_json_paths[stage]:
+        with open(f) as fh:
+            json_data = json.load(fh)
+            tracked_dirs.extend(json_data.get('sim_dirs'))
+    
+    # track number of simulation directories not tracked by certain stage
+    # and recursively delete them and their contents
+    count = 0
+    for d in os.listdir(result.working_dir):
+        path = os.path.join(result.working_dir, d)
+        if path in tracked_dirs:
+            continue      
+        elif os.path.isdir(path):
+            count+=1
+            for dirpath, dirnames, filenames in os.walk(path, topdown=False):
+                shutil.rmtree(dirpath, ignore_errors=True)    
+                
+    print('deleted {} simulations that were either not tracked by a JSON file'\
+          .format(count) + ' or were not part of {} optimization stage'\
+          .format(stage))
+    
+def delete_files(work_directory, file_name=''):
+    """
+    Recursively delete all files of a certain name from PRMS simulations.
+    Can be useful because files can be large and may not be being used.
     For example initial condition output files are often large and not
-    always used, alternatively animation files may no longer be needed.
+    always used, similarly animation, data, control, ... files may 
+    no longer be needed.
 
     Arguments:
-        work_directory (str): path to directory with simulation outputs
-            two directories above where the actual prms_ic.out files exist.
-        file_name (str) = Name of the PRMS output file(s) to be removed, 
-            default='' empty string- nothing will be deleted.             
+        work_directory (str): path to directory with simulations.
+        file_name (str) = Name of the PRMS input or output file(s) to be 
+            removed, default='' empty string- nothing will be deleted.             
 
             e.g. if you have several simulation directories:
 
@@ -27,23 +58,21 @@ def delete_out_files(work_directory, file_name=''):
 			"test/results/intcp:-35.39_slope:0.39", 
 			"test/results/intcp:-20.91_slope:0.41"
 
-            each of these contains an '/outputs' folder with a prms_ic.out 
-            file that you would like to delete. In this case, delete all ic 
-            files like so:
+            each of these contains an '/inputs' folder with a duplicate data 
+            file that you would like to delete. In this case, delete all 
+            data files like so:
 
             >>> work_dir = 'test/results/'
-            >>> delete_ic_files(work_dir, file_name='prms_ic.out')
+            >>> delete_ic_files(work_dir, file_name='data')
 		    
     Returns:
         None     
     """
-    for fd in os.listdir(work_directory):
-        if os.path.isdir(os.path.join(work_directory,fd)):
-            try:
-                os.remove(os.path.join(work_directory, fd, 'outputs', file_name))
-            except: # file might not exist
-                continue
-
+    for dirpath, dirnames, filenames in os.walk(work_directory, topdown=False):
+        paths = (os.path.join(dirpath, filename) for filename in filenames\
+                if filename == file_name)
+        for path in paths:
+            os.remove(path)        
 
 def load_statvar(statvar_file):
     """

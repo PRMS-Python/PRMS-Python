@@ -31,6 +31,7 @@ class SimulationSeries(object):
 
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
+        pool.close() 
 
         return self
 
@@ -48,7 +49,7 @@ class SimulationSeries(object):
 
         Would return something like
 
-            {'simulation_dir': 'path/to/sim/', 'statvar': <pandas.DataFrame>,
+            {'simulation_dir': 'path/to/sim/', 'statvar': 'path/to/statvar',
              'data': <data.Data>, 'parameters': <parameters.Parameters>}
 
         Returns:
@@ -61,8 +62,8 @@ class SimulationSeries(object):
             {
                 'simulation_dir': d,
                 'statvar': OPJ(d, 'outputs', 'statvar.dat'),
-                'data': Data(OPJ(d, 'inputs', 'data')),
-                'parameters': Parameters(OPJ(d, 'inputs', 'parameters'))
+                'data': OPJ(d, 'inputs', 'data'),
+                'parameters': OPJ(d, 'inputs', 'parameters')
             }
             for d in dirs
         )        
@@ -211,6 +212,9 @@ class Simulation(object):
             prms_finished = poll >= 0
 
         self.has_run = True
+        # avoid too many files open error
+        p.stdout.close()
+        p.stderr.close()
 
         if self.simulation_dir:
             os.mkdir('inputs')
