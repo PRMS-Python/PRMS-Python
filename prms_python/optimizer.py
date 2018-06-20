@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime as dt
-import os, sys, json, re
+import os, sys, json, re, shutil
 import multiprocessing as mp
 
 from copy import copy
@@ -497,7 +497,8 @@ class OptimizationResult:
     def __init__(self, working_dir, stage):
         self.working_dir = working_dir 
         self.stage = stage
-        self.metadata_json_paths = self._get_optr_jsons(working_dir, stage)     
+        self.metadata_json_paths = self._get_optr_jsons(working_dir, stage) 
+        self.total_sims = self._count_total_sims()
         self.statvar_name = self._get_statvar_name(stage)
         self.measured = self._get_measured(stage)
         self.input_dir = self._get_input_dir(stage)
@@ -511,6 +512,15 @@ class OptimizationResult:
     params with their corresponding output sims.""".format(stage))
             print('\nThis optimization stage used the\
  following input parameter files:\n{}'.format('\n'.join(self.input_params)))
+ 
+    def _count_total_sims(self):
+        # total number of simulations of given stage in working directory
+        tracked_dirs = []
+        for f in self.metadata_json_paths[self.stage]:
+            with open(f) as fh:
+                json_data = json.load(fh)
+                tracked_dirs.extend(json_data.get('sim_dirs'))
+        return len(tracked_dirs)
 
     def _get_optr_jsons(self, work_dir, stage):
         """
@@ -591,7 +601,7 @@ class OptimizationResult:
 
         return var_name
 
-    def result_table(self,  freq='daily', top_n=5, latex=False):
+    def result_table(self, freq='daily', top_n=5, latex=False):
         ##TODO: add stats for freq options annual (means or sum)
 
         sim_dirs = self._get_sim_dirs(self.stage)
@@ -619,8 +629,12 @@ class OptimizationResult:
             orig_mo = orig_statvar.groupby(orig_statvar.index.month).mean()            
         
         for i, sim in enumerate(sim_dirs):
-            sim_out = load_statvar(OPJ(sim, 'outputs', 'statvar.dat'))\
+            try: 
+                sim_out = load_statvar(OPJ(sim, 'outputs', 'statvar.dat'))\
                                                ['{}'.format(statvar_name)]
+            except: # simulation might have been removed or missing
+                continue
+
             sim_out = sim_out[idx]    
             if freq == 'daily':
                 result_df.loc[sim_names[i]] = [\
@@ -668,9 +682,9 @@ class OptimizationResult:
               'params_adjusted' : []
               }
         
-        json_paths = self.metadata_json_paths[self.stage] 
+        json_paths = self.metadata_json_paths[self.stage]         
         
-        for i,el in enumerate(sorted_df.index):
+        for el in sorted_df.drop('orig_params').index:
             ret['dir_name'].append(el)
             ret['param_path'].append(OPJ(self.working_dir,el,'inputs',\
                                                                  'parameters'))
@@ -685,4 +699,94 @@ class OptimizationResult:
                   
         return ret
 
+    def archive(self, remove_sims=True, metric_freq='daily'):
+        """
+            Create archive directory to hold json files that contain 
+            information of adjusted parameters, model output, and performance 
+            metrics for each Optimizer simulation of the 
+            OptimizationResult.stage in the OptimizationResult.working_dir.                  
+                                                                                    
+            Arguments:                                                              
+                remove_sims (bool) : If True recursively delete all folders 
+                    and files associated with original simulations of the 
+                    OptimizationResult.stage in the 
+                    OptimizationResult.working_dir, if False do not delete 
+                    simulations.
+                metric_freq (Str) : Frequency of output metric computation 
+                    for recording of model performance. Can be 'daily' 
+                    (default) or 'monthly'. Note, new results can be computed 
+                    later with archived results. 
+            Returns:                                                                
+                None                          
+            """
+        # create output archive directory
+        archive_dir = OPJ(self.working_dir,"{}_archived".format(self.stage))
+        if not os.path.isdir(archive_dir):
+            os.mkdir(archive_dir)
         
+        # create table and used to make mapping dic    
+        table = self.result_table(freq=metric_freq,\
+                                  top_n=self.total_sims, latex=False)
+        map_dic = self.get_top_ranked_sims(table)
+        
+        # get measured optimization variable path
+        first_json = self.metadata_json_paths[self.stage][0]    
+ 
+        with open(first_json) as json_file:                                                                                                                                                                 
+            json_data = json.load(json_file)                                                                                                                                                                
+            measured_path = json_data.get('measured')                                                                                                         
+                                                     
+        # record info for each simulation and archive to JSONs
+        # pandas series and numpy arrays are converted to Python lists 
+        # for JSON serialization
+        for i, sim in enumerate(map_dic.get('dir_name')):
+            json_path = OPJ(archive_dir, '{sim}.json'.format(sim=sim))
+            try:
+                output_series = load_statvar(OPJ(self.working_dir, sim,\
+                                              'outputs', 'statvar.dat'))\
+                                              [self.statvar_name]
+            except: # simulation directory was already removed
+                continue
+            json_data = {
+                          'param_names' : [],
+                          'param_values' : [],
+                          'original_param_path' : self.input_params, 
+                          'measured_path' : measured_path,
+                          'output_name' : self.statvar_name,
+                          'output_date_index' : output_series.\
+                                                   index.astype(str).tolist(),
+                          'output_values' : output_series.values.tolist(),
+                          'metric_freq' : metric_freq,
+                          'NSE' : table.loc[sim, 'NSE'],
+                          'RMSE' : table.loc[sim, 'RMSE'],
+                          'PBIAS' : table.loc[sim, 'PBIAS'],
+                          'COEF_DET' : table.loc[sim, 'COEF_DET']        
+                        }  
+           
+            for param in map_dic.get('params_adjusted')[i]:  
+                json_data['param_names'].append(param)
+                json_data['param_values'].append(Parameters(\
+                                          map_dic.get('param_path')[i])[param]\
+                                          .tolist())
+            # save JSON file into archive directory    
+            with open(json_path, 'w') as outf:
+                json.dump(json_data, outf, sort_keys = True, indent = 4,\
+                          ensure_ascii = False)     
+
+            # recursively delete all simulation directories after archiving
+            if remove_sims:
+                path = OPJ(self.working_dir, sim)
+                for dirpath, dirnames, filenames in os.walk(path,\
+                                                                topdown=False):
+                    shutil.rmtree(dirpath, ignore_errors=True)
+            else:
+                continue
+
+        # after archiving all simulations delete the original JSON metadata
+        for meta_file in self.metadata_json_paths[self.stage]:
+            try:
+                os.remove(meta_file)
+            except:
+                continue
+
+

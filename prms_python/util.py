@@ -6,23 +6,30 @@ import os, shutil, json
 import numpy as np
 import pandas as pd
 
-from .optimizer import OptimizationResult
-
-def remove_all_optimization_sims_of_other_stage(work_directory,stage):
+def remove_all_optimization_sims_of_other_stage(work_directory, stage):
     """
-
+    Track number of simulation directories not tracked by a specific stage
+    and recursively delete them and their contents. This was created to avoid
+    having nutracked simulations in an optimizer working directory for example
+    when an optimization method was interupted before data was saved to a meta
+    data file.
+    
+    Arguments:
+        work_directory (str) : Directory to look for Optimization metadata 
+            json files and simulation directories to keep or remove.         
+        stage (str) : Optimization stage that will not have its simulation
+            data deleted. All other stages if any are found in metadata files
+            will have their associated simulation directories deleted.        
+    Returns:
+        None
     """
-    result = OptimizationResult(work_directory,stage=stage)
-    
-    tracked_dirs = []
-    
+    from .optimizer import OptimizationResult # avoid circular import
+    result = OptimizationResult(work_directory,stage=stage)    
+    tracked_dirs = []    
     for f in result.metadata_json_paths[stage]:
         with open(f) as fh:
             json_data = json.load(fh)
             tracked_dirs.extend(json_data.get('sim_dirs'))
-    
-    # track number of simulation directories not tracked by certain stage
-    # and recursively delete them and their contents
     count = 0
     for d in os.listdir(result.working_dir):
         path = os.path.join(result.working_dir, d)
@@ -31,24 +38,23 @@ def remove_all_optimization_sims_of_other_stage(work_directory,stage):
         elif os.path.isdir(path):
             count+=1
             for dirpath, dirnames, filenames in os.walk(path, topdown=False):
-                shutil.rmtree(dirpath, ignore_errors=True)    
-                
+                shutil.rmtree(dirpath, ignore_errors=True)                    
     print('deleted {} simulations that were either not tracked by a JSON file'\
           .format(count) + ' or were not part of {} optimization stage'\
           .format(stage))
     
 def delete_files(work_directory, file_name=''):
     """
-    Recursively delete all files of a certain name from PRMS simulations.
-    Can be useful because files can be large and may not be being used.
-    For example initial condition output files are often large and not
-    always used, similarly animation, data, control, ... files may 
-    no longer be needed.
+    Recursively delete all files of a certain name from multiple PRMS 
+    simulations that are within a given directory. Can be useful to removw 
+    large files that are no longer needed. For example initial condition 
+    output files are often large and not always used, similarly animation, 
+    data, control, ... files may no longer be needed. 
 
     Arguments:
-        work_directory (str): path to directory with simulations.
-        file_name (str) = Name of the PRMS input or output file(s) to be 
-            removed, default='' empty string- nothing will be deleted.             
+        work_directory (str) : path to directory with simulations.
+        file_name (str) : Name of the PRMS input or output file(s) to be 
+            removed, default = '' empty string- nothing will be deleted.             
 
             e.g. if you have several simulation directories:
 
@@ -136,11 +142,13 @@ def load_statvar(statvar_file):
 
 def load_data_file(data_file):
     """
-    Read the data file and load into a datetime indexed Pandas dataframe object
+    Read the data file and load into a datetime indexed Pandas dataframe object.
+    
     Arguments: 
-	data_file (string): data file path 
+	    data_file (str): data file path 
     Returns:
-	df (pandas.DataFrame): Pandas dataframe of input time series data from data file with datetime index
+	    df (pandas.DataFrame): Pandas dataframe of input time series data 
+	        from data file with datetime index
     """
     # valid input time series that can be put into a data file
     valid_input_variables = ('gate_ht',
