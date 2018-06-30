@@ -46,8 +46,9 @@ class Optimizer:
     #dic for min/max of parameter allowable ranges, add more when needed
     param_ranges = {'dday_intcp': (-60.0, 10.0), 'dday_slope': (0.2, 0.9),\
                     'jh_coef': (0.005, 0.06), 'pt_alpha': (1.0, 2.0), \
-                    'potet_coef_hru_mo': (1.0, 1.6), 'tmax_index': \
-                    (-10.0, 110.0)\
+                    'potet_coef_hru_mo': (1.0, 2.0), 'tmax_index': \
+                    (-10.0, 110.0), 'tmin_lapse': (-10.0, 10.0), \
+                    'soil_moist_max': (0.001, 10.0), 'rain_adj': (0.5, 2.0)\
                    } #changed potet max 
 
     def __init__(self, parameters, data, control_file, working_dir,
@@ -85,7 +86,7 @@ class Optimizer:
         self.arb_outputs = []
 
     def monte_carlo(self, reference_path, param_names, statvar_name, \
-                    stage, n_sims=10, method='uniform',\
+                    stage, n_sims=10, method='uniform', mu_factor=1,\
                     noise_factor=0.1, nproc=None):
         '''
         Optimize the monthly dday_intcp and dday_slope parameters 
@@ -102,8 +103,12 @@ class Optimizer:
             n_sims (int): number of simulations to conduct 
                 parameter optimization/uncertaitnty analysis.
             method (str): resampling method for parameters (normal or uniform)
+            mu_factor (float): coefficient to scale mean of the parameter(s)
+                to resample from when using the normal distribution to resample
+                i.e. a value of 1.5 will sample from a normal rv with mean
+                50% higher than the original parameter mean
             noise_factor (float): scales the variance of noise to add to
-                parameter values when adding normal rv (method='normal')
+                parameter values when using normal rv (method='normal')
             nproc (int): number of processors available to run PRMS simulations
         '''
         if '_' in stage: 
@@ -122,7 +127,7 @@ class Optimizer:
             tmp = []
             for idx in range(n_sims):
                 tmp.append(resample_param(self.parameters, name, how=method,\
-                                          noise_factor=noise_factor))
+                           mu_factor=mu_factor, noise_factor=noise_factor))
             params.append(list(tmp))
             
         # SimulationSeries comprised of each resampled param set
@@ -157,6 +162,7 @@ class Optimizer:
                  'end_time' : str(end_time),
                  'measured' : reference_path,
                  'method' : 'Monte Carlo',
+                 'mu_factor' : mu_factor,
                  'noise_factor' : noise_factor,
                  'resample': method,
                  'sim_dirs' : [],
@@ -359,16 +365,21 @@ def _create_metafile_name(out_dir, opt_title, stage):
         name = '{}_{}_opt{}.json'.format(opt_title, stage, n)
     return name
 
-def resample_param(params, param_name, how='uniform', noise_factor=0.1):
+def resample_param(params, param_name, how='uniform', mu_factor=1,\
+                   noise_factor=0.1):
     """
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the uniform 
     values is equal to the difference between the min(max) of the parameter
-    set and the min(max) of the allowable range from PRMS. For parameters 
-    that have array length <= 366 add noise to each parameter element by 
-    adding a RV from a normal distribution with mean 0, sigma = param 
-    allowable range / 10.  
-    
+    set and the min(max) of the allowable range from PRMS. If the resampling
+    method ("how" argument) is set to 'normal', randomly sample a normal 
+    distribution with mean 0 and sigma = param allowable range multiplied by
+    noise_factor, then add this random value to original param value. If 
+    parameters have array length <= 366 then individual parameter values are 
+    resampled otherwise resample all param values at once, i.e. by taking
+    a single random value from the uniform distribution or by adding a single
+    random value samplied from the normal distribution to all param values. 
+
     Args:
         params (parameters.Parameters): parameter object 
         param_name (str): name of PRMS parameter to resample
@@ -379,8 +390,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
         noise_factor (float): factor to multiply parameter range by, 
             use the result as the standard deviation for the normal rand.
             variable used to add element wise noise. i.e. higher 
-            noise facter will result in higher noise added to each param
-            element. Must be > 0.
+            noise facter will result in higher variance. Must be > 0.
     Returns:
         ret (numpy.ndarry): ndarray of param after uniform random mean 
             shift or element-wise noise addition (normal r.v.) 
@@ -395,7 +405,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
     if p_min == p_max == -1:
         raise ValueError("""{} has not been added to the dictionary of
         parameters to resample, add it's allowable min and max value
-        to the param_ranges dictionary in the resample function in
+        to the Optimizer.param_ranges attribute in
         Optimizer.py""".format(param_name))
         
     dim_case = None
@@ -403,7 +413,7 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
     ndims = param_dic.get(param_name)['ndims']
     dimnames = param_dic.get(param_name)['dimnames']
     length = param_dic.get(param_name)['length']
-    param = params[param_name]
+    param = deepcopy(params[param_name])
     
     # could expand list and check parameter name also e.g. cascade_flg
     # is a parameter that should not be changed 
@@ -436,38 +446,35 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
 
     low_bnd = p_min - np.min(param) # lowest param value minus allowable min
     up_bnd = p_max - np.max(param)
-    s = (p_max - p_min) * noise_factor # variance noise, default: range*(1/10)  
+    s = (p_max - p_min) * noise_factor # std_dev (s) default: param_range/10  
     #do resampling differently based on param dimensions 
     if dim_case == 'resample_all_values_once': 
         if how == 'uniform':
-            #uniform RV for shifting all values once
             shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
             ret = shifted_param
-        elif how == 'normal':
-            while True:
-                tmp = np.random.normal(0, s, size=param.shape) + param
-                if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
-                    ret = tmp
-                    break
+        elif how == 'normal': # scale parameter mean if mu_factor given 
+            mu = np.mean(param) * mu_factor
+            if mu_factor != 1:
+                tmp = np.random.normal(mu, s, size=param.shape)
+                ret = tmp + param
+            else: # if default mu_factor, add noise from N(0,s)
+                ret = np.random.normal(0, s, size=param.shape) + param
+
     elif dim_case == 'resample_each_value':
-        ret = copy(param)
+        ret = param
         if how == 'uniform':
             for i, el in enumerate(param):
                 low_bnd = p_min - np.min(el) # a,b for uniform RV to add 
                 up_bnd = p_max - np.max(el)
                 ret[i] = el + np.random.uniform(low=low_bnd, high=up_bnd)
-        elif how == 'normal':
+        elif how == 'normal': # the original value is the mean 
             for i, el in enumerate(param):
-                while True:
-                    low_bnd = p_min - np.min(el) 
-                    up_bnd = p_max - np.max(el)
-                    tmp = el + np.random.normal(0, s)
-                    if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
-                        ret[i] = tmp
-                        break
+                mu = el * mu_factor
+                ret[i] =  np.random.normal(mu, s) 
+
     # nhru by nmonth dimensional params
     elif dim_case == 'nhru_nmonths':
-        ret = copy(param)
+        ret = param
         if how == 'uniform':
             rvs = [np.random.uniform(low=low_bnd, high=up_bnd)\
                    for i in range(12)]
@@ -475,13 +482,12 @@ def resample_param(params, param_name, how='uniform', noise_factor=0.1):
                 ret[month] += rvs[month]
         elif how == 'normal':
             for i, el in enumerate(param):
-                while True:
-                    low_bnd = p_min - np.min(el) 
-                    up_bnd = p_max - np.max(el)
-                    tmp = el + np.random.normal(0, s)
-                    if np.max(tmp) <= p_max and np.min(tmp) >= p_min:
-                        ret[i] = tmp
-                        break
+                mu = np.mean(el) * mu_factor
+                if mu_factor != 1:
+                    tmp = np.random.normal(mu, s, size=el.shape)
+                    ret[i] = tmp + el
+                else:
+                    ret[i] = np.random.normal(0, s, size=el.shape) + el
 
     return ret
 
@@ -529,7 +535,7 @@ class OptimizationResult:
         Create dictionary of each optimization with stage as key and lists
         of corresponding json file paths as values. 
 
-        Arguments:
+        Args:
             work_dir (str): path to directory with model results, i.e. 
                 location where simulation series outputs and optimization
                 json files are located, aka Optimizer.working_dir
@@ -605,7 +611,8 @@ class OptimizationResult:
         ##TODO: add stats for freq options annual (means or sum)
 
         sim_dirs = self._get_sim_dirs(self.stage)
-        if top_n >= len(sim_dirs): top_n = len(sim_dirs) 
+        if top_n >= len(sim_dirs): 
+            top_n = len(sim_dirs) + 1 # for returning inclusive last sim
         sim_names = [path.split(os.sep)[-1] for path in sim_dirs] 
         meas_var = self._get_measured(self.stage)
         statvar_name = self._get_statvar_name(self.stage)
@@ -633,7 +640,7 @@ class OptimizationResult:
                 sim_out = load_statvar(OPJ(sim, 'outputs', 'statvar.dat'))\
                                                ['{}'.format(statvar_name)]
             except: # simulation might have been removed or missing
-                continue
+                pass
 
             sim_out = sim_out[idx]    
             if freq == 'daily':
@@ -674,7 +681,7 @@ class OptimizationResult:
 
     def get_top_ranked_sims(self, sorted_df):
         # use result table to make dic with best param and statvar paths 
-        # index of table is the simulation directory names
+        # index of table are simulation directory names
         ret = {
               'dir_name' : [],
               'param_path' : [],
@@ -706,7 +713,7 @@ class OptimizationResult:
             metrics for each Optimizer simulation of the 
             OptimizationResult.stage in the OptimizationResult.working_dir.                  
                                                                                     
-            Arguments:                                                              
+            Kwargs:                                                              
                 remove_sims (bool) : If True recursively delete all folders 
                     and files associated with original simulations of the 
                     OptimizationResult.stage in the 
@@ -714,7 +721,7 @@ class OptimizationResult:
                     simulations.
                 metric_freq (Str) : Frequency of output metric computation 
                     for recording of model performance. Can be 'daily' 
-                    (default) or 'monthly'. Note, new results can be computed 
+                    (default) or 'monthly'. Note, other results can be computed 
                     later with archived results. 
             Returns:                                                                
                 None                          
@@ -724,13 +731,14 @@ class OptimizationResult:
         if not os.path.isdir(archive_dir):
             os.mkdir(archive_dir)
         
-        # create table and used to make mapping dic    
+        # create table and use to make mapping dic    
         table = self.result_table(freq=metric_freq,\
                                   top_n=self.total_sims, latex=False)
         map_dic = self.get_top_ranked_sims(table)
         
+        metadata_json_paths = self.metadata_json_paths[self.stage]
         # get measured optimization variable path
-        first_json = self.metadata_json_paths[self.stage][0]    
+        first_json = metadata_json_paths[0]
  
         with open(first_json) as json_file:                                                                                                                                                                 
             json_data = json.load(json_file)                                                                                                                                                                
@@ -747,6 +755,16 @@ class OptimizationResult:
                                               [self.statvar_name]
             except: # simulation directory was already removed
                 continue
+            
+            # look for resampling method info for the particular simulation
+            for f in metadata_json_paths:
+                with open(f) as tmp_file:
+                    tmp = json.load(tmp_file)
+                    if OPJ(self.working_dir, sim) in tmp.get('sim_dirs'):
+                        resample = tmp.get('resample')
+                        noise_factor = tmp.get('noise_factor')   
+                        mu_factor = tmp.get('mu_factor')   
+
             json_data = {
                           'param_names' : [],
                           'param_values' : [],
@@ -757,6 +775,9 @@ class OptimizationResult:
                                                    index.astype(str).tolist(),
                           'output_values' : output_series.values.tolist(),
                           'metric_freq' : metric_freq,
+                          'resample' : resample,
+                          'mu_factor' : mu_factor,
+                          'noise_factor' : noise_factor,
                           'NSE' : table.loc[sim, 'NSE'],
                           'RMSE' : table.loc[sim, 'RMSE'],
                           'PBIAS' : table.loc[sim, 'PBIAS'],

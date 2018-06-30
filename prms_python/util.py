@@ -24,25 +24,41 @@ def remove_all_optimization_sims_of_other_stage(work_directory, stage):
         None
     """
     from .optimizer import OptimizationResult # avoid circular import
-    result = OptimizationResult(work_directory,stage=stage)    
-    tracked_dirs = []    
-    for f in result.metadata_json_paths[stage]:
-        with open(f) as fh:
-            json_data = json.load(fh)
-            tracked_dirs.extend(json_data.get('sim_dirs'))
-    count = 0
-    for d in os.listdir(result.working_dir):
-        path = os.path.join(result.working_dir, d)
-        if path in tracked_dirs:
-            continue      
-        elif os.path.isdir(path):
-            count+=1
-            for dirpath, dirnames, filenames in os.walk(path, topdown=False):
-                shutil.rmtree(dirpath, ignore_errors=True)                    
+
+    try:
+        result = OptimizationResult(work_directory,stage=stage)    
+        tracked_dirs = []    
+        for f in result.metadata_json_paths[stage]:
+            with open(f) as fh:
+                json_data = json.load(fh)
+                tracked_dirs.extend(json_data.get('sim_dirs'))
+        count = 0
+        for d in os.listdir(result.working_dir):
+            path = os.path.join(result.working_dir, d)
+            if path in tracked_dirs:
+                continue      
+            elif os.path.isdir(path) and '_archived' not in path:
+                count+=1
+                for dirpath, dirnames, filenames in os.walk(path,\
+                                                                topdown=False):
+                    shutil.rmtree(dirpath, ignore_errors=True)                    
+
+    # if no json file in working dir for given stage, delete any other sim dirs 
+    except:
+        count = 0
+        for d in os.listdir(work_directory):
+            path = os.path.join(work_directory, d)
+            if os.path.isdir(path) and '_archived' not in path:
+                count+=1
+                for dirpath, dirnames, filenames in os.walk(path,\
+                                                                topdown=False):
+                    shutil.rmtree(dirpath, ignore_errors=True)                    
+
     print('deleted {} simulations that were either not tracked by a JSON file'\
           .format(count) + ' or were not part of {} optimization stage'\
           .format(stage))
-    
+
+  
 def delete_files(work_directory, file_name=''):
     """
     Recursively delete all files of a certain name from multiple PRMS 
