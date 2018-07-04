@@ -44,12 +44,22 @@ class Optimizer:
     '''
         
     #dic for min/max of parameter allowable ranges, add more when needed
-    param_ranges = {'dday_intcp': (-60.0, 10.0), 'dday_slope': (0.2, 0.9),\
-                    'jh_coef': (0.005, 0.06), 'pt_alpha': (1.0, 2.0), \
-                    'potet_coef_hru_mo': (1.0, 2.0), 'tmax_index': \
-                    (-10.0, 110.0), 'tmin_lapse': (-10.0, 10.0), \
-                    'soil_moist_max': (0.001, 10.0), 'rain_adj': (0.5, 2.0)\
-                   } #changed potet max 
+    param_ranges = {'dday_intcp': (-60.0, 10.0), 
+                    'dday_slope': (0.2, 0.9),
+                    'jh_coef': (0.005, 0.06), 
+                    'pt_alpha': (1.0, 2.0), 
+                    'potet_coef_hru_mo': (1.0, 2.0), 
+                    'tmax_index': (-10.0, 110.0), 
+                    'tmin_lapse': (-10.0, 10.0), 
+                    'soil_moist_max': (0.001, 10.0), 
+                    'rain_adj': (0.5, 2.0),
+                    'ppt_rad_adj': (0.0, 0.5),
+                    'radadj_intcp': (0.0, 1.0),
+                    'radadj_slope': (0.0, 1.0),
+                    'radj_sppt': (0.0, 1.0),
+                    'radj_wppt': (0.0, 1.0),
+                    'radmax': (0.1, 1.0)
+                   } 
 
     def __init__(self, parameters, data, control_file, working_dir,
                  title, description=None):
@@ -129,7 +139,7 @@ class Optimizer:
                 tmp.append(resample_param(self.parameters, name, how=method,\
                            mu_factor=mu_factor, noise_factor=noise_factor))
             params.append(list(tmp))
-            
+        
         # SimulationSeries comprised of each resampled param set
         series = SimulationSeries(
             Simulation.from_data(
@@ -146,7 +156,6 @@ class Optimizer:
         )
 
         # run 
-        # if not nproc: nproc = mp.cpu_count() // 2        
         outputs = list(series.run(nproc=nproc).outputs_iter())        
         self.arb_outputs.extend(outputs) # for current instance- add outputs 
 
@@ -444,14 +453,11 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
 #     print('length: ', length)
 #     print('resample_method: ', dim_case)
 
-    low_bnd = p_min - np.min(param) # lowest param value minus allowable min
-    up_bnd = p_max - np.max(param)
     s = (p_max - p_min) * noise_factor # std_dev (s) default: param_range/10  
-    #do resampling differently based on param dimensions 
+    #do resampling based on param dimensions and sampling distribution
     if dim_case == 'resample_all_values_once': 
         if how == 'uniform':
-            shifted_param = np.random.uniform(low=low_bnd, high=up_bnd) + param
-            ret = shifted_param
+            ret = np.random.uniform(low=p_min, high=p_max, size=param.shape) 
         elif how == 'normal': # scale parameter mean if mu_factor given 
             mu = np.mean(param) * mu_factor
             if mu_factor != 1:
@@ -463,23 +469,23 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     elif dim_case == 'resample_each_value':
         ret = param
         if how == 'uniform':
-            for i, el in enumerate(param):
-                low_bnd = p_min - np.min(el) # a,b for uniform RV to add 
-                up_bnd = p_max - np.max(el)
-                ret[i] = el + np.random.uniform(low=low_bnd, high=up_bnd)
-        elif how == 'normal': # the original value is the mean 
-            for i, el in enumerate(param):
-                mu = el * mu_factor
-                ret[i] =  np.random.normal(mu, s) 
+            ret = np.random.uniform(low=p_min, high=p_max, size=param.shape)
+        elif how == 'normal': # the original value is considered the mean
+            if len(ret.shape) != 0:
+                for i, el in enumerate(param):
+                    mu = el * mu_factor
+                    ret[i] =  np.random.normal(mu, s) 
+            else: # single value parameter
+                mu = param * mu_factor
+                ret = np.random.normal(mu, s)
 
     # nhru by nmonth dimensional params
     elif dim_case == 'nhru_nmonths':
         ret = param
         if how == 'uniform':
-            rvs = [np.random.uniform(low=low_bnd, high=up_bnd)\
-                   for i in range(12)]
             for month in range(12):
-                ret[month] += rvs[month]
+                ret[month] = np.random.uniform(low=p_min, high=p_max,\
+                                                           size=param[0].shape)
         elif how == 'normal':
             for i, el in enumerate(param):
                 mu = np.mean(el) * mu_factor
@@ -492,9 +498,10 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     return ret
 
 def _mod_params(parameters, params, param_names):
+    # loop through list of params and assign their values to Parameter instance
     ret = copy(parameters)
     for idx, param in enumerate(params):
-        ret[param_names[idx]] = param
+        ret[param_names[idx]] = np.array(param)
     return ret
 
 
