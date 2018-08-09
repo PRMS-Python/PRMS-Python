@@ -38,8 +38,8 @@ class SimulationSeries(object):
     def outputs_iter(self):
         '''
         Return an iterator of directories with the path to the simulation_dir
-        as well as a pandas.DataFrame of the statvar output, and the Data and
-        Parameters representations used in the simulation.
+        as well as paths to the statvar output, the data and
+        parameter files used in the simulation.
 
         Example:
             >>> ser = SimulationSeries(simulations)
@@ -50,7 +50,7 @@ class SimulationSeries(object):
         Would return something like
 
             {'simulation_dir': 'path/to/sim/', 'statvar': 'path/to/statvar',
-             'data': <data.Data>, 'parameters': <parameters.Parameters>}
+             'data': 'path/to/data', 'parameters': 'path/to/parameters'}
 
         Returns:
             (generator(dict)):
@@ -85,13 +85,8 @@ class Simulation(object):
         """
         Create a new Simulation object from a simulation directory. Check that
         all required PRMS inputs (control, parameters, data) exist in the
-        expected locations.
-
-        Also parses the control file to make sure that the data and parameter
-        file specified match the ones in the input_dir.
-
-        If simulation_dir is provided and does not exist, it will be created.
-        If it does exist it will be overwritten.
+        expected locations. If simulation_dir is provided and does not exist, 
+        it will be created. If it does exist it will be overwritten.
 
         Arguments:
             input_dir (str): location of control, parameter, and data

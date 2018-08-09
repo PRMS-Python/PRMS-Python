@@ -486,14 +486,15 @@ def modify_params(params_in, params_out, param_mods=None):
 
     So param_mods is a dictionary of with keys being parameter names and
     values a function that operates on a single value. Currently we only
-    accept functions that operate on single values without reference to any
-    other parameters. The function will be applied to every cell, month, or
-    cascade routing rule for which the parameter is defined.
+    accept functions that operate without reference to any other parameters. 
+    The function will be applied to every cell, month, or cascade routing rule 
+    for which the parameter is defined.
 
     Arguments:
         params_in (str): location on disk of the base parameter file
 
-        params_out (str): location on disk where the modified parameters will be written
+        params_out (str): location on disk where the modified parameters will 
+            be written
 
         param_mods (dict): param name-keyed, param modification function-valued
 

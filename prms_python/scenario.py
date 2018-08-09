@@ -27,7 +27,7 @@ class ScenarioSeries(object):
     the metadata in ``{series-directory}/series_metadata.json``.
 
     In the future we may add a way for the user to access the results of
-    the scenario simulations diretcly through the series, but for now the
+    the scenario simulations directly through the series, but for now the
     results are written to disk and the user must load them manually. It's
     maybe a little clunky, but here we use the title metadata to be able to
     reference the statsvar file for a particular set of scale factors. See
@@ -288,6 +288,12 @@ class ScenarioMetadata:
     def __setitem__(self, key, value):
         self.metadata_dict[key] = value
 
+    def __repr__(self):
+        return self.metadata_dict.__repr__()
+
     def write(self, output_path):
         with open(output_path, 'w') as f:
-            f.write(json.dumps(self.metadata_dict))
+            f.write(json.dumps(self.metadata_dict, ensure_ascii=False,\
+                               indent=4, sort_keys=True))
+
+

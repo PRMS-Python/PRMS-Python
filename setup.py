@@ -3,7 +3,8 @@ from setuptools import setup
 requires = [
     'click==6.6',
     'numpy==1.11.1',
-    'pandas==0.18.1'
+    'pandas==0.18.1',
+    'matplotlib==1.5.1'
 ]
 
 tests_require = []

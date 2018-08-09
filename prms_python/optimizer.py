@@ -5,7 +5,7 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime as dt
+from datetime import datetime
 import os, sys, json, re, shutil
 import multiprocessing as mp
 
@@ -129,8 +129,8 @@ class Optimizer:
         # statistical variable output name  
         self.statvar_name = statvar_name
 
-        start_time = dt.datetime.now()
-        start_time = start_time.replace(second=0, microsecond=0)
+        start_time = datetime.now().isoformat()
+
         # resample params for all simulations- potential place to serialize
         params = []
         for name in param_names: # create list of lists of resampled params
@@ -149,33 +149,35 @@ class Optimizer:
                 self.control_file,
                 OPJ(
                     self.working_dir, # name of sim: first param and mean value
-                    '{0}:{1:.6f}'.format(param_names[0], np.mean(params[0][i]))
+                    '{0}_{1:.10f}'.format(param_names[0], np.mean(params[0][i]))
                 )
             )
             for i in range(n_sims)
         )
 
+        if not nproc:
+            nproc = mp.cpu_count() // 2
+        
         # run 
         outputs = list(series.run(nproc=nproc).outputs_iter())        
         self.arb_outputs.extend(outputs) # for current instance- add outputs 
 
-        end_time = dt.datetime.now()
-        end_time = end_time.replace(second=0, microsecond=0)
+        end_time = datetime.now().isoformat()
         
         # json metadata for Monte Carlo run 
         meta = { 'params_adjusted' : param_names,
                  'statvar_name' : self.statvar_name,
                  'optimization_title' : self.title,
                  'optimization_description' : self.description,
-                 'start_time' : str(start_time),
-                 'end_time' : str(end_time),
+                 'start_datetime' : start_time,
+                 'end_datetime' : end_time,
                  'measured' : reference_path,
                  'method' : 'Monte Carlo',
                  'mu_factor' : mu_factor,
                  'noise_factor' : noise_factor,
                  'resample': method,
                  'sim_dirs' : [],
-                 'stage': '{}'.format(stage),
+                 'stage': stage,
                  'original_params' : self.parameters.base_file,
                  'nproc': nproc,
                  'n_sims' : n_sims
@@ -188,8 +190,8 @@ class Optimizer:
                           self.working_dir, self.title, stage))
       
         with open(json_outfile, 'w') as outf:  
-            json.dump(meta, outf, sort_keys = True, indent = 4,\
-                      ensure_ascii = False)
+            json.dump(meta, outf, sort_keys=True, indent=4,\
+                      ensure_ascii=False)
 
         print('{0}\nOutput information sent to {1}\n'.\
                                                format('-' * 80, json_outfile))
@@ -379,15 +381,16 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     """
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the uniform 
-    values is equal to the difference between the min(max) of the parameter
-    set and the min(max) of the allowable range from PRMS. If the resampling
-    method ("how" argument) is set to 'normal', randomly sample a normal 
-    distribution with mean 0 and sigma = param allowable range multiplied by
-    noise_factor, then add this random value to original param value. If 
-    parameters have array length <= 366 then individual parameter values are 
-    resampled otherwise resample all param values at once, i.e. by taking
-    a single random value from the uniform distribution or by adding a single
-    random value samplied from the normal distribution to all param values. 
+    values is equal to the difference between the min and max of the allowable 
+    range from PRMS. The parameter min and max are set in Optimizer.param_ranges 
+    If the resampling method ("how" argument) is set to 'normal', randomly 
+    sample a normal distribution with mean = mean(parameter) X mu_factor and 
+    sigma = param allowable range multiplied by noise_factor. If parameters have
+    array length <= 366 then individual parameter values are resampled otherwise
+    resample all param values at once, e.g. by taking a single random value 
+    from the uniform distribution. If they are taking all at once using the 
+    normal method then the original values are scaled by mu_factor and a normal 
+    random variable with mean=0 and std dev = parameter range X noise_factor. 
 
     Args:
         params (parameters.Parameters): parameter object 
@@ -459,12 +462,9 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
         if how == 'uniform':
             ret = np.random.uniform(low=p_min, high=p_max, size=param.shape) 
         elif how == 'normal': # scale parameter mean if mu_factor given 
-            mu = np.mean(param) * mu_factor
-            if mu_factor != 1:
-                tmp = np.random.normal(mu, s, size=param.shape)
-                ret = tmp + param
-            else: # if default mu_factor, add noise from N(0,s)
-                ret = np.random.normal(0, s, size=param.shape) + param
+            param *= mu_factor
+            tmp = np.random.normal(0, s, size=param.shape)
+            ret = tmp + param
 
     elif dim_case == 'resample_each_value':
         ret = param
@@ -488,12 +488,9 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
                                                            size=param[0].shape)
         elif how == 'normal':
             for i, el in enumerate(param):
-                mu = np.mean(el) * mu_factor
-                if mu_factor != 1:
-                    tmp = np.random.normal(mu, s, size=el.shape)
-                    ret[i] = tmp + el
-                else:
-                    ret[i] = np.random.normal(0, s, size=el.shape) + el
+                el *= mu_factor
+                tmp = np.random.normal(0, s, size=el.shape)
+                ret[i] = tmp + el
 
     return ret
 
@@ -783,6 +780,7 @@ class OptimizationResult:
                           'output_values' : output_series.values.tolist(),
                           'metric_freq' : metric_freq,
                           'resample' : resample,
+                          'stage' : self.stage,
                           'mu_factor' : mu_factor,
                           'noise_factor' : noise_factor,
                           'NSE' : table.loc[sim, 'NSE'],
