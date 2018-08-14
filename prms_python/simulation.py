@@ -143,7 +143,7 @@ class Simulation(object):
         to the control file, and providing a simulation_dir where the
         simulation should be run.
 
-        Args:
+        Arguments:
             data (Data): weather station data
             parameters (Parameters): simulation parameters
             control_path (str): path to control file

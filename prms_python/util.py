@@ -6,6 +6,49 @@ import os, shutil, json
 import numpy as np
 import pandas as pd
 
+def calc_emp_CDF(data):
+    """
+    Create empirical CDF of arbitrary data
+    
+    Arguments:
+        data (array_like) : array to calculate CDF on
+    Returns:
+        X (numpy.ndarray) : array of x values of CDF (sorted data)
+        
+        F (numpy.ndarray) : array of CDF values for each X value or cumulative 
+            exceedence probability, in [0,1].
+    """
+    n_bins = len(data)
+    X = np.sort(data)
+    F = np.array(range(n_bins))/float(n_bins)
+    return X,F
+
+def Kolmogorov_Smirnov(uncond, cond, n_bins=10000):
+    """ 
+    Calculate the Kolmogorov-Smirnov statistic between two datasets by first 
+    computing their empirical CDFs
+    
+    Arguments:
+        uncond (array_like) : data for creating the unconditional CDF.
+        cond (array_like) : data for creating the conditional CDF
+        n_bins (int) : number of bins for both CDFs, note if n_bins > length
+            of either dataset then CDF values are interpolated by numpy        
+    Returns: 
+        KS (float) : Kolmogorov-Smirnov statistic, i.e. absolute max distance
+            between uncond and cond CDFs
+    """
+    # create unconditional CDF (F_Uc)
+    H,X = np.histogram(uncond, bins=n_bins, normed=True)
+    dx = X[1] - X[0]
+    F_Uc = np.cumsum(H)*dx    
+    # create conditional CDF (F_C)
+    H,X = np.histogram(cond, bins=n_bins, normed=True)
+    dx = X[1] - X[0]
+    F_C = np.cumsum(H)*dx
+    # Calc max absolulte divergence
+    KS = np.max(np.abs(F_Uc - F_C)) 
+    return KS
+
 def remove_all_optimization_sims_of_other_stage(work_directory, stage):
     """
     Track number of simulation directories not tracked by a specific stage
