@@ -10,7 +10,7 @@ requires = [
 tests_require = []
 
 classifiers = [
-    'License :: OSI Approved :: BSD License',
+    'License :: OSI Approved :: BSD3 License',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3.4',    
     'Environment :: Console',
@@ -22,14 +22,7 @@ classifiers = [
 setup(
     name='prms-python',
     description='''
-PRMS-Python provides a Python interface to PRMS data files and for running
-PRMS simulations. This module tries to improve the management of PRMS
-simulation data while also providing useful "pythonic" tools to do
-scenario-based PRMS simulations. By "scenario-based" modeling we mean, for
-example, parameter sensitivity analysis, where each "scenario" is an
-iterative perturbation of one or many parameters. Another example
-"scenario-based" modeling exercise would be climate scenario modeling: what
-will happen to modeled outputs if the input meteorological data were to change?
+PRMS-Python provides a Python interface to PRMS data files and manages PRMS simulations. This module aims to improve the efficiency of PRMS simulations while providing "pythonic" tools to do scenario-based PRMS simulations. By "scenario-based" we mean testing model hypotheses associated with model inputs, outputs, and model structure. For example, parameter sensitivity analysis, where each "scenario" is an iterative perturbation of one or many parameters. Another example "scenario-based" modeling exercise would be climate scenario modeling: what will happen to modeled outputs if the input meteorological data were to change?
     ''',
     author='John Volk and Matthew Turner',
     author_email='jmvolk@unr.edu',
