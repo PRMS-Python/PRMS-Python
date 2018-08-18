@@ -14,10 +14,10 @@ filesystem with metadata. A series of scenarios (``ScenarioSeries``) are stored
 in a single root directory for each new series with metadata for later 
 analysis.
 
-Questions or comments? Contact `John Volk <mailto:johnvolk08@gmail.com>`_
+Questions or comments? Contact `John Volk <mailto:jmvolk@unr.edu>`_
 
 
-Install
+Install (out of date version on PyPI, for new version use method below)
 -------
 
 ``pip install prms-python``
@@ -29,7 +29,7 @@ First, clone from GitHub
 
 .. code-block:: sh
 
-    git clone https://github.com/mtpain/PRMS-Python.git && cd PRMS-Python
+    git clone https://github.com/JohnVolk/PRMS-Python && cd PRMS-Python
 
 Then install dependencies and executable
 
@@ -47,7 +47,9 @@ command-line interface to the PRMS-Python tools.
 
 If instead you would rather get acquainted with the Python API for direct use,
 see the :doc:`tutorial` page for usage recipes and examples, and consult the
-:doc:`api` for more details.
+:doc:`api` for more details. More examples and in depth documentation can be 
+found in the Jupyter notebooks found in the notebooks directory in the PRMS-Python 
+package.
 
 Happy coding, y'all!
 
