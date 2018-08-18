@@ -1,10 +1,11 @@
+from prms_python import __version__
 from setuptools import setup
 
 requires = [
-    'click==6.6',
-    'numpy==1.11.1',
-    'pandas==0.18.1',
-    'matplotlib==1.5.1'
+    'click == 6.6',
+    'numpy >= 1.11.1',
+    'pandas >= 0.18.1',
+    'matplotlib >= 1.5.1'
 ]
 
 tests_require = []
@@ -31,11 +32,11 @@ PRMS-Python provides a Python interface to PRMS data files and manages PRMS simu
     author='John Volk and Matthew Turner',
     author_email='jmvolk@unr.edu',
     license='BSD3',
-    version='1.0.0',
+    version=__version__,
     url='https://github.com/JohnVolk/PRMS-Python',
     platforms=['Windows','Linux','Mac OS X'],
     classifiers=classifiers,
-    py_modules=['prms_python'],
+    packages=['prms_python', 'prms_python.scripts', 'test'],
     install_requires=requires,
     tests_require=tests_require,
     package_data={'prms_python': ['models/lbcd/*']},
