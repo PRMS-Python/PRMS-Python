@@ -1,3 +1,8 @@
+'''
+scenario.py -- holds Scenario and ScenarioSeries class for PRMS managing parameter-based 
+model scenarios.
+'''
+
 import inspect
 import json
 import multiprocessing as mp
@@ -6,7 +11,6 @@ import shutil
 import uuid
 
 from datetime import datetime
-
 from .parameters import modify_params, Parameters
 from .data import Data
 from .util import load_statvar

@@ -1,3 +1,8 @@
+"""
+simulation.py -- Contains Simulation and SimulationSeries classes and associated functions for
+managing PRMS simulations at a low level.
+"""
+
 from __future__ import print_function
 import glob
 import multiprocessing as mp
@@ -10,9 +15,7 @@ from .data import Data
 from .parameters import Parameters
 from .util import load_statvar
 
-
 OPJ = os.path.join
-
 
 class SimulationSeries(object):
     '''

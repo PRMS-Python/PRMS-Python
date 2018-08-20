@@ -1,16 +1,7 @@
 '''
-PRMS-Python: Powerful, sane tools for manipulating PRMS input data to create
-new scenarios or parameterizations for sensitivity analysis, scenario
-modeling, or whatever other uses this might have.
-
-The fundamental process in scenario development is to modify some "base"
-starting data to create some "scenario" data. No matter what data we're using,
-once it's ready, we run a PRMS "simulation" on that data.
-
-This module presents a Simulation and Scenario class, where each tracks
-relevant provenance information and input files to facilitate better
-data management techniques to streamline later analyses.
+parameters.py -- holds Parameter class for PRMS standard parameters input file.
 '''
+
 import datetime, calendar
 import io, os
 import itertools

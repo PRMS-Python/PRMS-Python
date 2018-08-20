@@ -1,18 +1,16 @@
 '''
-optimizer.py -- Optimization routines for PRMS parameters and data.
+optimizer.py -- Optimization routines for PRMS parameters.
 '''
 from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
 import os, sys, json, re, shutil
 import multiprocessing as mp
-
 from copy import copy
 from copy import deepcopy
 from numpy import log10
-
+from datetime import datetime
 from .data import Data
 from .parameters import Parameters
 from .simulation import Simulation, SimulationSeries

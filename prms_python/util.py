@@ -1,7 +1,8 @@
 """
-Utilities for working with PRMS data or other functionality that aren't
+util.py -- Utilities for working with PRMS data or other functionality that aren't
 appropriate to put elsewhere at this time.
 """
+
 import os, shutil, json
 import numpy as np
 import pandas as pd
