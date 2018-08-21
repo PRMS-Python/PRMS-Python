@@ -30,7 +30,7 @@ pip install --editable .
 
 We reccomend starting with the ["getting started"](https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/getting_started.ipynb) 
 Jupyter notebook for file structure rules that PRMS-Python uses and then
-moving on to other example notebooks in the [`notebooks` directory](https://github.com/PRMS-Python/PRMS-Python/tree/master/notebooks). Online documentation is also available [here](https://prms-python.github.io/docs/).
+moving on to other example notebooks in the [`notebooks` directory](https://github.com/PRMS-Python/PRMS-Python/tree/master/notebooks). Online documentation is available [here](https://prms-python.github.io/PRMS-Python/build/html/index.html).
 
 ## Building documentation
 
@@ -44,11 +44,15 @@ make html
 ```
 
 If it fails because of missing dependencies, just install the dependencies 
-it says it's missing. I don't know why it's asking for some dependencies
-right now.
+it says it's missing. Publishing the docs is now done automatically with any 
+commits are pushed to the master branch.
 
 
-<!---  commented the modification of online docs for now
+<!---  commented the published of online docs the old way
+  The method I employed was found on the Sphinx repository as an issue
+  that did exactly what I wanted: https://github.com/sphinx-doc/sphinx/issues/3382
+  essentially using the new github publish docs from master branch doc folder
+  but using a fake index.html to redirect github to the one under docs/build/html/
 
 If it succeds and this is your first time making the html docs you will see a 
 new directory, `build/html`. If this is the first time you've 
