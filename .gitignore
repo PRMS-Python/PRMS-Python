@@ -11,7 +11,7 @@
 
 venv
 notebooks/jupyternb-scenario-series-example/
-docs/build
+#docs/build
 
 **/utility_functions.ipynb
 **/scripts/*.data

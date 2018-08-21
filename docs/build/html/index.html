@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>PRMS-Python &#8212; PRMS-Python v1.0.0</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command-Line Interface" href="cli.html" /> 
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="prms-python">
+<h1>PRMS-Python<a class="headerlink" href="#prms-python" title="Permalink to this headline">¶</a></h1>
+<p>This module provides intuitive functions and structures for implementing
+PRMS simulations and for systematically modifying input parameter and
+data files, then running a series of PRMS simulations in an automated and
+intelligent way. Every Simulation’s input and output data is tracked on the
+filesystem with metadata. A series of scenarios (<code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code>) are stored
+in a single root directory for each new series with metadata for later
+analysis.</p>
+<p>Questions or comments? Contact <a class="reference external" href="mailto:jmvolk&#37;&#52;&#48;unr&#46;edu">John Volk</a></p>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">prms-python</span></code></p>
+<div class="section" id="developer-install">
+<h3>Developer Install<a class="headerlink" href="#developer-install" title="Permalink to this headline">¶</a></h3>
+<p>First, clone from GitHub</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/PRMS-Python/PRMS-Python.git
+<span class="nb">cd</span> PRMS-Python
+</pre></div>
+</div>
+<p>Then install dependencies and executable</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install --editable .
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>We recommend getting acquainted with the Python API by reading and applying some examples and recipes found in the <a class="reference internal" href="tutorial.html"><span class="doc">Tutorial and Recipes</span></a> page, and consult the <a class="reference internal" href="api.html"><span class="doc">API Reference</span></a> for more details. More examples, basic and advanced workflows, and in depth documentation can be found in the Jupyter notebooks found in the <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/tree/master/notebooks">notebooks directory</a> in the PRMS-Python package.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#commands">Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial and Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#scenario-scenarioseries"><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#load-data-load-statvar"><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#data-parameter-statsvar-helper-functions">Data, Parameter, Statsvar helper functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#nash-sutcliffe">Nash-Sutcliffe</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/prms-python-200x.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=docs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial and Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="cli.html" title="next chapter">Command-Line Interface</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, John Volk and Matthew Turner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,430 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prms_python.util &#8212; PRMS-Python v1.0.0</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../_static/prms-python-32x.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for prms_python.util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">util.py -- Utilities for working with PRMS data or other functionality that aren&#39;t</span>
+<span class="sd">appropriate to put elsewhere at this time.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">calc_emp_CDF</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create empirical CDF of arbitrary data</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        data (array_like) : array to calculate CDF on</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        X (numpy.ndarray) : array of x values of CDF (sorted data)</span>
+<span class="sd">        </span>
+<span class="sd">        F (numpy.ndarray) : array of CDF values for each X value or cumulative </span>
+<span class="sd">            exceedence probability, in [0,1].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_bins</span><span class="p">))</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">n_bins</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">F</span>
+
+<span class="k">def</span> <span class="nf">Kolmogorov_Smirnov</span><span class="p">(</span><span class="n">uncond</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Calculate the Kolmogorov-Smirnov statistic between two datasets by first </span>
+<span class="sd">    computing their empirical CDFs</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        uncond (array_like) : data for creating the unconditional CDF.</span>
+<span class="sd">        cond (array_like) : data for creating the conditional CDF</span>
+<span class="sd">        n_bins (int) : number of bins for both CDFs, note if n_bins &gt; length</span>
+<span class="sd">            of either dataset then CDF values are interpolated by numpy        </span>
+<span class="sd">    Returns: </span>
+<span class="sd">        KS (float) : Kolmogorov-Smirnov statistic, i.e. absolute max distance</span>
+<span class="sd">            between uncond and cond CDFs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># create unconditional CDF (F_Uc)</span>
+    <span class="n">H</span><span class="p">,</span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">uncond</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">n_bins</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">F_Uc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">H</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span>    
+    <span class="c1"># create conditional CDF (F_C)</span>
+    <span class="n">H</span><span class="p">,</span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">n_bins</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">F_C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">H</span><span class="p">)</span><span class="o">*</span><span class="n">dx</span>
+    <span class="c1"># Calc max absolulte divergence</span>
+    <span class="n">KS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">F_Uc</span> <span class="o">-</span> <span class="n">F_C</span><span class="p">))</span> 
+    <span class="k">return</span> <span class="n">KS</span>
+
+<span class="k">def</span> <span class="nf">remove_all_optimization_sims_of_other_stage</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span> <span class="n">stage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Track number of simulation directories not tracked by a specific stage</span>
+<span class="sd">    and recursively delete them and their contents. This was created to avoid</span>
+<span class="sd">    having nutracked simulations in an optimizer working directory for example</span>
+<span class="sd">    when an optimization method was interupted before data was saved to a meta</span>
+<span class="sd">    data file.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        work_directory (str) : Directory to look for Optimization metadata </span>
+<span class="sd">            json files and simulation directories to keep or remove.         </span>
+<span class="sd">        stage (str) : Optimization stage that will not have its simulation</span>
+<span class="sd">            data deleted. All other stages if any are found in metadata files</span>
+<span class="sd">            will have their associated simulation directories deleted.        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.optimizer</span> <span class="k">import</span> <span class="n">OptimizationResult</span> <span class="c1"># avoid circular import</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span><span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">)</span>    
+        <span class="n">tracked_dirs</span> <span class="o">=</span> <span class="p">[]</span>    
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">metadata_json_paths</span><span class="p">[</span><span class="n">stage</span><span class="p">]:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+                <span class="n">tracked_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sim_dirs&#39;</span><span class="p">))</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">working_dir</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tracked_dirs</span><span class="p">:</span>
+                <span class="k">continue</span>      
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;_archived&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">,</span>\
+                                                                <span class="n">topdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>                    
+
+    <span class="c1"># if no json file in working dir for given stage, delete any other sim dirs </span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">work_directory</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;_archived&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">,</span>\
+                                                                <span class="n">topdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>                    
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;deleted </span><span class="si">{}</span><span class="s1"> simulations that were either not tracked by a JSON file&#39;</span>\
+          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; or were not part of </span><span class="si">{}</span><span class="s1"> optimization stage&#39;</span>\
+          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage</span><span class="p">))</span>
+
+  
+<span class="k">def</span> <span class="nf">delete_files</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively delete all files of a certain name from multiple PRMS </span>
+<span class="sd">    simulations that are within a given directory. Can be useful to removw </span>
+<span class="sd">    large files that are no longer needed. For example initial condition </span>
+<span class="sd">    output files are often large and not always used, similarly animation, </span>
+<span class="sd">    data, control, ... files may no longer be needed. </span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        work_directory (str) : path to directory with simulations.</span>
+<span class="sd">        file_name (str) : Name of the PRMS input or output file(s) to be </span>
+<span class="sd">            removed, default = &#39;&#39; empty string- nothing will be deleted.             </span>
+
+<span class="sd">            e.g. if you have several simulation directories:</span>
+
+<span class="sd">			&quot;test/results/intcp:-26.50_slope:0.49&quot;, </span>
+<span class="sd">			&quot;test/results/intcp:-11.68_slope:0.54&quot;, </span>
+<span class="sd">			&quot;test/results/intcp:-4.70_slope:0.51&quot;, </span>
+<span class="sd">			&quot;test/results/intcp:-35.39_slope:0.39&quot;, </span>
+<span class="sd">			&quot;test/results/intcp:-20.91_slope:0.41&quot;</span>
+
+<span class="sd">            each of these contains an &#39;/inputs&#39; folder with a duplicate data </span>
+<span class="sd">            file that you would like to delete. In this case, delete all </span>
+<span class="sd">            data files like so:</span>
+
+<span class="sd">            &gt;&gt;&gt; work_dir = &#39;test/results/&#39;</span>
+<span class="sd">            &gt;&gt;&gt; delete_ic_files(work_dir, file_name=&#39;data&#39;)</span>
+<span class="sd">		    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span> <span class="n">topdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span>\
+                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>        
+
+<div class="viewcode-block" id="load_statvar"><a class="viewcode-back" href="../../api.html#prms_python.load_statvar">[docs]</a><span class="k">def</span> <span class="nf">load_statvar</span><span class="p">(</span><span class="n">statvar_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the statvar file and load into a datetime indexed</span>
+<span class="sd">    Pandas dataframe object</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        statvar_file (str): statvar file path</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (pandas.DataFrame) Pandas DataFrame of PRMS variables date indexed</span>
+<span class="sd">            from statvar file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make list of statistical output variables for df header</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;year&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;month&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;day&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;hh&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;mm&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;sec&#39;</span><span class="p">]</span>
+
+    <span class="c1"># append to header list the variables present in the file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">statvar_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inf</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inf</span><span class="p">):</span>
+            <span class="c1"># first line is always number of stat variables</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n_statvars</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">idx</span> <span class="o">&lt;=</span> <span class="n">n_statvars</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">column_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="c1"># arguments for read_csv function</span>
+    <span class="n">missing_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>
+    <span class="n">skiprows</span> <span class="o">=</span> <span class="n">n_statvars</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+        <span class="n">statvar_file</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="n">skiprows</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="p">[</span><span class="n">missing_value</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># apply correct header names using metadata retrieved from file</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">column_list</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">year</span><span class="o">*</span><span class="mi">10000</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">month</span><span class="o">*</span><span class="mi">100</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">),</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+    <span class="p">)</span>
+
+    <span class="c1"># make the df index the datetime for the time series data</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+
+    <span class="c1"># drop unneeded columns</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">,</span> <span class="s1">&#39;hh&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="s1">&#39;sec&#39;</span><span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># name dataframe axes (index,columns)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;statistical_variables&#39;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;date&#39;</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="load_data_file"><a class="viewcode-back" href="../../api.html#prms_python.load_data_file">[docs]</a><span class="k">def</span> <span class="nf">load_data_file</span><span class="p">(</span><span class="n">data_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the data file and load into a datetime indexed Pandas dataframe object.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments: </span>
+<span class="sd">	    data_file (str): data file path </span>
+<span class="sd">    Returns:</span>
+<span class="sd">	    df (pandas.DataFrame): Pandas dataframe of input time series data </span>
+<span class="sd">	        from data file with datetime index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># valid input time series that can be put into a data file</span>
+    <span class="n">valid_input_variables</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;gate_ht&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;humidity&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;lake_elev&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;pan_evap&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;precip&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;rain_day&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;runoff&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;snowdepth&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;solrad&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;tmax&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;tmin&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;wind_speed&#39;</span><span class="p">)</span>
+    <span class="c1"># starting list of names for header in dataframe</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;month&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;day&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;hh&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;mm&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;sec&#39;</span><span class="p">]</span>
+    <span class="c1"># append to header list the variables present in the file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inf</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inf</span><span class="p">):</span>
+
+            <span class="c1"># first line always string identifier of the file- may use later</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">data_head</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+
+            <span class="k">elif</span> <span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>  <span class="c1"># comment lines</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># header lines with name and number of input variables</span>
+            <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">valid_input_variables</span><span class="p">):</span>
+                <span class="c1"># split line into list, first element name and</span>
+                <span class="c1"># second number of columns</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+                <span class="c1"># more than one input time series of a particular variable</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+                        <span class="n">tmp</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{var_name}</span><span class="s1">_</span><span class="si">{var_ind}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_name</span><span class="o">=</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                            <span class="n">var_ind</span><span class="o">=</span><span class="n">el</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">column_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">column_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># end of header info and begin time series input data</span>
+            <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="n">skip_line</span> <span class="o">=</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span>
+                <span class="k">break</span>
+
+    <span class="c1"># read data file into pandas dataframe object with correct header names</span>
+    <span class="n">missing_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>  <span class="c1"># missing data representation</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">header</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="n">skip_line</span><span class="p">,</span>
+                     <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="p">[</span><span class="n">missing_value</span><span class="p">])</span>
+
+    <span class="c1"># apply correct header names using metadata retrieved from file</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">column_list</span>
+
+    <span class="c1"># create date column</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">year</span><span class="o">*</span><span class="mi">10000</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">month</span><span class="o">*</span><span class="mi">100</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">),</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+    <span class="p">)</span>
+
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>  <span class="c1"># make the df index the datetime</span>
+
+    <span class="c1"># drop unneeded columns</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">,</span> <span class="s1">&#39;hh&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="s1">&#39;sec&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;input variables&#39;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;date&#39;</span>  <span class="c1"># name dataframe axes (index,columns)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="nash_sutcliffe"><a class="viewcode-back" href="../../api.html#prms_python.nash_sutcliffe">[docs]</a><span class="k">def</span> <span class="nf">nash_sutcliffe</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">modeled</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the Nash-Sutcliffe Goodness-of-fit</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        observed (numpy.ndarray): historic observational data</span>
+
+<span class="sd">        modeled (numpy.ndarray): model output with matching time index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">numerator</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">observed</span> <span class="o">-</span> <span class="n">modeled</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">denominator</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">observed</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">observed</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">numerator</span><span class="o">/</span><span class="n">denominator</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">percent_bias</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">modeled</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates percent bias </span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        observed (numpy.ndarray): historic observational data</span>
+
+<span class="sd">        modeled (numpy.ndarray): model output with matching time index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">modeled</span> <span class="o">-</span> <span class="n">observed</span> <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">observed</span> <span class="p">)</span> <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">rmse</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">modeled</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates root mean squared error</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        observed (numpy.ndarray): historic observational data</span>
+
+<span class="sd">        modeled (numpy.ndarray): model output with matching time index</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="nb">sum</span><span class="p">((</span><span class="n">observed</span> <span class="o">-</span> <span class="n">modeled</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">observed</span><span class="p">)</span> <span class="p">)</span>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/prms-python-200x.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=docs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial and Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, John Volk and Matthew Turner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

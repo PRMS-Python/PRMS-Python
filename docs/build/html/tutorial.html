@@ -1,0 +1,607 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Tutorial and Recipes &#8212; PRMS-Python v1.0.0</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Command-Line Interface" href="cli.html" /> 
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial-and-recipes">
+<h1>Tutorial and Recipes<a class="headerlink" href="#tutorial-and-recipes" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial we will go through each important class and function, and
+explain each one’s purpose and use with an example. At the end of the tutorial
+in <cite>example</cite> we show how all these can be put together to build a parameter
+sensitivity analysis.</p>
+<div class="section" id="parameters">
+<h2><code class="docutils literal notranslate"><span class="pre">Parameters</span></code><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="api.html#parameters"><span class="std std-ref">Parameters Class</span></a> provides a NumPy-backed
+representation of a PRMS parameters file that allows the user to select,
+modify, and save PRMS parameters files. It can be used similarly to a
+Pandas DataFrame.</p>
+<p>The PRMS parameters file contains data arrays of varying dimensionality, which
+is why we can’t just use a DataFrame to do these manipulations. The
+implementation of the <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> class is loosely based on the netCDF
+data structure, where metadata about each parameter is kept separately.
+Parameters are read into memory only if the user selects or modifies a
+particular parameter.
+This allows for memory-efficient processing of Parameter files.</p>
+<p>Below is an example of reading a parameter file, reading a particular variable
+from a parameter file, replacing that parameter data with other data (in this
+case an array of all zeros), then saving the modified parameters to a new
+Parameters file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Parameters</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;test/data/parameter&#39;</span><span class="p">)</span>
+
+<span class="c1"># select PRMS parameter by name, raising KeyError if DNE</span>
+<span class="n">snow_adj</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;snow_adj&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">snow_adj</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+
+<span class="c1"># assign values to PRMS parameter</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">snow_adj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">p</span><span class="p">[</span><span class="s1">&#39;snow_adj&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>  <span class="c1"># now p[&#39;snow_adj&#39;] is 12x16 matrix of zeros</span>
+
+<span class="c1"># write modified parameters to file</span>
+<span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;newparameters&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> use this functionality (via the
+<cite>prms_python.modify_params</cite> function) to implement either a single Scenario or a
+series of Scenarios.</p>
+</div>
+<div class="section" id="data">
+<h2><code class="docutils literal notranslate"><span class="pre">Data</span></code><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class loads a PRMS data file into a Pandas DataFrame and allows
+for easy modification and writing of modified PRMS data files.</p>
+<p>A PRMS data file holds time series variables that are used as input for running
+PRMS including daily temperature and precipitation. Being tabular and date-indexed
+the data file is well represented and managed as a DataFrame. A common paractice
+in hydrologic modeling is to evaluate hydrologic response to multiple climate
+change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based modification of time
+series variable/s so that the user can quickly create new climate inputs for PRMS.
+The user can visualize the data file variables from Pandas and rewrite modified data
+to disk in the PRMS format using methods of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Data</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;test/data/data&#39;</span><span class="p">)</span>
+
+<span class="c1"># modify daily temperature by adding 2 degrees to each input</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># apply function to daily temperature input</span>
+<span class="n">d</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;tmax&#39;</span><span class="p">,</span><span class="s1">&#39;tmin&#39;</span><span class="p">])</span>
+
+<span class="c1"># write new modified data file to disk</span>
+<span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> will soon incorporate this functionality
+to implement either a single Scenario or a series of Scenarios.</p>
+</div>
+<div class="section" id="simulation">
+<h2><code class="docutils literal notranslate"><span class="pre">Simulation</span></code><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class provides a simple wrapper around running the PRMS
+model. It encourages standardization of input file names by requiring the
+three PRMS inputs to be named <cite>data</cite>, <cite>parameters</cite>, and <cite>control</cite>. In order to
+add some natural metadata to the inputs, the user should use a memorable name
+for the directory that holds these three files.</p>
+<p>After the user prepares their input files, say into a directory called
+<code class="docutils literal notranslate"><span class="pre">prms-sim-example</span></code>, they can run the following in either a Python script or a
+Python REPL</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Simulation</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;prms-sim-example&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will run PRMS assuming the PRMS executable is on the system path and is
+called <code class="docutils literal notranslate"><span class="pre">prms</span></code>. In this usage, the outputs will go to the
+<code class="docutils literal notranslate"><span class="pre">prms-sim-dir</span></code> directory.
+If the user wishes to use a different executable name or provide the path to
+it explicitly, they can do so by replacing</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>with</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">prms_executable</span><span class="o">=</span><span class="s1">&#39;path/to/myPRMSExecutable&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Another available option is to specify a different directory to use as the
+“simulation directory,” which can be useful if you want to separate
+a directory with only input data from directories where both input and output
+model run data will be stored. You can do this by specifying an additional
+keyword argument in the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> constructor, like so</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;prms-sim-example&#39;</span><span class="p">,</span> <span class="n">simulation_dir</span><span class="o">=</span><span class="s1">&#39;sim-dir-1&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scenario-scenarioseries">
+<h2><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenario-scenarioseries" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> class implements data management on top of the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>
+class, enforcing the user to separate base input data and simulation input and
+output data, plus simple, optional metadata. Let’s dive in with an example,
+assuming there are properly-formed files called <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">control</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">parameters</span></code>, in a directory called <code class="docutils literal notranslate"><span class="pre">base-inputs</span></code>. We’ll use a simulation
+directory called <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> and further provide a title and description for
+the Scenario. If <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> exists it will be overwritten and if it does not
+exist it will be created. It’s up to the user to make sure data doesn’t get
+overwritten.</p>
+<p>Both Scenarios and ScenarioSeries have a three-step process for set-up and run.
+First the Scenario or ScenarioSeries must be initialized with the base and
+simulation paths, plus, optionally, a title and description. Next, the
+Scenario(Series) must be “built”. This means defining which/how parameters
+should be modified.</p>
+<div class="section" id="scenario">
+<h3><code class="docutils literal notranslate"><span class="pre">Scenario</span></code><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
+<p>First, let’s see how we implement these three steps for
+a single Scenario. We’ll just increase one parameter, <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code>, by 10%, or
+multiply by a scaling factor of 1.10.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sc</span> <span class="o">=</span> <span class="n">Scenario</span><span class="p">(</span><span class="s1">&#39;base-inputs&#39;</span><span class="p">,</span> <span class="s1">&#39;sim-dir&#39;</span><span class="p">,</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Example Scenario&#39;</span><span class="p">,</span>
+              <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">For the case of documentation we are including some example code.</span>
+<span class="s1">Unless you actually have some inputs in the base-inputs directory used above</span>
+<span class="s1">this will fail in an interpreter.</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">scale_1p1</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1.1</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s1">&#39;jh_coeff&#39;</span><span class="p">:</span> <span class="n">scale_1p1</span><span class="p">})</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scenarioseries">
+<h3><code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
+<p>Now let’s build and run a series of scenarios. Each Scenario in the series is
+specified by a dictionary that needs to have the title of the scenario and
+a key-value pair of parameter-function for every parameter that should be
+modified. In this example, we’ll still just scale <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code>, but now over a
+range of values from 0.5 to 1.5, in increments of 0.1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">base_dir</span> <span class="o">=</span> <span class="s1">&#39;../models/lbcd/&#39;</span>
+<span class="n">simulation_dir</span> <span class="o">=</span> <span class="s1">&#39;example-sim-series-dir&#39;</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Jensen-Hays and Radiative Transfer Function Sensitivity Analysis&#39;</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">Use title of </span><span class="se">\&#39;</span><span class="s1">&quot;jh_coef&quot;:{jh factor value}</span><span class="se">\&#39;</span><span class="s1"> so later</span>
+<span class="s1">we can easily generate a dictionary of these param/function combinations.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="n">sc_series</span> <span class="o">=</span> <span class="n">ScenarioSeries</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">simulation_dir</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+
+<span class="c1"># define the scenario_list used to build the ScenarioSeries;</span>
+<span class="c1"># build series in three steps:</span>
+
+<span class="c1">#  1) define fun to return a function that scales a value by an amount</span>
+<span class="k">def</span> <span class="nf">_scale_fun</span><span class="p">(</span><span class="n">scale_val</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">scale_val</span>
+
+    <span class="k">return</span> <span class="n">scale</span>
+<span class="c1">#  2) use the function generator `_scale_fun` in scenario_list comprehension</span>
+<span class="n">scenario_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;&quot;jh_coef&quot;:{0:.1f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jh_val</span><span class="p">),</span>
+        <span class="s1">&#39;jh_coef&#39;</span><span class="p">:</span> <span class="n">_scale_fun</span><span class="p">(</span><span class="n">jh_val</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">jh_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="c1">#  3) &quot;build&quot; the series, meaning create scenario inputs and scenario dirs</span>
+<span class="n">sc_series</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">scenario_list</span><span class="p">)</span>
+
+<span class="n">sc_series</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>  <span class="c1"># could provide nproc, ex: sc_series.run(nproc=10)</span>
+</pre></div>
+</div>
+<p>If, for example, we wanted to co-vary <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code> with scalings of <code class="docutils literal notranslate"><span class="pre">rad_trncf</span></code>
+(or any other parameter) we can use the following as a recipe. Just add one
+more key/value pair to the dictionaries generated in the list comprehension
+that build the <code class="docutils literal notranslate"><span class="pre">scenario_list</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scenario_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;&quot;jh_coef&quot;:{0:.1f}|&quot;rad_trncf&quot;:{1:.1f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jh_val</span><span class="p">,</span> <span class="n">rad_val</span><span class="p">),</span>
+        <span class="s1">&#39;jh_coef&#39;</span><span class="p">:</span> <span class="n">_scale_fun</span><span class="p">(</span><span class="n">jh_val</span><span class="p">),</span>
+        <span class="s1">&#39;rad_trncf&#39;</span><span class="p">:</span> <span class="n">_scale_fun</span><span class="p">(</span><span class="n">rad_val</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">jh_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rad_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that this will square the number of scenarios to be done.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">title</span></code> might look strange, but we use this metadata to recover information
+about the individual Scenarios in the data analysis steps shown below in
+<a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a>.</p>
+</div>
+</div>
+<div class="section" id="load-data-load-statvar">
+<h2><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code><a class="headerlink" href="#load-data-load-statvar" title="Permalink to this headline">¶</a></h2>
+<p>Among other uses, if we want to compare the performance of our model to
+historical data for the purposes of parameterization or analyzing climate change
+scenarios, we will have to load the input and output hydrographs. The two
+functions <a class="reference internal" href="api.html#prms_python.load_data_file" title="prms_python.load_data_file"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_data_file</span></code></a> and <a class="reference internal" href="api.html#prms_python.load_statvar" title="prms_python.load_statvar"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_statvar</span></code></a>
+read the data and statvar files into a Pandas DataFrame, which allows for
+streamlined plotting and analysis.</p>
+<p>Here is a simple example of how to use these functions to generate a plot
+like (not identical to) the one shown in <a class="reference internal" href="#obs-mod-fig"><span class="std std-ref">Comparison of observed and modeled flow</span></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">load_data</span><span class="p">,</span> <span class="n">load_statvar</span>
+
+<span class="n">data_df</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="s1">&#39;path/to/data&#39;</span><span class="p">)</span>
+<span class="n">data_df</span><span class="o">.</span><span class="n">runoff_1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;observed&#39;</span><span class="p">)</span>
+
+<span class="n">statvar_df</span> <span class="o">=</span> <span class="n">load_statvar</span><span class="p">(</span><span class="s1">&#39;path/to/statvar.dat&#39;</span><span class="p">)</span>
+<span class="n">statvar_df</span><span class="o">.</span><span class="n">basin_cfs_1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;modeled&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="example-parameter-sensitivity">
+<span id="example"></span><h1>Example: Parameter sensitivity<a class="headerlink" href="#example-parameter-sensitivity" title="Permalink to this headline">¶</a></h1>
+<p>This is a full example of how the tools outlined above can be used together to
+build a parameter sensitivity analysis. We’ll be modifying two parameters,
+the monthly <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code> and the <code class="docutils literal notranslate"><span class="pre">nhru</span></code>-dependent <code class="docutils literal notranslate"><span class="pre">rad_trncf</span></code>. We will
+create a list of scenario definitions to “build” the <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code>. We’ll
+then use the parallelized <code class="docutils literal notranslate"><span class="pre">ScenarioSeries.run()</span></code> method to execute all
+requested scenarios.</p>
+<p>This is adapted from the <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/scenario_series.ipynb">scenario_series.ipynb, viewable on GitHub</a>.
+There are some details on customizing the plots that can be viewed there.</p>
+<p>See inline comments for more details.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ScenarioSeries</span><span class="p">,</span> <span class="n">load_data_file</span><span class="p">,</span> <span class="n">load_statvar</span><span class="p">,</span> <span class="n">nash_sutcliffe</span>
+<span class="p">)</span>
+
+<span class="c1"># define some ScenarioSeries metadata and initialize the series</span>
+<span class="n">base_dir</span> <span class="o">=</span> <span class="s1">&#39;../models/lbcd/&#39;</span>
+<span class="n">simulation_dir</span> <span class="o">=</span> <span class="s1">&#39;example-sim-series-dir&#39;</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Jensen-Hays and Radiative Transfer Function Sensitivity Analysis&#39;</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">Use title of </span><span class="se">\&#39;</span><span class="s1">&quot;jh_coef&quot;:{jh factor value}|&quot;rad_trncf&quot;:{rad factor value}</span><span class="se">\&#39;</span><span class="s1"> so later</span>
+<span class="s1">we can easily generate a dictionary of these factor value combinations.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="n">sc_series</span> <span class="o">=</span> <span class="n">ScenarioSeries</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">simulation_dir</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+
+<span class="c1"># define the scenario_list used to build the ScenarioSeries;</span>
+<span class="c1"># build series in three steps:</span>
+
+<span class="c1">#  1) define fun to return a function that scales a value by an amount</span>
+<span class="k">def</span> <span class="nf">_scale_fun</span><span class="p">(</span><span class="n">scale_val</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">scale_val</span>
+
+    <span class="k">return</span> <span class="n">scale</span>
+<span class="c1">#  2) use the function generator `_scale_fun` in scenario_list comprehension</span>
+<span class="n">scenario_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;&quot;jh_coef&quot;:{0:.1f}|&quot;rad_trncf&quot;:{1:.1f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jh_val</span><span class="p">,</span> <span class="n">rad_val</span><span class="p">),</span>
+        <span class="s1">&#39;jh_coef&#39;</span><span class="p">:</span> <span class="n">_scale_fun</span><span class="p">(</span><span class="n">jh_val</span><span class="p">),</span>
+        <span class="s1">&#39;rad_trncf&#39;</span><span class="p">:</span> <span class="n">_scale_fun</span><span class="p">(</span><span class="n">rad_val</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">jh_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rad_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="c1">#  3) &quot;build&quot; the series, meaning create scenario inputs and scenario dirs</span>
+<span class="n">sc_series</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">scenario_list</span><span class="p">)</span>
+
+<span class="n">sc_series</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>  <span class="c1"># could provide nproc, ex: sc_series.run(nproc=10)</span>
+
+<span class="c1"># now we want to analyze the results by plotting the model efficiency matrix</span>
+<span class="c1"># for the two parameters we varied, in three steps:</span>
+<span class="c1">#  1) Load basin_cfs_1 streamflow timeseries for every scenario</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+    <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">simulation_dir</span><span class="p">,</span> <span class="s1">&#39;series_metadata.json&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_build_statvar_path</span><span class="p">(</span><span class="n">uu</span><span class="p">):</span>
+    <span class="s1">&#39;Given a scenario UUID, build the path to the statvar file&#39;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">simulation_dir</span><span class="p">,</span> <span class="n">uu</span><span class="p">,</span> <span class="s1">&#39;outputs&#39;</span><span class="p">,</span> <span class="s1">&#39;statvar.dat&#39;</span><span class="p">)</span>
+
+<span class="n">modeled_flows</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">load_statvar</span><span class="p">(</span><span class="n">_build_statvar_path</span><span class="p">(</span><span class="n">uu</span><span class="p">))</span><span class="o">.</span><span class="n">basin_cfs_1</span>
+    <span class="k">for</span> <span class="n">uu</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;uuid_title_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">#  2) load the data file which contains the original streamflow</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+<span class="n">data_df</span> <span class="o">=</span> <span class="n">load_data_file</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+<span class="n">observed</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">runoff_1</span>
+
+<span class="c1">#  3) check model sensitivity via the Nash-Sutcliffe goodness of fit</span>
+<span class="c1"># define index lookup for scaling labels</span>
+<span class="n">idx_lookup</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;{:.1f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">):</span> <span class="n">idx</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="c1"># initialize the Nash-Sutcliffe matrix with all zeros</span>
+<span class="n">nash_sutcliffe_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="c1"># build nash_sutcliffe_mat</span>
+<span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">hydrograph</span> <span class="ow">in</span> <span class="n">modeled_flows</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+
+    <span class="n">param_scalings</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;{&#39;</span> <span class="o">+</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span><span class="p">)</span>
+    <span class="n">coord</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">idx_lookup</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">param_scalings</span><span class="p">[</span><span class="s1">&#39;jh_coef&#39;</span><span class="p">])],</span>
+        <span class="n">idx_lookup</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">param_scalings</span><span class="p">[</span><span class="s1">&#39;rad_trncf&#39;</span><span class="p">])]</span>
+    <span class="p">)</span>
+
+    <span class="n">nash_sutcliffe_mat</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span> <span class="o">=</span> <span class="n">nash_sutcliffe</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">hydrograph</span><span class="p">)</span>
+
+<span class="c1"># Finally let&#39;s visualize these results. First just a comparison of</span>
+<span class="c1"># one of the modeled flows and the observed streamflow; Figure 1 below.</span>
+<span class="n">observed</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;observed&#39;</span><span class="p">)</span>
+
+<span class="n">ex_uuid</span><span class="p">,</span> <span class="n">ex_title</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;uuid_title_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="n">ex_modeled_flow</span> <span class="o">=</span> <span class="n">load_statvar</span><span class="p">(</span><span class="n">_build_statvar_path</span><span class="p">(</span><span class="n">ex_uuid</span><span class="p">))</span><span class="o">.</span><span class="n">basin_cfs_1</span>
+<span class="n">ex_modeled_flow</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">ex_title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">))</span>
+
+<span class="c1"># now let&#39;s plot the Nash-Sutcliffe Matrix, Figure 2 below</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Streamflow (cfs)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="n">cax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">matshow</span><span class="p">(</span><span class="n">nash_sutcliffe_mat</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+<span class="n">tix</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">tix</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">tix</span><span class="p">)</span>
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;jh_coef factor&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;rad_trncf factor&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nash_sutcliffe_mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+             <span class="n">horizontalalignment</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+             <span class="n">color</span><span class="o">=</span><span class="s2">&quot;w&quot;</span> <span class="k">if</span> <span class="n">nash_sutcliffe_mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">61</span> <span class="k">else</span> <span class="s2">&quot;k&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Nash-Sutcliffe Matrix&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cax</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>The resulting plots from the end of the example script are shown below</p>
+<div class="figure" id="id1">
+<span id="obs-mod-fig"></span><img alt="comparison of observed and modeled flow" src="_images/obs-mod-flow.png" />
+<p class="caption"><span class="caption-text">Comparison of observed and modeled flow</span></p>
+</div>
+<div class="figure" id="id2">
+<img alt="nash-sutcliffe matrix" src="_images/nash-sutcliffe-ex.png" />
+<p class="caption"><span class="caption-text">Nash-Sutcliffe Matrix of model efficiencies</span></p>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/prms-python-200x.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=docs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial and Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scenario-scenarioseries"><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#load-data-load-statvar"><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli.html" title="previous chapter">Command-Line Interface</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, John Volk and Matthew Turner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/tutorial.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

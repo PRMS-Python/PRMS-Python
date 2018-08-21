@@ -109,28 +109,30 @@ class Parameters(object):
         index of HRUs starting in the upper left corner and moving left to 
         right across columns and down rows. 
         
-        Args:
+        Arguments:
             params (prms_python.Parameters): An instance of Parameters that 
                 corresponds with the PRMS parameter file to plot. 
-            nrows (int): The number of rows in the PRMS model grid for plotting spatial
-                parameters. Function will only work for rectangular gridded models
-                with HRU indices starting in the upper left cell moving left to right
-                across columns and down across rows.
+            nrows (int): The number of rows in the PRMS model grid for plotting 
+                spatial parameters. Function will only work for rectangular 
+                gridded models with HRU indices starting in the upper left cell 
+                moving left to right across columns and down across rows.
         
         Kwargs:
             which (str): name of PRMS parameter to plot or 'all'. If 'all' then
-                the function will print 3 multipage pdfs: one for nhru dimensional
-                parameters, one for nhru by monthly parameters, one for other parameters
-                of length > 1, and one html file containing single valued parameters
-            out_dir (str): path to an output dir, default: current directory
+                the function will print 3 multipage pdfs, one for nhru 
+                dimensional parameters, one for nhru by monthly parameters, one 
+                for other parameters of length > 1, and one html file containing
+                single valued parameters
+            out_dir (str): path to an output dir, default current directory
             xlabel (str): x label for plot(s)
             ylabel (str): y label for plot(s)
             cbar_label (str): label for colorbar on spatial plot(s)
             title (str): plot title
-            mpl_style (str, list): name or list of names of matplotlib style sheets
-                to use for plot(s)
+            mpl_style (str, list): name or list of names of matplotlib style 
+                sheets to use for plot(s)
     
-        Returns: None
+        Returns: 
+            None
         """
         params = self
     
