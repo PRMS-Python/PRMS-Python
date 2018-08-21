@@ -34,7 +34,7 @@ moving on to other example notebooks in the [`notebooks` directory](https://gith
 
 ## Building documentation
 
-This project uses the [Sphinx documentation engine for Python]()
+This project uses the [Sphinx documentation engine for Python](http://www.sphinx-doc.org/en/master/)
 The documentation source is located in `docs/source`. Eventually we can
 wrap the following steps into a script. But for now, to build the
 documentation, go to the `docs/` directory and run

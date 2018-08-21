@@ -708,7 +708,7 @@ class OptimizationResult:
                   
         return ret
 
-    def archive(self, remove_sims=True, metric_freq='daily'):
+    def archive(self, remove_sims=True, remove_meta=False, metric_freq='daily'):
         """
             Create archive directory to hold json files that contain 
             information of adjusted parameters, model output, and performance 
@@ -721,6 +721,8 @@ class OptimizationResult:
                     OptimizationResult.stage in the 
                     OptimizationResult.working_dir, if False do not delete 
                     simulations.
+                remove_meta (bool) : Whether to delete original Optimizer
+                    JSON metadata files, default is False.
                 metric_freq (Str) : Frequency of output metric computation 
                     for recording of model performance. Can be 'daily' 
                     (default) or 'monthly'. Note, other results can be computed 
@@ -806,11 +808,12 @@ class OptimizationResult:
             else:
                 continue
 
-        # after archiving all simulations delete the original JSON metadata
-        for meta_file in self.metadata_json_paths[self.stage]:
-            try:
-                os.remove(meta_file)
-            except:
-                continue
-
+        # optional delete the original JSON metadata
+        if remove_meta:
+            for meta_file in self.metadata_json_paths[self.stage]:
+                try:
+                    os.remove(meta_file)
+                except:
+                    continue
+    
 
