@@ -18,7 +18,7 @@ if the input meteorological data were to change?
 Currently it's clone-then-pip:
 
 ```
-git clone https://github.com/JohnVolk/PRMS-Python.git
+git clone https://github.com/PRMS-Python/PRMS-Python.git
 ```
 
 then
@@ -28,9 +28,9 @@ pip install --editable .
 ```
 ## Usage and documentation
 
-We reccomend starting with the ["getting started"](https://github.com/JohnVolk/PRMS-Python/blob/master/notebooks/getting_started.ipynb) 
+We reccomend starting with the ["getting started"](https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/getting_started.ipynb) 
 Jupyter notebook for file structure rules that PRMS-Python uses and then
-moving on to other example notebooks in the [`notebooks` directory](https://github.com/JohnVolk/PRMS-Python/tree/master/notebooks). Online documentation is also available [here](https://prms-python.github.io/docs/).
+moving on to other example notebooks in the [`notebooks` directory](https://github.com/PRMS-Python/PRMS-Python/tree/master/notebooks). Online documentation is also available [here](https://prms-python.github.io/docs/).
 
 ## Building documentation
 
@@ -98,7 +98,7 @@ nosetests -v
 
 ## Contribute
 
-We welcome anyone seriously interested in contributing to PRMS-Python to do so in anyway they see fit. If you are not sure where to begin you can look for current issues or submit a new issue [here](https://github.com/JohnVolk/PRMS-Python/issues). You may also [fork](https://help.github.com/articles/fork-a-repo/) PRMS-Python and submit a pull request if you would like to offer your direct changes to the package. 
+We welcome anyone seriously interested in contributing to PRMS-Python to do so in anyway they see fit. If you are not sure where to begin you can look for current issues or submit a new issue [here](https://github.com/PRMS-Python/PRMS-Python/issues). You may also [fork](https://help.github.com/articles/fork-a-repo/) PRMS-Python and submit a pull request if you would like to offer your direct changes to the package. 
 
 <!---  commented until paper accepted
 
