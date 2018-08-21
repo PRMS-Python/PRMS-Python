@@ -1,6 +1,6 @@
 """
-simulation.py -- Contains Simulation and SimulationSeries classes and associated functions for
-managing PRMS simulations at a low level.
+simulation.py -- Contains ``Simulation`` and ``SimulationSeries`` classes and 
+associated functions for managing PRMS simulations at a low level.
 """
 
 from __future__ import print_function
@@ -19,7 +19,12 @@ OPJ = os.path.join
 
 class SimulationSeries(object):
     '''
-    Series of simulations all to be run through a common interface
+    Series of simulations all to be run through a common interface. 
+    Utilizes ``multiprocessing.Pool`` class to parallelize the 
+    execution of series of PRMS simulations. SimulationSeries also
+    allows the user to define the PRMS executable command which is 
+    set to "prms" as default. It is best to add the prms executable to 
+    your PATH environment variable.   
     '''
 
     def __init__(self, simulations):
@@ -30,7 +35,7 @@ class SimulationSeries(object):
     def run(self, prms_exec='prms', nproc=None):
 
         if not nproc:
-            nproc = mp.cpu_count()//2 
+            nproc = mp.cpu_count() // 2 
 
         pool = mp.Pool(processes=nproc)
         pool.map(_simulation_runner, self.series)
@@ -41,8 +46,8 @@ class SimulationSeries(object):
     def outputs_iter(self):
         '''
         Return an iterator of directories with the path to the simulation_dir
-        as well as paths to the statvar output, the data and
-        parameter files used in the simulation.
+        as well as paths to the statvar output, the data and parameter files 
+        used in the simulation.
 
         Example:
             >>> ser = SimulationSeries(simulations)

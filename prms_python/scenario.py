@@ -1,6 +1,7 @@
 '''
-scenario.py -- holds Scenario and ScenarioSeries class for PRMS managing parameter-based 
-model scenarios.
+scenario.py -- holds ``Scenario`` and ``ScenarioSeries`` classes for PRMS 
+managing parameter-based model scenarios that may be used for hypotheses
+testing.
 '''
 
 import inspect

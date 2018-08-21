@@ -286,7 +286,7 @@ then use the parallelized ``ScenarioSeries.run()`` method to execute all
 requested scenarios.
 
 This is adapted from the `scenario_series.ipynb, viewable on GitHub
-<https://github.com/mtpain/PRMS-Python/blob/master/notebooks/scenario_series.ipynb>`_.
+<https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/scenario_series.ipynb>`_.
 There are some details on customizing the plots that can be viewed there.
 
 See inline comments for more details.

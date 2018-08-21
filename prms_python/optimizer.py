@@ -1,5 +1,6 @@
 '''
-optimizer.py -- Optimization routines for PRMS parameters.
+optimizer.py -- holds ``Optimizer`` and ``OptimizationResult`` classes for 
+optimization routines and management conducted on PRMS parameters.
 '''
 from __future__ import print_function
 import pandas as pd
@@ -21,9 +22,11 @@ OPJ = os.path.join
 
 class Optimizer:
     '''
-    Container for a PRMS parameter optimization routine consisting of 
-    stages similar to what is described in Hay, et al, 2006
+    Container for PRMS parameter optimization routines that are 
+    defined as stages similar to what is described in Hay, et al, 2006
     (ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf).
+    Currently the ``monte_carlo`` method provides random parameter 
+    resampling routines using uniform and normal random variables. 
 
     Example:
 
@@ -33,10 +36,10 @@ class Optimizer:
     >>> control = 'path/to/control'
     >>> work_directory = 'path/to/create/simulations'
     >>> optr = Optimizer(params, data, control, work_directory, \
-               title='the title', description='desc')
+title='the title', description='desc')
     >>> measured = 'path/to/measured/csv' 
     >>> statvar_name = 'basin_cfs' # or any other valid statvar 
-    >>> params_to_resample = ['dday_intcp', 'dday_slope'] # list
+    >>> params_to_resample = ['dday_intcp', 'dday_slope'] # list of params
     >>> optr.monte_carlo(measured, params_to_resample, statvar_name)
 
     '''
@@ -97,9 +100,9 @@ class Optimizer:
                     stage, n_sims=10, method='uniform', mu_factor=1,\
                     noise_factor=0.1, nproc=None):
         '''
-        Optimize the monthly dday_intcp and dday_slope parameters 
-        (two key parameters in the ddsolrad module in PRMS) by one of
-        multiple methods (in development): Monte Carlo default method
+        The ``monte_carlo`` method of ``Optimizer`` performs parameter
+	random resampling techniques to a set of PRMS parameters and 
+        executes and manages the corresponding simulations.  
 
         Args:
             reference_path (str): path to measured data for optimization
@@ -381,17 +384,17 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     taken from a uniform distribution, where the range of the uniform 
     values is equal to the difference between the min and max of the allowable 
     range from PRMS. The parameter min and max are set in Optimizer.param_ranges 
-    If the resampling method ("how" argument) is set to 'normal', randomly 
-    sample a normal distribution with mean = mean(parameter) X mu_factor and 
-    sigma = param allowable range multiplied by noise_factor. If parameters have
+    If the resampling method (``how`` argument) is set to 'normal', randomly 
+    sample a normal distribution with mean = mean(parameter) X ``mu_factor`` and 
+    sigma = param allowable range multiplied by ``noise_factor``. If parameters have
     array length <= 366 then individual parameter values are resampled otherwise
     resample all param values at once, e.g. by taking a single random value 
     from the uniform distribution. If they are taking all at once using the 
     normal method then the original values are scaled by mu_factor and a normal 
-    random variable with mean=0 and std dev = parameter range X noise_factor. 
+    random variable with mean=0 and std dev = parameter range X ``noise_factor``. 
 
     Args:
-        params (parameters.Parameters): parameter object 
+        params (parameters.Parameters): ``Parameters`` object 
         param_name (str): name of PRMS parameter to resample
     Kwargs: 
         how (str): distribution to resample parameters from in the case 
@@ -400,10 +403,9 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
         noise_factor (float): factor to multiply parameter range by, 
             use the result as the standard deviation for the normal rand.
             variable used to add element wise noise. i.e. higher 
-            noise facter will result in higher variance. Must be > 0.
+            noise_factor will result in higher variance. Must be > 0.
     Returns:
-        ret (numpy.ndarry): ndarray of param after uniform random mean 
-            shift or element-wise noise addition (normal r.v.) 
+        ret (numpy.ndarry): ndarray of param after resampling 
     """
     p_min, p_max = Optimizer.param_ranges.get(param_name,(-1,-1))
     
@@ -501,8 +503,57 @@ def _mod_params(parameters, params, param_names):
 
 
 class OptimizationResult:
-    
+    """
+    The ``OptimizationResult`` object serves to collect and manage output 
+    from an ``Optimizer`` method. Upon initialization and a given optimization
+    stage that was used when running the Optimizer method, e.g. ``monte_carlo``,
+    the class gathers all JSON metadata that was produced for the given stage. 
+    The ``OptimizationResult`` has three main user methods: first ``result_table`` 
+    which returns the top n simulations according to four model performance 
+    metrics (Nash-Sutcliffe efficiency (NSE), root-mean squared-error (RMSE), 
+    percent bias (PBIAS), and the coefficient of determination (COEF_DET) as
+    calculated against measured data. For example the table may look like:
+     
+        >>> ddsolrad_res = OptimizationResult(work_directory, stage=stage)
+        >>> top10 = ddsolrad_res.result_table(freq='monthly',top_n=10)
+        >>> top10
+            ========================  ========  =======  =========   ========
+            ddsolrad parameters	      NSE	RMSE  	 PBIAS	     COEF_DET
+            ========================  ========  =======  =========   ======== 
+	    orig_params	              0.956267	39.4725	 -0.885715   0.963116
+	    tmax_index_54.2224631748  0.921626	47.6092	 -0.849256   0.94402
+	    tmax_index_44.8823940703  0.879965	58.9194	 5.79603     0.922021
+	    tmax_index_47.6835387480  0.764133	82.5918	 -4.78896    0.837582
+            ========================  ========  =======  =========   ========
+
+    Second, the ``get_top_ranked_sims`` which returns a dictionary that map 
+    key information about the top n ranked simulations, an example returned 
+    dictionary may look like:
+
+       >>> {
+             'dir_name' : ['pathToSim1', 'pathToSim2'],
+             'param_path' : ['pathToSim1/input/parameters', 'pathToSim2/input/parameters'],
+             'statvar_path' : ['pathToSim1/output/statvar.dat', 'pathToSim2/output/statvar.dat'],
+             'params_adjusted' : [[param_names_sim1], [param_names_sim2]]
+           }
+
+    The third method of ``OptimizationResult`` is ``archive`` which essentially 
+    opens all parameter and statvar files from each simulation of the given 
+    stage and archives the parameters that were modified and their modified values
+    and the statistical variable (PRMS time series output) that is associated with 
+    the optimization stage.  Other ``Optimizer`` simulation metadata is also gathered
+    and new JSON metadata containing only this information is created and written
+    within a newly created "archived" subdirectory within the same directory that 
+    the ``Optimizer`` routine managed simulations. The ``OptimizationResult.archive``
+    method then recursively deletes the simulation data for each of the given stage. 
+    """
+
     def __init__(self, working_dir, stage):
+        """
+        Create an ``OptimizationResult`` instance to manage output and analyse parameter-
+        output relationships as produced by the use of an ``Optimizer`` method of a user
+        defined optimization stage.      
+        """
         self.working_dir = working_dir 
         self.stage = stage
         self.metadata_json_paths = self._get_optr_jsons(working_dir, stage) 

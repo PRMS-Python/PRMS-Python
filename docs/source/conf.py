@@ -62,7 +62,7 @@ author = u'John Volk and Matthew Turner'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.1'
+version = u'1.0.0'
 # The full version, including alpha/beta/rc tags.
 release = u'0.1'
 
@@ -140,7 +140,7 @@ html_theme_options = {
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-html_title = u'PRMS-Python v0.1'
+html_title = u'PRMS-Python v1.0.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None

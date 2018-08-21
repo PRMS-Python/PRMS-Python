@@ -1,5 +1,6 @@
 '''
-parameters.py -- holds Parameter class for PRMS standard parameters input file.
+parameters.py -- holds ``Parameter`` class with multiple functionality for 
+the standard PRMS parameters input file.
 '''
 
 import datetime, calendar
@@ -143,7 +144,7 @@ class Parameters(object):
             os.mkdir(out_dir)
             
         nhru = params.dimensions['nhru']
-        ncols = nhru//nrows
+        ncols = nhru // nrows
         
         if not mpl_style:
             mpl_style = 'classic'
@@ -153,7 +154,7 @@ class Parameters(object):
         if which == 'all':
             ## spatial parameters with dimension of length nhru
             p_names = [param['name'] for param in params.base_params if\
-                       param['length'] == nhru and len(param['dimnames'])==1 ]
+                       param['length'] == nhru and len(param['dimnames'])==1]
             with PdfPages(OPJ(out_dir,'nhru_param_maps.pdf')) as pdf:
                 for p in p_names:
                     try:
@@ -165,7 +166,7 @@ class Parameters(object):
                         cax = divider.append_axes("right", size="5%", pad=0.05)
                         plt.colorbar(im, cax=cax)
                         ax.set_title('{}'.format(p))
-                        ax.tick_params(left='off', bottom='off', labelleft='off', labelbottom='off')
+                        ax.tick_params(left='off', bottom='off', labelleft='off',labelbottom='off')
                         pdf.savefig()
                         plt.close()
                     except:

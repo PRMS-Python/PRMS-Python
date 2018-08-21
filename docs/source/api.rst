@@ -15,9 +15,19 @@ Classes
 .. autoclass:: prms_python.Parameters
     :members:
 
+.. _data:
+.. autoclass:: prms_python.Data
+
+.. _optimizer:
+.. autoclass:: prms_python.Optimizer
+
+.. _optimizationresult:
+.. autoclass:: prms_python.OptimizationResult
 
 Data, Parameter, Statsvar helper functions
 ------------------------------------------
+
+
 
 .. _load-data:
 .. autofunction:: prms_python.load_data_file

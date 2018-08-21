@@ -17,7 +17,7 @@ analysis.
 Questions or comments? Contact `John Volk <mailto:jmvolk@unr.edu>`_
 
 
-Install (out of date version on PyPI, for new version use method below)
+Install 
 -------
 
 ``pip install prms-python``
@@ -29,7 +29,8 @@ First, clone from GitHub
 
 .. code-block:: sh
 
-    git clone https://github.com/JohnVolk/PRMS-Python && cd PRMS-Python
+    git clone https://github.com/PRMS-Python/PRMS-Python.git 
+    cd PRMS-Python
 
 Then install dependencies and executable
 
@@ -41,17 +42,13 @@ Then install dependencies and executable
 Usage
 -----
 
-If you want to dive right in, modify some parameters and run some scenarios,
-go on to the :doc:`cli` page. There you'll learn how to run `prmspy`, the 
-command-line interface to the PRMS-Python tools.
+..  
+   If you want to dive right in, modify some parameters and run some scenarios,
+   go on to the :doc:`cli` page. There you'll learn how to run `prmspy`, the 
+   command-line interface to the PRMS-Python tools.
 
-If instead you would rather get acquainted with the Python API for direct use,
-see the :doc:`tutorial` page for usage recipes and examples, and consult the
-:doc:`api` for more details. More examples and in depth documentation can be 
-found in the Jupyter notebooks found in the notebooks directory in the PRMS-Python 
-package.
+We recommend getting acquainted with the Python API by reading and applying some examples and recipes found in the :doc:`tutorial` page, and consult the :doc:`api` for more details. More examples, basic and advanced workflows, and in depth documentation can be found in the Jupyter notebooks found in the `notebooks directory <https://github.com/PRMS-Python/PRMS-Python/tree/master/notebooks>`_ in the PRMS-Python package. 
 
-Happy coding, y'all!
 
 
 .. toctree::

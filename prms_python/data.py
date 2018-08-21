@@ -1,5 +1,5 @@
 '''
-data.py -- holds Data class for PRMS standard climate input.
+data.py -- holds ``Data`` class for standard PRMS climate input data.
 '''
 
 import pandas as pd
