@@ -15,10 +15,18 @@ if the input meteorological data were to change?
 
 ## Installation
 
-Currently it's clone-then-pip:
+PRMS-Python versions are available on the Python Package Index [PyPI](https://pypi.org/project/prms-python/)
+and can be installed and upgraded using pip:
+
+```
+pip install prms-python
+```
+
+Alternatively clone-then-pip:
 
 ```
 git clone https://github.com/PRMS-Python/PRMS-Python.git
+cd PRMS-Python
 ```
 
 then
@@ -26,6 +34,14 @@ then
 ```
 pip install --editable .
 ```
+
+Another option is to download the source code as a zip file, unzip it
+and within the PRMS-Python root directory run:
+
+```
+python setup.py install
+```
+
 ## Usage and documentation
 
 We reccomend starting with the ["getting started"](https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/getting_started.ipynb) 
