@@ -5,28 +5,33 @@ API Reference
 Classes
 -------
 
-.. autoclass:: prms_python.ScenarioSeries
-    :members:
-
-.. autoclass:: prms_python.Scenario
+.. _data:
+.. autoclass:: prms_python.Data
     :members:
 
 .. _parameters:
 .. autoclass:: prms_python.Parameters
     :members:
 
-.. _data:
-.. autoclass:: prms_python.Data
+.. _scenario:
+.. autoclass:: prms_python.Scenario
+    :members:
+
+.. _scenarioseries:
+.. autoclass:: prms_python.ScenarioSeries
+    :members:
 
 .. _optimizer:
 .. autoclass:: prms_python.Optimizer
+    :members:
 
 .. _optimizationresult:
 .. autoclass:: prms_python.OptimizationResult
+    :members:
 
-Data, Parameter, Statsvar helper functions
+
+Select helper functions
 ------------------------------------------
-
 
 
 .. _load-data:
@@ -38,8 +43,5 @@ Data, Parameter, Statsvar helper functions
 .. _modify-params:
 .. autofunction:: prms_python.modify_params
 
-
-Nash-Sutcliffe
---------------
-
+.. _nash-sutcliffe:
 .. autofunction:: prms_python.nash_sutcliffe

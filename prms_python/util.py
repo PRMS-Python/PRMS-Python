@@ -13,6 +13,7 @@ def calc_emp_CDF(data):
     
     Arguments:
         data (array_like) : array to calculate CDF on
+
     Returns:
         X (numpy.ndarray) : array of x values of CDF (sorted data)
         
@@ -33,7 +34,8 @@ def Kolmogorov_Smirnov(uncond, cond, n_bins=10000):
         uncond (array_like) : data for creating the unconditional CDF.
         cond (array_like) : data for creating the conditional CDF
         n_bins (int) : number of bins for both CDFs, note if n_bins > length
-            of either dataset then CDF values are interpolated by numpy        
+            of either dataset then CDF values are interpolated by numpy
+        
     Returns: 
         KS (float) : Kolmogorov-Smirnov statistic, i.e. absolute max distance
             between uncond and cond CDFs
@@ -118,7 +120,7 @@ def delete_files(work_directory, file_name=''):
 
             e.g. if you have several simulation directories:
 
-			"test/results/intcp:-26.50_slope:0.49", 
+	    >>>		"test/results/intcp:-26.50_slope:0.49", 
 			"test/results/intcp:-11.68_slope:0.54", 
 			"test/results/intcp:-4.70_slope:0.51", 
 			"test/results/intcp:-35.39_slope:0.39", 

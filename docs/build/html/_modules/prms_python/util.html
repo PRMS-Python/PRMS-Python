@@ -25,6 +25,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for prms_python.util</h1><div class="highlight"><pre>
@@ -43,6 +45,7 @@
 <span class="sd">    </span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        data (array_like) : array to calculate CDF on</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        X (numpy.ndarray) : array of x values of CDF (sorted data)</span>
 <span class="sd">        </span>
@@ -63,7 +66,8 @@
 <span class="sd">        uncond (array_like) : data for creating the unconditional CDF.</span>
 <span class="sd">        cond (array_like) : data for creating the conditional CDF</span>
 <span class="sd">        n_bins (int) : number of bins for both CDFs, note if n_bins &gt; length</span>
-<span class="sd">            of either dataset then CDF values are interpolated by numpy        </span>
+<span class="sd">            of either dataset then CDF values are interpolated by numpy</span>
+<span class="sd">        </span>
 <span class="sd">    Returns: </span>
 <span class="sd">        KS (float) : Kolmogorov-Smirnov statistic, i.e. absolute max distance</span>
 <span class="sd">            between uncond and cond CDFs</span>
@@ -148,7 +152,7 @@
 
 <span class="sd">            e.g. if you have several simulation directories:</span>
 
-<span class="sd">			&quot;test/results/intcp:-26.50_slope:0.49&quot;, </span>
+<span class="sd">	    &gt;&gt;&gt;		&quot;test/results/intcp:-26.50_slope:0.49&quot;, </span>
 <span class="sd">			&quot;test/results/intcp:-11.68_slope:0.54&quot;, </span>
 <span class="sd">			&quot;test/results/intcp:-4.70_slope:0.51&quot;, </span>
 <span class="sd">			&quot;test/results/intcp:-35.39_slope:0.39&quot;, </span>
@@ -355,6 +359,7 @@
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -418,8 +423,8 @@
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 

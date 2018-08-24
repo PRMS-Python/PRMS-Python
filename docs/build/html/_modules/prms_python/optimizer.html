@@ -25,6 +25,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for prms_python.optimizer</h1><div class="highlight"><pre>
@@ -126,7 +128,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">statvar_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arb_outputs</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">monte_carlo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_path</span><span class="p">,</span> <span class="n">param_names</span><span class="p">,</span> <span class="n">statvar_name</span><span class="p">,</span> \
+<div class="viewcode-block" id="Optimizer.monte_carlo"><a class="viewcode-back" href="../../api.html#prms_python.Optimizer.monte_carlo">[docs]</a>    <span class="k">def</span> <span class="nf">monte_carlo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_path</span><span class="p">,</span> <span class="n">param_names</span><span class="p">,</span> <span class="n">statvar_name</span><span class="p">,</span> \
                     <span class="n">stage</span><span class="p">,</span> <span class="n">n_sims</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">mu_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>\
                     <span class="n">noise_factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">nproc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
@@ -225,9 +227,9 @@
                       <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="se">\n</span><span class="s1">Output information sent to </span><span class="si">{1}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span>\
-                                               <span class="nb">format</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span> <span class="n">json_outfile</span><span class="p">))</span>
+                                               <span class="nb">format</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span> <span class="n">json_outfile</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">plot_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;time_series&#39;</span><span class="p">,</span>\
+<div class="viewcode-block" id="Optimizer.plot_optimization"><a class="viewcode-back" href="../../api.html#prms_python.Optimizer.plot_optimization">[docs]</a>    <span class="k">def</span> <span class="nf">plot_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;time_series&#39;</span><span class="p">,</span>\
                           <span class="n">plot_vars</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">plot_1to1</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>\
                           <span class="n">n_plots</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -364,7 +366,7 @@
                 <span class="n">fig</span><span class="o">.</span><span class="n">delaxes</span><span class="p">(</span><span class="n">axs</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>      
 
         <span class="k">if</span> <span class="n">return_fig</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fig</span></div>
+            <span class="k">return</span> <span class="n">fig</span></div></div>
 
 <span class="k">def</span> <span class="nf">_create_metafile_name</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">opt_title</span><span class="p">,</span> <span class="n">stage</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -789,7 +791,7 @@
                   
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">def</span> <span class="nf">archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_sims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_meta</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">metric_freq</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="OptimizationResult.archive"><a class="viewcode-back" href="../../api.html#prms_python.OptimizationResult.archive">[docs]</a>    <span class="k">def</span> <span class="nf">archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_sims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_meta</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">metric_freq</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Create archive directory to hold json files that contain </span>
 <span class="sd">            information of adjusted parameters, model output, and performance </span>
@@ -895,12 +897,13 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
-                    <span class="k">continue</span></div>
+                    <span class="k">continue</span></div></div>
     
 
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -964,8 +967,8 @@
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 

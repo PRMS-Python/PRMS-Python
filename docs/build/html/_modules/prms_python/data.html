@@ -25,6 +25,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for prms_python.data</h1><div class="highlight"><pre>
@@ -39,15 +41,22 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Object to access or create a PRMS data file with ability to load/assign it to a </span>
 <span class="sd">    date-time indexed pandas.DataFrame for data management, analysis and visualization. </span>
-<span class="sd">    It can be used to build a new PRMS data file from user defined metadata and  </span>
-<span class="sd">    pandas.DataFrame. The ``modify`` method allows for inplace modification of </span>
-<span class="sd">    one or more time series inputs in the data file based on a user defined function. </span>
-<span class="sd">    The ``write`` method reformats the Dataframe to PRMS text format and writes </span>
-<span class="sd">    a new data file to disk. If the initial data was not accessed the write method </span>
-<span class="sd">    simply makes a copy of the original file, to save memory and improve computational</span>
-<span class="sd">    efficiency. Here is an example of loading a data file, modifying the temperature </span>
-<span class="sd">    inputs (&#39;tmin&#39; and &#39;tmax&#39;) by adding two degrees to each element, and rewritting </span>
-<span class="sd">    the modified data to disk: </span>
+<span class="sd">    It can be used to build a new PRMS data file from user defined metadata and a </span>
+<span class="sd">    ``pandas.DataFrame`` of PRMS datetime-indexed climatic forcing and observation </span>
+<span class="sd">    variables. The class contains the following instance attributes:</span>
+
+<span class="sd">    :ivar base_file: initial value: None</span>
+<span class="sd">    :ivar na_rep: initial value: -999</span>
+<span class="sd">    :ivar metadata: initial value: None</span>
+<span class="sd">    :ivar data_frame: initial value: None</span>
+
+<span class="sd">    The ``modify`` method allows for inplace modification of one or more </span>
+<span class="sd">    time series inputs in the data file based on a user defined function. The ``write`` </span>
+<span class="sd">    method reformats the Dataframe to PRMS text format and writes a new data file to </span>
+<span class="sd">    disk. If the initial data was not accessed the write method simply makes a copy of </span>
+<span class="sd">    the original file, to save memory and improve computational efficiency. Here is an </span>
+<span class="sd">    example of loading a data file, modifying the temperature inputs (&#39;tmin&#39; and &#39;tmax&#39;) </span>
+<span class="sd">    by adding two degrees to each element, and rewritting the modified data to disk: </span>
 
 <span class="sd">    &gt;&gt;&gt; d = Data(&#39;path_to_data_file&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; def f(x):</span>
@@ -59,20 +68,21 @@
 
 <span class="sd">    &gt;&gt;&gt; d.data_frame </span>
 
-<span class="sd">    shows the datetime indexed pd.DataFrame of the input data that is created </span>
-<span class="sd">    when a ``Data`` object is initiated. We then pass the function f(x) to d.modify </span>
-<span class="sd">    along with a Python list of input variable/s that we want to modify, this </span>
-<span class="sd">    modifies d.data_frame in place. Printing the metadata attribute of the data</span>
-<span class="sd">    object,</span>
+<span class="sd">    shows the date-indexed ``pd.DataFrame`` of the input data that is created </span>
+<span class="sd">    when a ``Data`` object is initiated if given a valid ``base_file``, i.e. </span>
+<span class="sd">    file path to a PRMS climate data file. Above we pass the function f(x) to </span>
+<span class="sd">    d.modify along with a Python list of input variable/s that we want to modify, this </span>
+<span class="sd">    modifies d.data_frame in place. Last we call d.write with an output path to write </span>
+<span class="sd">    the modified data variables to disk in PRMS text format. The class properties </span>
+<span class="sd">    ``metadata`` and ``data_frame`` can be assigned either from scratch if no</span>
+<span class="sd">    ``base_file`` is given on initialization of a ``Data`` instance or afterwords.</span>
+<span class="sd">    If using the ``Data`` class to create a new data file, it is up to the user</span>
+<span class="sd">    to ensure that the metadata and DataFrame assigned are correct and compatible.  </span>
 
-<span class="sd">    &gt;&gt;&gt; d.metadata</span>
-
-<span class="sd">    will show the names of the variables in the data file in case you forget which</span>
-<span class="sd">    you would like to modify. Last we call d.write with an output path to write </span>
-<span class="sd">    the modified data variables to disk in PRMS text format. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1">## data file constant attributes</span>
+
     <span class="n">date_header</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span>
                <span class="s1">&#39;month&#39;</span><span class="p">,</span>
                <span class="s1">&#39;day&#39;</span><span class="p">,</span>
@@ -80,6 +90,7 @@
                <span class="s1">&#39;mm&#39;</span><span class="p">,</span>
                <span class="s1">&#39;sec&#39;</span><span class="p">]</span>
 
+    <span class="c1">#: class attribute (tuple) with names of known PRMS data file variables </span>
     <span class="n">valid_input_variables</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;gate_ht&#39;</span><span class="p">,</span>
                          <span class="s1">&#39;humidity&#39;</span><span class="p">,</span>
                          <span class="s1">&#39;lake_elev&#39;</span><span class="p">,</span>
@@ -93,17 +104,32 @@
                          <span class="s1">&#39;tmin&#39;</span><span class="p">,</span>
                          <span class="s1">&#39;wind_speed&#39;</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">na_rep</span><span class="o">=-</span><span class="mi">999</span><span class="p">):</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">base_file</span> <span class="o">=</span> <span class="n">base_file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">na_rep</span> <span class="o">=</span> <span class="n">na_rep</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#self.__load_metadata()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#self.__load_data()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="kc">None</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span> <span class="o">=</span> <span class="kc">None</span> 
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># to avoid overwriting pre-assigned data</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ``prms_python.Data.metadata`` is a property method that gets and sets</span>
+<span class="sd">        the header information from a standard PRMS climate input data file</span>
+<span class="sd">        as a Python dictionary. As a property it can be assigned directly</span>
+<span class="sd">        to overwrite or create a new PRMS data file. Here is an example of the</span>
+<span class="sd">        information gathered and held in this attribute:</span>
+
+<span class="sd">        &gt;&gt;&gt; {</span>
+<span class="sd">             &#39;data_startline&#39; : 6,</span>
+<span class="sd">             &#39;data_variables&#39; : [&#39;runoff 1&#39;, &#39;runoff 2&#39;, &#39;tmin&#39;, &#39;tmax&#39;, &#39;ppt&#39;]</span>
+<span class="sd">             &#39;text_before_header&#39; : &quot;Title of data file \\n //some comments\\nrunoff 2</span>
+<span class="sd">                                     \\ntmin 1\\ntmax 1\\nppt 1\\nrunoff 2\\ntmin 1</span>
+<span class="sd">                                     \\ntmax 1\\nppt 1\\n</span>
+<span class="sd">                                     ########################################\\n&quot;</span>
+<span class="sd">            } </span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># to avoid overwriting pre-assigned data, check if already exists</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_file</span><span class="p">:</span>
@@ -145,6 +171,11 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A Python property that gets and sets the climatic forcing data for a </span>
+<span class="sd">        standard PRMS climate input data file as a ``pandas.DataFrame``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_file</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
@@ -172,19 +203,20 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Must assign a Pandas.DataFrame object for PRMS data input&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span> <span class="o">=</span> <span class="n">df</span>
         
-    <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">vars_to_adjust</span><span class="p">):</span>
+<div class="viewcode-block" id="Data.modify"><a class="viewcode-back" href="../../api.html#prms_python.Data.modify">[docs]</a>    <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">vars_to_adjust</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply a user defined function to one or more variable(s) in the data file.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            func (function): function to apply to each variable in vars_to_adjust</span>
-<span class="sd">            vars_to_adjust (list or tuple): collection of variable names to apply</span>
-<span class="sd">                func to.</span>
+<span class="sd">            vars_to_adjust (list or tuple): collection of variable names to apply func to.</span>
+
 <span class="sd">        Returns: </span>
-<span class="sd">            None: </span>
+<span class="sd">            None</span>
 <span class="sd">            </span>
 <span class="sd">        Example starting with an initial PRMS data file and modifying a single </span>
 <span class="sd">        data variable by applying the sine function: </span>
+
 <span class="sd">               &gt;&gt;&gt; data_instance = Data(&#39;path/to/data/file&#39;)  </span>
 <span class="sd">               &gt;&gt;&gt; def f(x):</span>
 <span class="sd">               ...     return np.sin(x)</span>
@@ -194,17 +226,22 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vars_to_adjust</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_frame</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">func</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+<div class="viewcode-block" id="Data.write"><a class="viewcode-back" href="../../api.html#prms_python.Data.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Writes the current state of the data to PRMS text format,</span>
-<span class="sd">        particularly useful after modifying the data variable values</span>
-<span class="sd">        or creating a new dataset from a pd.DataFrame</span>
+<span class="sd">        Writes the current state of the ``Data`` to PRMS text format</span>
+<span class="sd">        utilizing the ``Data.metadata`` and ``Data.data_frame`` instance</span>
+<span class="sd">        variables. If ``Data.data_frame`` was never accessed or assigned</span>
+<span class="sd">        new values then this method simply copies the original PRMS</span>
+<span class="sd">        data file to ``out_path``. A value error is raised if the ``write``</span>
+<span class="sd">        method is called without assigning either an initial data (``base_file``)</span>
+<span class="sd">        path or assigning correct ``metadata`` and ``data_frame`` properties. </span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">            out_path (str): full path to save or copy the current PRMS data </span>
 <span class="sd">                in PRMS text format.</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -227,11 +264,12 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outf</span><span class="p">:</span> <span class="c1"># write comment header then data</span>
                 <span class="n">outf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;text_before_header&#39;</span><span class="p">])</span>
                 <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>\
-                          <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na_rep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rep</span><span class="p">)</span></div>
+                          <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na_rep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rep</span><span class="p">)</span></div></div>
 
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -295,8 +333,8 @@
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 

@@ -18,9 +18,18 @@ OPJ = os.path.join
 
 class Parameters(object):
     '''
-    Disk-based representation of a PRMS parameter file. For the sake of
+    Disk-based representation of a PRMS parameter file. The ``Parameters``
+    object has the following instance attributes:
+
+    :ivar base_file: initial value: ``base_file``
+    :ivar base_file_reader: initial value: ``open(base_file)``
+    :ivar dimensions: initial value: ``collections.OrderedDict`` returned from ``self.__read_base(base_file)`` 
+    :ivar base_params: initial value: ``list()`` returned from ``self.__read_base(base_file)``
+    :ivar param_arrays: initial value: empty ``dict()`` 
+
+    For the sake of
     memory efficiency, we only load parameters from ``base_file`` that get
-    modifified through item assignment, for example
+    modified through item assignment, for example
 
     >>> p = Parameters('example_params')
     >>> p['jh_coef'] = p['jh_coef']*1.1
@@ -29,13 +38,19 @@ class Parameters(object):
     will read parameter information from the params file to check that
     ``jh_coef`` is present in the parameter file, read the lines corresponding
     to ``jh_coef`` data and assign the new value as requested. Internally,
-    a reference is kept to only modified parameter data,
-    so when ``p.write(modified_params_file)`` is called, mostly this will copy
-    from ``base_file`` to ``modified_params_file``.
+    a reference is kept to only modified parameter data, so when 
+    ``p.write(modified_params_file)`` is called most copying is from ``base_file``
+    to ``modified_params_file``. When parameters are accessed using the 
+    dictionary-like syntax, a ``np.ndarray`` representation of the parameter is 
+    returned. As a result ``numpy`` mathematical rules including efficient 
+    vectorization of math applied to arrays can be applied to modify parameters 
+    directly. The ``Parameter`` objects user methods allow for visualization of 
+    most PRMS parameters, function based modification of parameters, and a write 
+    function that writes the data back to PRMS text format.  
+
     '''
 
     def __init__(self, base_file):
-
         self.base_file = base_file
         self.base_file_reader = open(base_file)
         self.dimensions, self.base_params = self.__read_base(base_file)
@@ -103,15 +118,16 @@ class Parameters(object):
     def plot(self, nrows, which='all', out_dir=None, xlabel=None,\
                     ylabel=None, cbar_label=None, title=None, mpl_style=None):
         """
-        Plot PRMS parameters as time series or 2D spatial grid depending on 
-        parameter dimension. The PRMS parameter file is assumed to represent 
-        a model that was set up on a uniform rectangular grid with the spatial 
+        Versatile method that plots series or 2D spatial grid depending on 
+        parameter dimension. The PRMS parameter file is assumed to hold parameters 
+        for a model that was set up on a uniform rectangular grid with the spatial 
         index of HRUs starting in the upper left corner and moving left to 
-        right across columns and down rows. 
+        right across columns and down rows. Default function is to print four
+        files, each with plots of varying parameter dimensions as explained 
+        under Kwargs ``which`` and more detailed explanation in the example
+        `Jupyter notebook <https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/param_examples.ipynb>`_.
         
         Arguments:
-            params (prms_python.Parameters): An instance of Parameters that 
-                corresponds with the PRMS parameter file to plot. 
             nrows (int): The number of rows in the PRMS model grid for plotting 
                 spatial parameters. Function will only work for rectangular 
                 gridded models with HRU indices starting in the upper left cell 
@@ -122,14 +138,14 @@ class Parameters(object):
                 the function will print 3 multipage pdfs, one for nhru 
                 dimensional parameters, one for nhru by monthly parameters, one 
                 for other parameters of length > 1, and one html file containing
-                single valued parameters
+                single valued parameters.
+
             out_dir (str): path to an output dir, default current directory
             xlabel (str): x label for plot(s)
             ylabel (str): y label for plot(s)
             cbar_label (str): label for colorbar on spatial plot(s)
             title (str): plot title
-            mpl_style (str, list): name or list of names of matplotlib style 
-                sheets to use for plot(s)
+            mpl_style (str, list): name or list of names of matplotlib style sheets to use for plot(s).
     
         Returns: 
             None
@@ -302,7 +318,7 @@ class Parameters(object):
 
     def __make_dimensions_dict(self, base_file):
         """
-        Extract dimensions and each dimension length. Run before
+        Extract dimensions and each dimension length. Runs before
         __make_parameter_dict.
         """
         ret = OrderedDict()

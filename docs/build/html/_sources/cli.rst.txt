@@ -2,8 +2,9 @@ Command-Line Interface
 ======================
 
 If you installed using ``pip``, you should now be able to access the
-PRMS-Python Command-Line Interface (CLI) through the ``prmspy`` command. You can
-run the `prmspy` command
+PRMS-Python Command-Line Interface (CLI) through the ``prmspy`` command. 
+The ``prmspy`` CLI is an ongoing work in progress. You can run the `prmspy` 
+command
 
 .. code-block:: sh
 

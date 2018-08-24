@@ -25,6 +25,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for prms_python.parameters</h1><div class="highlight"><pre>
@@ -48,9 +50,18 @@
 
 <div class="viewcode-block" id="Parameters"><a class="viewcode-back" href="../../api.html#prms_python.Parameters">[docs]</a><span class="k">class</span> <span class="nc">Parameters</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Disk-based representation of a PRMS parameter file. For the sake of</span>
+<span class="sd">    Disk-based representation of a PRMS parameter file. The ``Parameters``</span>
+<span class="sd">    object has the following instance attributes:</span>
+
+<span class="sd">    :ivar base_file: initial value: ``base_file``</span>
+<span class="sd">    :ivar base_file_reader: initial value: ``open(base_file)``</span>
+<span class="sd">    :ivar dimensions: initial value: ``collections.OrderedDict`` returned from ``self.__read_base(base_file)`` </span>
+<span class="sd">    :ivar base_params: initial value: ``list()`` returned from ``self.__read_base(base_file)``</span>
+<span class="sd">    :ivar param_arrays: initial value: empty ``dict()`` </span>
+
+<span class="sd">    For the sake of</span>
 <span class="sd">    memory efficiency, we only load parameters from ``base_file`` that get</span>
-<span class="sd">    modifified through item assignment, for example</span>
+<span class="sd">    modified through item assignment, for example</span>
 
 <span class="sd">    &gt;&gt;&gt; p = Parameters(&#39;example_params&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; p[&#39;jh_coef&#39;] = p[&#39;jh_coef&#39;]*1.1</span>
@@ -59,13 +70,19 @@
 <span class="sd">    will read parameter information from the params file to check that</span>
 <span class="sd">    ``jh_coef`` is present in the parameter file, read the lines corresponding</span>
 <span class="sd">    to ``jh_coef`` data and assign the new value as requested. Internally,</span>
-<span class="sd">    a reference is kept to only modified parameter data,</span>
-<span class="sd">    so when ``p.write(modified_params_file)`` is called, mostly this will copy</span>
-<span class="sd">    from ``base_file`` to ``modified_params_file``.</span>
+<span class="sd">    a reference is kept to only modified parameter data, so when </span>
+<span class="sd">    ``p.write(modified_params_file)`` is called most copying is from ``base_file``</span>
+<span class="sd">    to ``modified_params_file``. When parameters are accessed using the </span>
+<span class="sd">    dictionary-like syntax, a ``np.ndarray`` representation of the parameter is </span>
+<span class="sd">    returned. As a result ``numpy`` mathematical rules including efficient </span>
+<span class="sd">    vectorization of math applied to arrays can be applied to modify parameters </span>
+<span class="sd">    directly. The ``Parameter`` objects user methods allow for visualization of </span>
+<span class="sd">    most PRMS parameters, function based modification of parameters, and a write </span>
+<span class="sd">    function that writes the data back to PRMS text format.  </span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_file</span><span class="p">):</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">base_file</span> <span class="o">=</span> <span class="n">base_file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_file_reader</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">base_file</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_base</span><span class="p">(</span><span class="n">base_file</span><span class="p">)</span>
@@ -133,15 +150,16 @@
 <div class="viewcode-block" id="Parameters.plot"><a class="viewcode-back" href="../../api.html#prms_python.Parameters.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>\
                     <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cbar_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mpl_style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot PRMS parameters as time series or 2D spatial grid depending on </span>
-<span class="sd">        parameter dimension. The PRMS parameter file is assumed to represent </span>
-<span class="sd">        a model that was set up on a uniform rectangular grid with the spatial </span>
+<span class="sd">        Versatile method that plots series or 2D spatial grid depending on </span>
+<span class="sd">        parameter dimension. The PRMS parameter file is assumed to hold parameters </span>
+<span class="sd">        for a model that was set up on a uniform rectangular grid with the spatial </span>
 <span class="sd">        index of HRUs starting in the upper left corner and moving left to </span>
-<span class="sd">        right across columns and down rows. </span>
+<span class="sd">        right across columns and down rows. Default function is to print four</span>
+<span class="sd">        files, each with plots of varying parameter dimensions as explained </span>
+<span class="sd">        under Kwargs ``which`` and more detailed explanation in the example</span>
+<span class="sd">        `Jupyter notebook &lt;https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/param_examples.ipynb&gt;`_.</span>
 <span class="sd">        </span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            params (prms_python.Parameters): An instance of Parameters that </span>
-<span class="sd">                corresponds with the PRMS parameter file to plot. </span>
 <span class="sd">            nrows (int): The number of rows in the PRMS model grid for plotting </span>
 <span class="sd">                spatial parameters. Function will only work for rectangular </span>
 <span class="sd">                gridded models with HRU indices starting in the upper left cell </span>
@@ -152,14 +170,14 @@
 <span class="sd">                the function will print 3 multipage pdfs, one for nhru </span>
 <span class="sd">                dimensional parameters, one for nhru by monthly parameters, one </span>
 <span class="sd">                for other parameters of length &gt; 1, and one html file containing</span>
-<span class="sd">                single valued parameters</span>
+<span class="sd">                single valued parameters.</span>
+
 <span class="sd">            out_dir (str): path to an output dir, default current directory</span>
 <span class="sd">            xlabel (str): x label for plot(s)</span>
 <span class="sd">            ylabel (str): y label for plot(s)</span>
 <span class="sd">            cbar_label (str): label for colorbar on spatial plot(s)</span>
 <span class="sd">            title (str): plot title</span>
-<span class="sd">            mpl_style (str, list): name or list of names of matplotlib style </span>
-<span class="sd">                sheets to use for plot(s)</span>
+<span class="sd">            mpl_style (str, list): name or list of names of matplotlib style sheets to use for plot(s).</span>
 <span class="sd">    </span>
 <span class="sd">        Returns: </span>
 <span class="sd">            None</span>
@@ -332,7 +350,7 @@
 
     <span class="k">def</span> <span class="nf">__make_dimensions_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_file</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extract dimensions and each dimension length. Run before</span>
+<span class="sd">        Extract dimensions and each dimension length. Runs before</span>
 <span class="sd">        __make_parameter_dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -535,6 +553,7 @@
 </pre></div>
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -598,8 +617,8 @@
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
     </div>
 
