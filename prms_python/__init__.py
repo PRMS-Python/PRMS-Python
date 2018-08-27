@@ -16,9 +16,9 @@ __name__ = 'prms-python'
 __author__ = 'John Volk and Matthew Turner'
 __version__ = '1.0.0'
 
-from .data import Data
-from .optimizer import Optimizer, OptimizationResult
-from .parameters import Parameters, modify_params
-from .simulation import Simulation, SimulationSeries
-from .scenario import Scenario, ScenarioSeries
-from .util import load_statvar, load_data_file, nash_sutcliffe
+from prms_python.data import Data
+from prms_python.optimizer import Optimizer, OptimizationResult
+from prms_python.parameters import Parameters, modify_params
+from prms_python.simulation import Simulation, SimulationSeries
+from prms_python.scenario import Scenario, ScenarioSeries
+from prms_python.util import load_statvar, load_data_file, nash_sutcliffe
