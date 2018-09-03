@@ -11,46 +11,28 @@ class Data(object):
     date-time indexed pandas.DataFrame for data management, analysis and visualization. 
     It can be used to build a new PRMS data file from user defined metadata and a 
     ``pandas.DataFrame`` of PRMS datetime-indexed climatic forcing and observation 
-    variables. The class contains the following instance attributes:
+    variables.
 
-    :ivar base_file: initial value: None
-    :ivar na_rep: initial value: -999
-    :ivar metadata: initial value: None
-    :ivar data_frame: initial value: None
+    The class properties ``metadata`` and ``data_frame`` can be later assigned if no
+    ``base_file`` is given on initialization, allowing for the creation of PRMS climatic
+    forcing file in a Python environment.
 
-    The ``modify`` method allows for inplace modification of one or more 
-    time series inputs in the data file based on a user defined function. The ``write`` 
-    method reformats the Dataframe to PRMS text format and writes a new data file to 
-    disk. If the initial data was not accessed the write method simply makes a copy of 
-    the original file, to save memory and improve computational efficiency. Here is an 
-    example of loading a data file, modifying the temperature inputs ('tmin' and 'tmax') 
-    by adding two degrees to each element, and rewritting the modified data to disk: 
+    Keyword Arguments:
+        base_file (str, optional): path to standard PRMS data file 
+        na_rep (int, optional): how to represent missing values default = -999
 
-    >>> d = Data('path_to_data_file')
-    >>> def f(x):
-            return x + 2
-    >>> d.modify(f,['tmax','tmin'])
-    >>> d.write('example_modified_data_file')
+    Attributes:
+        date_header (list): date and time header for PRMS data file 
+        valid_input_variables (tuple): valid hydro-climate variables for PRMS data file
 
-    d is a Data instance of example_data_file, calling 
-
-    >>> d.data_frame 
-
-    shows the date-indexed ``pd.DataFrame`` of the input data that is created 
-    when a ``Data`` object is initiated if given a valid ``base_file``, i.e. 
-    file path to a PRMS climate data file. Above we pass the function f(x) to 
-    d.modify along with a Python list of input variable/s that we want to modify, this 
-    modifies d.data_frame in place. Last we call d.write with an output path to write 
-    the modified data variables to disk in PRMS text format. The class properties 
-    ``metadata`` and ``data_frame`` can be assigned either from scratch if no
-    ``base_file`` is given on initialization of a ``Data`` instance or afterwords.
-    If using the ``Data`` class to create a new data file, it is up to the user
-    to ensure that the metadata and DataFrame assigned are correct and compatible.  
+    Note:
+        If using the ``Data`` class to create a new data file, it is up to the user
+        to ensure that the metadata and :class:`pandas.DataFrame` assigned are correct 
+        and compatible.  
 
     """
 
     ## data file constant attributes
-
     date_header = ['year',
                'month',
                'day',
@@ -58,7 +40,6 @@ class Data(object):
                'mm',
                'sec']
 
-    #: class attribute (tuple) with names of known PRMS data file variables 
     valid_input_variables = ('gate_ht',
                          'humidity',
                          'lake_elev',
@@ -81,21 +62,35 @@ class Data(object):
     @property
     def metadata(self):
         """
-        ``prms_python.Data.metadata`` is a property method that gets and sets
-        the header information from a standard PRMS climate input data file
-        as a Python dictionary. As a property it can be assigned directly
-        to overwrite or create a new PRMS data file. Here is an example of the
-        information gathered and held in this attribute:
+        :obj:`dict`:A property that gets and sets the header information from 
+        a standard PRMS climate input data file held in a Python dictionary. As 
+        a property it can be assigned directly to overwrite or create a new PRMS 
+        data file. As such the user is in control and must supply the correct 
+        syntax for PRMS standard data files, e.g. text lines before header should 
+        begin with "//". Here is an example of the information gathered and held in 
+        this attribute:
 
-        >>> {
-             'data_startline' : 6,
-             'data_variables' : ['runoff 1', 'runoff 2', 'tmin', 'tmax', 'ppt']
-             'text_before_header' : "Title of data file \\n //some comments\\nrunoff 2
-                                     \\ntmin 1\\ntmax 1\\nppt 1\\nrunoff 2\\ntmin 1
-                                     \\ntmax 1\\nppt 1\\n
-                                     ########################################\\n"
-            } 
+        Example:
+            >>> data.metadata
+                {
+                 'data_startline' : 6,
+                 'data_variables' : ['runoff 1', 'runoff 2', 'tmin', 'tmax', 'ppt']
+                 'text_before_header' : "Title of data file \\n //some comments\\nrunoff 2
+                                         \\ntmin 1\\ntmax 1\\nppt 1\\nrunoff 2\\ntmin 1
+                                         \\ntmax 1\\nppt 1\\n
+                                         ########################################\\n"
+                } 
+    
+        Note:
+            When assigning or creating a new data file, the ``Data.write`` method will
+            assign the appropriate date header that follows the line of number signs "#".
 
+        Raises:
+            ValueError: if data in metadata is accessed before data is assigned, 
+                e.g. if accessed to write a PRMS data file from a ``Data`` instance 
+                that was initialized without a valid PRMS data file.
+            TypeError: if an object that is not a Python dictionary is assigned.
+        
         """
         # to avoid overwriting pre-assigned data, check if already exists
         if isinstance(self._metadata, dict):
@@ -140,9 +135,30 @@ class Data(object):
     @property
     def data_frame(self):
         """
-        A Python property that gets and sets the climatic forcing data for a 
-        standard PRMS climate input data file as a ``pandas.DataFrame``.
+        A property that gets and sets the climatic forcing data for a standard PRMS 
+        climate input data file as a :class:`pandas.DataFrame`.
 
+        Example:
+            d is a Data instance, calling 
+    
+            >>> d.data_frame 
+                input variables	runoff 1 runoff 2 runoff 3 precip tmax tmin
+                date						
+                1996-12-27	0.54	1.6	NaN	0.0	46	32.0
+                1996-12-28	0.65	1.6	NaN	0.0	45	24.0
+                1996-12-29	0.80	1.6	NaN	0.0	44	28.0
+                1996-12-30	0.90	1.6	NaN	0.0	51	33.0
+                1996-12-31	1.00	1.7	NaN	0.0	47	32.0 
+        
+            shows the date-indexed ``pd.DataFrame`` of the input data that is created 
+            when a ``Data`` object is initiated if given a valid ``base_file``, i.e. 
+            file path to a PRMS climate data file. 
+
+        Raises:
+            ValueError: if attribute is accessed before either assigning a PRMS data
+                file on ``Data`` initialization or not assigning a compatabile 
+                date-indexed ``pandas.DataFrame`` of hydro-climate variables. 
+            TypeError: if a data type other than ``pandas.DataFrame`` is assigned. 
         """
         if not self._metadata:
             self.metadata
@@ -175,24 +191,30 @@ class Data(object):
         """
         Apply a user defined function to one or more variable(s) in the data file.
 
+        The ``modify`` method allows for inplace modification of one or more 
+        time series inputs in the data file based on a user defined function.  
+        
         Arguments:
             func (function): function to apply to each variable in vars_to_adjust
             vars_to_adjust (list or tuple): collection of variable names to apply func to.
 
         Returns: 
             None
-            
-        Example starting with an initial PRMS data file and modifying a single 
-        data variable by applying the sine function: 
 
-               >>> data_instance = Data('path/to/data/file')  
-               >>> def f(x):
-               ...     return np.sin(x)
-               >>> data_instance.modify(f, ['param_name_to_adjust'])
+        Example:
+            Here is an example of loading a data file, modifying the temperature inputs 
+            (*tmin* and *tmax*) by adding two degrees to each element, and rewritting the 
+            modified data to disk,
+
+            >>> d = Data('path_to_data_file')
+            >>> def f(x):
+                    return x + 2
+            >>> d.modify(f,['tmax','tmin'])
+            >>> d.write('data_temp_plus_2')
         """
 
         if not isinstance(self._data_frame, pd.DataFrame):
-            self.data_frame
+            self.data_frame # will raise ValueError from data_frame property
         for v in vars_to_adjust:
             self._data_frame[v] = self._data_frame[v].apply(func)
 
@@ -200,11 +222,9 @@ class Data(object):
         """
         Writes the current state of the ``Data`` to PRMS text format
         utilizing the ``Data.metadata`` and ``Data.data_frame`` instance
-        variables. If ``Data.data_frame`` was never accessed or assigned
+        properties. If ``Data.data_frame`` was never accessed or assigned
         new values then this method simply copies the original PRMS
-        data file to ``out_path``. A value error is raised if the ``write``
-        method is called without assigning either an initial data (``base_file``)
-        path or assigning correct ``metadata`` and ``data_frame`` properties. 
+        data file to ``out_path``.
 
         Arguments:
             out_path (str): full path to save or copy the current PRMS data 
@@ -212,6 +232,12 @@ class Data(object):
 
         Returns:
             None
+
+        Raises:
+            ValueError: if the ``write`` method is called without assigning either 
+                an initial data (``base_file``) path or assigning correct ``metadata`` 
+                and ``data_frame`` properties. 
+
         """
         # if file data was never accessed- unchanged
         if not isinstance(self._data_frame, pd.DataFrame): 

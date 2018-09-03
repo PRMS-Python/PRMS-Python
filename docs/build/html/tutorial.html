@@ -17,8 +17,8 @@
     <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference" href="api.html" />
-    <link rel="prev" title="Command-Line Interface" href="cli.html" /> 
+    <link rel="next" title="Command-Line Interface" href="cli.html" />
+    <link rel="prev" title="PRMS-Python" href="index.html" /> 
 <link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
 
   </head><body>
@@ -33,13 +33,43 @@
             
   <div class="section" id="tutorial-and-recipes">
 <h1>Tutorial and Recipes<a class="headerlink" href="#tutorial-and-recipes" title="Permalink to this headline">¶</a></h1>
-<p>In this tutorial we will go through each important class and function, and
+<p>In this tutorial we walk through each important class and function, and
 explain each one’s purpose and use with an example. At the end of the tutorial
-in <cite>example</cite> we show how all these can be put together to build a parameter
-sensitivity analysis.</p>
+in <a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a> we show a more advanced workflow involving parameter sensitivity
+over dual parameter space that uses several of the previously described classes
+and functions.</p>
+<div class="section" id="data">
+<h2><code class="docutils literal notranslate"><span class="pre">Data</span></code><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class loads a PRMS data file into a Pandas DataFrame and allows
+for easy modification and writing of modified PRMS data files.</p>
+<p>A PRMS data file holds time series variables that are used as input for running
+PRMS including daily temperature and precipitation. Being tabular and date-indexed
+the data file is well represented and managed as a <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
+A common paractice in hydrologic modeling is to evaluate hydrologic response to multiple climate
+change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based modification of time
+series variable/s so that the user can quickly create new climate inputs for PRMS.
+The user can visualize the data file variables from Pandas and rewrite modified data
+to disk in the PRMS format using methods of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Data</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;test/data/data&#39;</span><span class="p">)</span>
+
+<span class="c1"># modify daily temperature by adding 2 degrees to each input</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># apply function to daily temperature input</span>
+<span class="n">d</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;tmax&#39;</span><span class="p">,</span><span class="s1">&#39;tmin&#39;</span><span class="p">])</span>
+
+<span class="c1"># write new modified data file to disk</span>
+<span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> will soon incorporate this functionality
+to implement either a single Scenario or a series of Scenarios.</p>
+</div>
 <div class="section" id="parameters">
 <h2><code class="docutils literal notranslate"><span class="pre">Parameters</span></code><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="api.html#parameters"><span class="std std-ref">Parameters Class</span></a> provides a NumPy-backed
+<p>The <a class="reference internal" href="api.html#id2"><span class="std std-ref">Parameters Class</span></a> provides a NumPy-backed
 representation of a PRMS parameters file that allows the user to select,
 modify, and save PRMS parameters files. It can be used similarly to a
 Pandas DataFrame.</p>
@@ -73,35 +103,6 @@ Parameters file.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> use this functionality (via the
 <cite>prms_python.modify_params</cite> function) to implement either a single Scenario or a
 series of Scenarios.</p>
-</div>
-<div class="section" id="data">
-<h2><code class="docutils literal notranslate"><span class="pre">Data</span></code><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class loads a PRMS data file into a Pandas DataFrame and allows
-for easy modification and writing of modified PRMS data files.</p>
-<p>A PRMS data file holds time series variables that are used as input for running
-PRMS including daily temperature and precipitation. Being tabular and date-indexed
-the data file is well represented and managed as a DataFrame. A common paractice
-in hydrologic modeling is to evaluate hydrologic response to multiple climate
-change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based modification of time
-series variable/s so that the user can quickly create new climate inputs for PRMS.
-The user can visualize the data file variables from Pandas and rewrite modified data
-to disk in the PRMS format using methods of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Data</span>
-<span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;test/data/data&#39;</span><span class="p">)</span>
-
-<span class="c1"># modify daily temperature by adding 2 degrees to each input</span>
-<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-  <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
-
-<span class="c1"># apply function to daily temperature input</span>
-<span class="n">d</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;tmax&#39;</span><span class="p">,</span><span class="s1">&#39;tmin&#39;</span><span class="p">])</span>
-
-<span class="c1"># write new modified data file to disk</span>
-<span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> will soon incorporate this functionality
-to implement either a single Scenario or a series of Scenarios.</p>
 </div>
 <div class="section" id="simulation">
 <h2><code class="docutils literal notranslate"><span class="pre">Simulation</span></code><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h2>
@@ -141,7 +142,7 @@ keyword argument in the <code class="docutils literal notranslate"><span class="
 </div>
 </div>
 <div class="section" id="scenario-scenarioseries">
-<h2><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenario-scenarioseries" title="Permalink to this headline">¶</a></h2>
+<span id="scenario-and-scenarioseries-tutorial"></span><h2><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenario-scenarioseries" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> class implements data management on top of the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>
 class, enforcing the user to separate base input data and simulation input and
 output data, plus simple, optional metadata. Let’s dive in with an example,
@@ -157,7 +158,7 @@ simulation paths, plus, optionally, a title and description. Next, the
 Scenario(Series) must be “built”. This means defining which/how parameters
 should be modified.</p>
 <div class="section" id="scenario">
-<h3><code class="docutils literal notranslate"><span class="pre">Scenario</span></code><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
+<span id="scenario-tutorial"></span><h3><code class="docutils literal notranslate"><span class="pre">Scenario</span></code><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
 <p>First, let’s see how we implement these three steps for
 a single Scenario. We’ll just increase one parameter, <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code>, by 10%, or
 multiply by a scaling factor of 1.10.</p>
@@ -176,7 +177,7 @@ multiply by a scaling factor of 1.10.</p>
 </div>
 </div>
 <div class="section" id="scenarioseries">
-<h3><code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
+<span id="scenarioseries-tutorial"></span><h3><code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
 <p>Now let’s build and run a series of scenarios. Each Scenario in the series is
 specified by a dictionary that needs to have the title of the scenario and
 a key-value pair of parameter-function for every parameter that should be
@@ -240,7 +241,7 @@ about the individual Scenarios in the data analysis steps shown below in
 <p>Among other uses, if we want to compare the performance of our model to
 historical data for the purposes of parameterization or analyzing climate change
 scenarios, we will have to load the input and output hydrographs. The two
-functions <a class="reference internal" href="api.html#prms_python.load_data_file" title="prms_python.load_data_file"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_data_file</span></code></a> and <a class="reference internal" href="api.html#prms_python.load_statvar" title="prms_python.load_statvar"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_statvar</span></code></a>
+functions <code class="xref any docutils literal notranslate"><span class="pre">prms_python.load_data</span></code> and <a class="reference internal" href="api.html#prms_python.load_statvar" title="prms_python.load_statvar"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_statvar</span></code></a>
 read the data and statvar files into a Pandas DataFrame, which allows for
 streamlined plotting and analysis.</p>
 <p>Here is a simple example of how to use these functions to generate a plot
@@ -265,9 +266,9 @@ like (not identical to) the one shown in <a class="reference internal" href="#ob
 <span id="example"></span><h1>Example: Parameter sensitivity<a class="headerlink" href="#example-parameter-sensitivity" title="Permalink to this headline">¶</a></h1>
 <p>This is a full example of how the tools outlined above can be used together to
 build a parameter sensitivity analysis. We’ll be modifying two parameters,
-the monthly <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code> and the <code class="docutils literal notranslate"><span class="pre">nhru</span></code>-dependent <code class="docutils literal notranslate"><span class="pre">rad_trncf</span></code>. We will
-create a list of scenario definitions to “build” the <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code>. We’ll
-then use the parallelized <code class="docutils literal notranslate"><span class="pre">ScenarioSeries.run()</span></code> method to execute all
+the monthly <em>jh_coef</em> and the HRU scale <em>rad_trncf</em>. We will
+create a list of scenario definitions to “build” the <a class="reference internal" href="api.html#prms_python.ScenarioSeries" title="prms_python.ScenarioSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.ScenarioSeries</span></code></a>. We’ll
+then use the parallelized <a class="reference internal" href="api.html#prms_python.ScenarioSeries.run" title="prms_python.ScenarioSeries.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prms_python.ScenarioSeries.run()</span></code></a> method to execute all
 requested scenarios.</p>
 <p>This is adapted from the <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/scenario_series.ipynb">scenario_series.ipynb, viewable on GitHub</a>.
 There are some details on customizing the plots that can be viewed there.</p>
@@ -513,14 +514,6 @@ There are some details on customizing the plots that can be viewed there.</p>
 <p class="caption"><span class="caption-text">Nash-Sutcliffe Matrix of model efficiencies</span></p>
 </div>
 </div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
-</div>
 
 
           </div>
@@ -552,26 +545,26 @@ There are some details on customizing the plots that can be viewed there.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial and Recipes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scenario-scenarioseries"><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#load-data-load-statvar"><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="cli.html" title="previous chapter">Command-Line Interface</a></li>
-      <li>Next: <a href="api.html" title="next chapter">API Reference</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">PRMS-Python</a></li>
+      <li>Next: <a href="cli.html" title="next chapter">Command-Line Interface</a></li>
   </ul></li>
 </ul>
 </div>

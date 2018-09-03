@@ -61,18 +61,22 @@
 <span class="sd">    resampling routines using uniform and normal random variables. </span>
 
 <span class="sd">    Example:</span>
-
-<span class="sd">    &gt;&gt;&gt; from prms_python import Data, Optimizer, Parameters</span>
-<span class="sd">    &gt;&gt;&gt; params = Parameters(&#39;path/to/parameters&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; data = Data(&#39;path/to/data&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; control = &#39;path/to/control&#39;</span>
-<span class="sd">    &gt;&gt;&gt; work_directory = &#39;path/to/create/simulations&#39;</span>
-<span class="sd">    &gt;&gt;&gt; optr = Optimizer(params, data, control, work_directory, \</span>
-<span class="sd">title=&#39;the title&#39;, description=&#39;desc&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; measured = &#39;path/to/measured/csv&#39; </span>
-<span class="sd">    &gt;&gt;&gt; statvar_name = &#39;basin_cfs&#39; # or any other valid statvar </span>
-<span class="sd">    &gt;&gt;&gt; params_to_resample = [&#39;dday_intcp&#39;, &#39;dday_slope&#39;] # list of params</span>
-<span class="sd">    &gt;&gt;&gt; optr.monte_carlo(measured, params_to_resample, statvar_name)</span>
+<span class="sd">        &gt;&gt;&gt; from prms_python import Data, Optimizer, Parameters</span>
+<span class="sd">        &gt;&gt;&gt; params = Parameters(&#39;path/to/parameters&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; data = Data(&#39;path/to/data&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; control = &#39;path/to/control&#39;</span>
+<span class="sd">        &gt;&gt;&gt; work_directory = &#39;path/to/create/simulations&#39;</span>
+<span class="sd">        &gt;&gt;&gt; optr = Optimizer(</span>
+<span class="sd">                             params, </span>
+<span class="sd">                             data, </span>
+<span class="sd">                             control, </span>
+<span class="sd">                             work_directory, </span>
+<span class="sd">                             title=&#39;the title&#39;, </span>
+<span class="sd">                             description=&#39;desc&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; measured = &#39;path/to/measured/csv&#39; </span>
+<span class="sd">        &gt;&gt;&gt; statvar_name = &#39;basin_cfs&#39; # or any other valid statvar </span>
+<span class="sd">        &gt;&gt;&gt; params_to_resample = [&#39;dday_intcp&#39;, &#39;dday_slope&#39;] # list of params</span>
+<span class="sd">        &gt;&gt;&gt; optr.monte_carlo(measured, params_to_resample, statvar_name)</span>
 
 <span class="sd">    &#39;&#39;&#39;</span>
         
@@ -931,11 +935,11 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial and Recipes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 
 <div class="relations">

@@ -58,8 +58,8 @@ We recommend getting acquainted with PRMS-Python by reading and applying some ex
     :includehidden:
     :maxdepth: 2
 
-    cli
     tutorial
+    cli
     api
 
     

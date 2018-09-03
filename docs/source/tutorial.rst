@@ -6,11 +6,45 @@
 Tutorial and Recipes
 ====================
 
-In this tutorial we will go through each important class and function, and 
+In this tutorial we walk through each important class and function, and 
 explain each one's purpose and use with an example. At the end of the tutorial
-in `example` we show how all these can be put together to build a parameter
-sensitivity analysis.
+in :ref:`example` we show a more advanced workflow involving parameter sensitivity
+over dual parameter space that uses several of the previously described classes
+and functions.
 
+``Data``
+--------------
+
+The ``Data`` class loads a PRMS data file into a Pandas DataFrame and allows 
+for easy modification and writing of modified PRMS data files. 
+
+A PRMS data file holds time series variables that are used as input for running
+PRMS including daily temperature and precipitation. Being tabular and date-indexed 
+the data file is well represented and managed as a :obj:`pandas.DataFrame`. 
+A common paractice in hydrologic modeling is to evaluate hydrologic response to multiple climate 
+change scenarios. The ``Data`` class offers function-based modification of time 
+series variable/s so that the user can quickly create new climate inputs for PRMS.
+The user can visualize the data file variables from Pandas and rewrite modified data 
+to disk in the PRMS format using methods of the ``Data`` class.
+
+.. code-block:: python
+
+    from prms_python import Data
+    d = Data('test/data/data')
+
+    # modify daily temperature by adding 2 degrees to each input
+    def f(x):
+      return (x + 2)
+      
+    # apply function to daily temperature input
+    d.modify(f, ['tmax','tmin'])
+    
+    # write new modified data file to disk 
+    d.write('test/data/temp_plus2_data')
+
+
+The ``Scenario`` and ``ScenarioSeries`` will soon incorporate this functionality 
+to implement either a single Scenario or a series of Scenarios.
 
 ``Parameters``
 --------------
@@ -55,38 +89,6 @@ The ``Scenario`` and ``ScenarioSeries`` use this functionality (via the
 `prms_python.modify_params` function) to implement either a single Scenario or a 
 series of Scenarios.
 
-``Data``
---------------
-
-The ``Data`` class loads a PRMS data file into a Pandas DataFrame and allows 
-for easy modification and writing of modified PRMS data files. 
-
-A PRMS data file holds time series variables that are used as input for running
-PRMS including daily temperature and precipitation. Being tabular and date-indexed 
-the data file is well represented and managed as a DataFrame. A common paractice 
-in hydrologic modeling is to evaluate hydrologic response to multiple climate 
-change scenarios. The ``Data`` class offers function-based modification of time 
-series variable/s so that the user can quickly create new climate inputs for PRMS.
-The user can visualize the data file variables from Pandas and rewrite modified data 
-to disk in the PRMS format using methods of the ``Data`` class.
-
-.. code-block:: python
-
-    from prms_python import Data
-    d = Data('test/data/data')
-
-    # modify daily temperature by adding 2 degrees to each input
-    def f(x):
-      return (x + 2)
-      
-    # apply function to daily temperature input
-    d.modify(f, ['tmax','tmin'])
-    
-    # write new modified data file to disk 
-    d.write('test/data/temp_plus2_data')
-
-The ``Scenario`` and ``ScenarioSeries`` will soon incorporate this functionality 
-to implement either a single Scenario or a series of Scenarios.
 
 ``Simulation``
 --------------
@@ -134,6 +136,7 @@ keyword argument in the ``Simulation`` constructor, like so
     sim = Simulation('prms-sim-example', simulation_dir='sim-dir-1')
     sim.run()
 
+.. _scenario_and_scenarioseries_tutorial:
 
 ``Scenario & ScenarioSeries``
 -----------------------------
@@ -154,6 +157,7 @@ simulation paths, plus, optionally, a title and description. Next, the
 Scenario(Series) must be "built". This means defining which/how parameters 
 should be modified. 
 
+.. _scenario_tutorial:
 
 ``Scenario``
 ````````````
@@ -176,6 +180,8 @@ multiply by a scaling factor of 1.10.
     sc.build({'jh_coeff': scale_1p1})
     sc.run()
 
+
+.. _scenarioseries_tutorial:
 
 ``ScenarioSeries``
 ``````````````````
@@ -250,7 +256,7 @@ about the individual Scenarios in the data analysis steps shown below in
 Among other uses, if we want to compare the performance of our model to 
 historical data for the purposes of parameterization or analyzing climate change
 scenarios, we will have to load the input and output hydrographs. The two
-functions :any:`prms_python.load_data_file` and :any:`prms_python.load_statvar` 
+functions :any:`prms_python.load_data` and :any:`prms_python.load_statvar` 
 read the data and statvar files into a Pandas DataFrame, which allows for 
 streamlined plotting and analysis.
 
@@ -280,9 +286,9 @@ Example: Parameter sensitivity
 
 This is a full example of how the tools outlined above can be used together to
 build a parameter sensitivity analysis. We'll be modifying two parameters,
-the monthly ``jh_coef`` and the ``nhru``-dependent ``rad_trncf``. We will 
-create a list of scenario definitions to "build" the ``ScenarioSeries``. We'll
-then use the parallelized ``ScenarioSeries.run()`` method to execute all
+the monthly *jh_coef* and the HRU scale *rad_trncf*. We will 
+create a list of scenario definitions to "build" the :class:`prms_python.ScenarioSeries`. We'll
+then use the parallelized :meth:`prms_python.ScenarioSeries.run` method to execute all
 requested scenarios.
 
 This is adapted from the `scenario_series.ipynb, viewable on GitHub
@@ -425,10 +431,3 @@ The resulting plots from the end of the example script are shown below
 
     Nash-Sutcliffe Matrix of model efficiencies
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

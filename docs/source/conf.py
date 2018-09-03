@@ -36,6 +36,9 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.todo',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,6 +86,11 @@ language = None
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = []
+
+# to allow for references sections in different rst files with prefixing file name
+# e.g. tutorial:ScenarioSeries to link to ScenarioSeries in the tutorial.rst
+# file from another file that has the same section name (e.g. scenario.py)
+autosectionlabel_prefix_document = True
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -314,4 +322,6 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/': None,
+                       'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None)
+                       }

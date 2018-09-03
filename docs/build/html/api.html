@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Tutorial and Recipes" href="tutorial.html" /> 
+    <link rel="prev" title="Command-Line Interface" href="cli.html" /> 
 <link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
 
   </head><body>
@@ -32,110 +32,184 @@
             
   <div class="section" id="api-reference">
 <h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#classes" id="id14">Classes</a><ul>
+<li><a class="reference internal" href="#data" id="id15">Data</a></li>
+<li><a class="reference internal" href="#parameters" id="id16">Parameters</a></li>
+<li><a class="reference internal" href="#simulation" id="id17">Simulation</a></li>
+<li><a class="reference internal" href="#simulationseries" id="id18">SimulationSeries</a></li>
+<li><a class="reference internal" href="#scenario" id="id19">Scenario</a></li>
+<li><a class="reference internal" href="#scenarioseries" id="id20">ScenarioSeries</a></li>
+<li><a class="reference internal" href="#optimizer" id="id21">Optimizer</a></li>
+<li><a class="reference internal" href="#optimizationresult" id="id22">OptimizationResult</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#select-helper-functions" id="id23">Select helper functions</a><ul>
+<li><a class="reference internal" href="#load-statvar" id="id24">load_statvar</a></li>
+<li><a class="reference internal" href="#modify-params" id="id25">modify_params</a></li>
+<li><a class="reference internal" href="#nash-sutcliffe" id="id26">nash_sutcliffe</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="classes">
-<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="data"></span><dl class="class">
+<h2><a class="toc-backref" href="#id14">Classes</a><a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data">
+<h3><a class="toc-backref" href="#id15">Data</a><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id1"></span><dl class="class">
 <dt id="prms_python.Data">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>base_file=None</em>, <em>na_rep=-999</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/data.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Object to access or create a PRMS data file with ability to load/assign it to a 
-date-time indexed pandas.DataFrame for data management, analysis and visualization. 
-It can be used to build a new PRMS data file from user defined metadata and a 
-<code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of PRMS datetime-indexed climatic forcing and observation 
-variables. The class contains the following instance attributes:</p>
+<dd><p>Object to access or create a PRMS data file with ability to load/assign it to a
+date-time indexed pandas.DataFrame for data management, analysis and visualization.
+It can be used to build a new PRMS data file from user defined metadata and a
+<code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of PRMS datetime-indexed climatic forcing and observation
+variables.</p>
+<p>The class properties <code class="docutils literal notranslate"><span class="pre">metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> can be later assigned if no
+<code class="docutils literal notranslate"><span class="pre">base_file</span></code> is given on initialization, allowing for the creation of PRMS climatic
+forcing file in a Python environment.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
-<li><strong>base_file</strong> – initial value: None</li>
-<li><strong>na_rep</strong> – initial value: -999</li>
-<li><a class="reference internal" href="#prms_python.Data.metadata" title="prms_python.Data.metadata"><strong>metadata</strong></a> – initial value: None</li>
-<li><a class="reference internal" href="#prms_python.Data.data_frame" title="prms_python.Data.data_frame"><strong>data_frame</strong></a> – initial value: None</li>
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – path to standard PRMS data file</li>
+<li><strong>na_rep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – how to represent missing values default = -999</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The <code class="docutils literal notranslate"><span class="pre">modify</span></code> method allows for inplace modification of one or more 
-time series inputs in the data file based on a user defined function. The <code class="docutils literal notranslate"><span class="pre">write</span></code> 
-method reformats the Dataframe to PRMS text format and writes a new data file to 
-disk. If the initial data was not accessed the write method simply makes a copy of 
-the original file, to save memory and improve computational efficiency. Here is an 
-example of loading a data file, modifying the temperature inputs (‘tmin’ and ‘tmax’) 
-by adding two degrees to each element, and rewritting the modified data to disk:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;path_to_data_file&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="go">        return x + 2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,[</span><span class="s1">&#39;tmax&#39;</span><span class="p">,</span><span class="s1">&#39;tmin&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;example_modified_data_file&#39;</span><span class="p">)</span>
-</pre></div>
+<dl class="attribute">
+<dt id="prms_python.Data.date_header">
+<code class="descname">date_header</code><a class="headerlink" href="#prms_python.Data.date_header" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> – date and time header for PRMS data file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.Data.valid_input_variables">
+<code class="descname">valid_input_variables</code><a class="headerlink" href="#prms_python.Data.valid_input_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple</em> – valid hydro-climate variables for PRMS data file</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class to create a new data file, it is up to the user
+to ensure that the metadata and <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> assigned are correct
+and compatible.</p>
 </div>
-<p>d is a Data instance of example_data_file, calling</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">data_frame</span> 
-</pre></div>
-</div>
-<p>shows the date-indexed <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> of the input data that is created 
-when a <code class="docutils literal notranslate"><span class="pre">Data</span></code> object is initiated if given a valid <code class="docutils literal notranslate"><span class="pre">base_file</span></code>, i.e. 
-file path to a PRMS climate data file. Above we pass the function f(x) to 
-d.modify along with a Python list of input variable/s that we want to modify, this 
-modifies d.data_frame in place. Last we call d.write with an output path to write 
-the modified data variables to disk in PRMS text format. The class properties 
-<code class="docutils literal notranslate"><span class="pre">metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> can be assigned either from scratch if no
-<code class="docutils literal notranslate"><span class="pre">base_file</span></code> is given on initialization of a <code class="docutils literal notranslate"><span class="pre">Data</span></code> instance or afterwords.
-If using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class to create a new data file, it is up to the user
-to ensure that the metadata and DataFrame assigned are correct and compatible.</p>
 <dl class="attribute">
 <dt id="prms_python.Data.data_frame">
 <code class="descname">data_frame</code><a class="headerlink" href="#prms_python.Data.data_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Python property that gets and sets the climatic forcing data for a 
-standard PRMS climate input data file as a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<dd><p>A property that gets and sets the climatic forcing data for a standard PRMS
+climate input data file as a <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+<p class="rubric">Example</p>
+<p>d is a Data instance, calling</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">data_frame</span>
+<span class="go">    input variables runoff 1 runoff 2 runoff 3 precip tmax tmin</span>
+<span class="go">    date</span>
+<span class="go">    1996-12-27      0.54    1.6     NaN     0.0     46      32.0</span>
+<span class="go">    1996-12-28      0.65    1.6     NaN     0.0     45      24.0</span>
+<span class="go">    1996-12-29      0.80    1.6     NaN     0.0     44      28.0</span>
+<span class="go">    1996-12-30      0.90    1.6     NaN     0.0     51      33.0</span>
+<span class="go">    1996-12-31      1.00    1.7     NaN     0.0     47      32.0</span>
+</pre></div>
+</div>
+<p>shows the date-indexed <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> of the input data that is created
+when a <code class="docutils literal notranslate"><span class="pre">Data</span></code> object is initiated if given a valid <code class="docutils literal notranslate"><span class="pre">base_file</span></code>, i.e.
+file path to a PRMS climate data file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – if attribute is accessed before either assigning a PRMS data
+file on <code class="docutils literal notranslate"><span class="pre">Data</span></code> initialization or not assigning a compatabile
+date-indexed <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of hydro-climate variables.</li>
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> – if a data type other than <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> is assigned.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="prms_python.Data.metadata">
 <code class="descname">metadata</code><a class="headerlink" href="#prms_python.Data.metadata" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">prms_python.Data.metadata</span></code> is a property method that gets and sets
-the header information from a standard PRMS climate input data file
-as a Python dictionary. As a property it can be assigned directly
-to overwrite or create a new PRMS data file. Here is an example of the
-information gathered and held in this attribute:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">{</span>
+<dd><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> – A property that gets and sets the header information from
+a standard PRMS climate input data file held in a Python dictionary. As
+a property it can be assigned directly to overwrite or create a new PRMS
+data file. As such the user is in control and must supply the correct
+syntax for PRMS standard data files, e.g. text lines before header should
+begin with “//”. Here is an example of the information gathered and held in
+this attribute:</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">metadata</span>
+<span class="go">    {</span>
 <span class="go">     &#39;data_startline&#39; : 6,</span>
 <span class="go">     &#39;data_variables&#39; : [&#39;runoff 1&#39;, &#39;runoff 2&#39;, &#39;tmin&#39;, &#39;tmax&#39;, &#39;ppt&#39;]</span>
 <span class="go">     &#39;text_before_header&#39; : &quot;Title of data file \n //some comments\nrunoff 2</span>
 <span class="go">                             \ntmin 1\ntmax 1\nppt 1\nrunoff 2\ntmin 1</span>
 <span class="go">                             \ntmax 1\nppt 1\n</span>
 <span class="go">                             ########################################\n&quot;</span>
-<span class="go">    } </span>
+<span class="go">    }</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When assigning or creating a new data file, the <code class="docutils literal notranslate"><span class="pre">Data.write</span></code> method will
+assign the appropriate date header that follows the line of number signs “#”.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – if data in metadata is accessed before data is assigned,
+e.g. if accessed to write a PRMS data file from a <code class="docutils literal notranslate"><span class="pre">Data</span></code> instance
+that was initialized without a valid PRMS data file.</li>
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> – if an object that is not a Python dictionary is assigned.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="prms_python.Data.modify">
 <code class="descname">modify</code><span class="sig-paren">(</span><em>func</em>, <em>vars_to_adjust</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/data.html#Data.modify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Data.modify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a user defined function to one or more variable(s) in the data file.</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd>func (function): function to apply to each variable in vars_to_adjust
-vars_to_adjust (list or tuple): collection of variable names to apply func to.</dd>
-<dt>Returns: </dt>
-<dd>None</dd>
-</dl>
-<p>Example starting with an initial PRMS data file and modifying a single 
-data variable by applying the sine function:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_instance</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;path/to/data/file&#39;</span><span class="p">)</span>  
+<p>The <code class="docutils literal notranslate"><span class="pre">modify</span></code> method allows for inplace modification of one or more
+time series inputs in the data file based on a user defined function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>func</strong> (<em>function</em>) – function to apply to each variable in vars_to_adjust</li>
+<li><strong>vars_to_adjust</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – collection of variable names to apply func to.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>Here is an example of loading a data file, modifying the temperature inputs
+(<em>tmin</em> and <em>tmax</em>) by adding two degrees to each element, and rewritting the
+modified data to disk,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;path_to_data_file&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_instance</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;param_name_to_adjust&#39;</span><span class="p">])</span>
+<span class="go">        return x + 2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span><span class="n">f</span><span class="p">,[</span><span class="s1">&#39;tmax&#39;</span><span class="p">,</span><span class="s1">&#39;tmin&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;data_temp_plus_2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="prms_python.Data.valid_input_variables">
-<code class="descname">valid_input_variables</code><em class="property"> = ('gate_ht', 'humidity', 'lake_elev', 'pan_evap', 'precip', 'rain_day', 'runoff', 'snowdepth', 'solrad', 'tmax', 'tmin', 'wind_speed')</em><a class="headerlink" href="#prms_python.Data.valid_input_variables" title="Permalink to this definition">¶</a></dt>
-<dd><p>class attribute (tuple) with names of known PRMS data file variables</p>
 </dd></dl>
 
 <dl class="method">
@@ -143,220 +217,1012 @@ data variable by applying the sine function:</p>
 <code class="descname">write</code><span class="sig-paren">(</span><em>out_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/data.html#Data.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Data.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the current state of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> to PRMS text format
 utilizing the <code class="docutils literal notranslate"><span class="pre">Data.metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> instance
-variables. If <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> was never accessed or assigned
+properties. If <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> was never accessed or assigned
 new values then this method simply copies the original PRMS
-data file to <code class="docutils literal notranslate"><span class="pre">out_path</span></code>. A value error is raised if the <code class="docutils literal notranslate"><span class="pre">write</span></code>
-method is called without assigning either an initial data (<code class="docutils literal notranslate"><span class="pre">base_file</span></code>)
-path or assigning correct <code class="docutils literal notranslate"><span class="pre">metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> properties.</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd><dl class="first last docutils">
-<dt>out_path (str): full path to save or copy the current PRMS data </dt>
-<dd>in PRMS text format.</dd>
-</dl>
-</dd>
-<dt>Returns:</dt>
-<dd>None</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<span class="target" id="parameters"></span><dl class="class">
-<dt id="prms_python.Parameters">
-<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Parameters</code><span class="sig-paren">(</span><em>base_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#Parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Disk-based representation of a PRMS parameter file. The <code class="docutils literal notranslate"><span class="pre">Parameters</span></code>
-object has the following instance attributes:</p>
+data file to <code class="docutils literal notranslate"><span class="pre">out_path</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
-<li><strong>base_file</strong> – initial value: <code class="docutils literal notranslate"><span class="pre">base_file</span></code></li>
-<li><strong>base_file_reader</strong> – initial value: <code class="docutils literal notranslate"><span class="pre">open(base_file)</span></code></li>
-<li><strong>dimensions</strong> – initial value: <code class="docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code> returned from <code class="docutils literal notranslate"><span class="pre">self.__read_base(base_file)</span></code></li>
-<li><strong>base_params</strong> – initial value: <code class="docutils literal notranslate"><span class="pre">list()</span></code> returned from <code class="docutils literal notranslate"><span class="pre">self.__read_base(base_file)</span></code></li>
-<li><strong>param_arrays</strong> – initial value: empty <code class="docutils literal notranslate"><span class="pre">dict()</span></code></li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>out_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – full path to save or copy the current PRMS data
+in PRMS text format.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – if the <code class="docutils literal notranslate"><span class="pre">write</span></code> method is called without assigning either
+an initial data (<code class="docutils literal notranslate"><span class="pre">base_file</span></code>) path or assigning correct <code class="docutils literal notranslate"><span class="pre">metadata</span></code>
+and <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> properties.</td>
 </tr>
 </tbody>
 </table>
-<p>For the sake of
-memory efficiency, we only load parameters from <code class="docutils literal notranslate"><span class="pre">base_file</span></code> that get
-modified through item assignment, for example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;example_params&#39;</span><span class="p">)</span>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="parameters">
+<h3><a class="toc-backref" href="#id16">Parameters</a><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id2"></span><dl class="class">
+<dt id="prms_python.Parameters">
+<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Parameters</code><span class="sig-paren">(</span><em>base_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#Parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disk-based representation of a PRMS parameter file.</p>
+<p>For the sake of memory efficiency, we only load parameters from
+<code class="docutils literal notranslate"><span class="pre">base_file</span></code> that get modified through item assignment or accessed directly.
+Internally, a reference is kept to only previously accessed parameter data,
+so when <code class="docutils literal notranslate"><span class="pre">write</span></code> is called most copying is from <code class="docutils literal notranslate"><span class="pre">base_file</span></code> directly.
+When parameters are accessed or modified using the dictionary-like syntax,
+a <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> representation of the parameter is returned. As a result
+<code class="docutils literal notranslate"><span class="pre">numpy</span></code> mathematical rules including efficient vectorization of math applied
+to arrays can be applied to modify parameters directly. The <code class="docutils literal notranslate"><span class="pre">Parameter</span></code>
+objects user methods allow for visualization of most PRMS parameters, function
+based modification of parameters, and a write function that writes the data
+back to PRMS text format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to PRMS parameters file</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="prms_python.Parameters.base_file">
+<code class="descname">base_file</code><a class="headerlink" href="#prms_python.Parameters.base_file" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – path to PRMS parameters file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.Parameters.base_file_reader">
+<code class="descname">base_file_reader</code><a class="headerlink" href="#prms_python.Parameters.base_file_reader" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>file</em> – file handle of PRMS parameters file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.Parameters.dimensions">
+<code class="descname">dimensions</code><a class="headerlink" href="#prms_python.Parameters.dimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a> – dictionary with
+parameter dimensions as defined in parameters file loaded on
+initialization</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.Parameters.base_params">
+<code class="descname">base_params</code><a class="headerlink" href="#prms_python.Parameters.base_params" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of dicts</em> – list of dictionaries of parameter
+metadata loaded on initialization e.g. name, dimension(s), data
+type, length of data array, and lines where data starts and ends
+in file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.Parameters.param_arrays">
+<code class="descname">param_arrays</code><a class="headerlink" href="#prms_python.Parameters.param_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – dictionary with parameteter names as keys and
+<code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> and <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> representations of parameter
+values as keys. Initially empty, uses getter and setter functions.</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path/to/a/parameter/file&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;jh_coef&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;jh_coef&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">1.1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;example_modified_params&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>will read parameter information from the params file to check that
-<code class="docutils literal notranslate"><span class="pre">jh_coef</span></code> is present in the parameter file, read the lines corresponding
-to <code class="docutils literal notranslate"><span class="pre">jh_coef</span></code> data and assign the new value as requested. Internally,
-a reference is kept to only modified parameter data, so when 
-<code class="docutils literal notranslate"><span class="pre">p.write(modified_params_file)</span></code> is called most copying is from <code class="docutils literal notranslate"><span class="pre">base_file</span></code>
-to <code class="docutils literal notranslate"><span class="pre">modified_params_file</span></code>. When parameters are accessed using the 
-dictionary-like syntax, a <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> representation of the parameter is 
-returned. As a result <code class="docutils literal notranslate"><span class="pre">numpy</span></code> mathematical rules including efficient 
-vectorization of math applied to arrays can be applied to modify parameters 
-directly. The <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> objects user methods allow for visualization of 
-most PRMS parameters, function based modification of parameters, and a write 
-function that writes the data back to PRMS text format.</p>
+<em>jh_coef</em> is present in the parameter file, read the lines corresponding
+to <em>jh_coef</em> data and assign the new value as requested. Calling
+the <code class="docutils literal notranslate"><span class="pre">write</span></code> method next will copy all parameters except <em>jh_coef</em>
+to the new parameter file and append the newly modified <em>jh_coef</em>
+to the end of the new file from the modified values stored in the
+parameter instance <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
 <dl class="method">
 <dt id="prms_python.Parameters.plot">
 <code class="descname">plot</code><span class="sig-paren">(</span><em>nrows</em>, <em>which='all'</em>, <em>out_dir=None</em>, <em>xlabel=None</em>, <em>ylabel=None</em>, <em>cbar_label=None</em>, <em>title=None</em>, <em>mpl_style=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#Parameters.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Parameters.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Versatile method that plots series or 2D spatial grid depending on 
-parameter dimension. The PRMS parameter file is assumed to hold parameters 
-for a model that was set up on a uniform rectangular grid with the spatial 
-index of HRUs starting in the upper left corner and moving left to 
+<dd><p>Versatile method that plots most parameters in a standard PRMS parameter
+file assuming the PRMS model was built on a uniform spatial grid.</p>
+<p>Plots parameters as line plots for series or 2D spatial grid depending on
+parameter dimension. The PRMS parameter file is assumed to hold parameters
+for a model that was set up on a uniform rectangular grid with the spatial
+index of HRUs starting in the upper left corner and moving left to
 right across columns and down rows. Default function is to print four
-files, each with plots of varying parameter dimensions as explained 
+files, each with plots of varying parameter dimensions as explained
 under Kwargs <code class="docutils literal notranslate"><span class="pre">which</span></code> and more detailed explanation in the example
 <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/param_examples.ipynb">Jupyter notebook</a>.</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd><dl class="first last docutils">
-<dt>nrows (int): The number of rows in the PRMS model grid for plotting </dt>
-<dd>spatial parameters. Function will only work for rectangular 
-gridded models with HRU indices starting in the upper left cell 
-moving left to right across columns and down across rows.</dd>
-</dl>
-</dd>
-<dt>Kwargs:</dt>
-<dd><dl class="first docutils">
-<dt>which (str): name of PRMS parameter to plot or ‘all’. If ‘all’ then</dt>
-<dd>the function will print 3 multipage pdfs, one for nhru 
-dimensional parameters, one for nhru by monthly parameters, one 
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nrows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of rows in the PRMS model grid for plotting
+spatial parameters. Will only work correctly for rectangular gridded models
+with HRU indices starting in the upper left cell moving left to right
+across columns and down across rows.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>which</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS parameter to plot or ‘all’. If ‘all’ then
+the function will print 3 multipage pdfs, one for nhru
+dimensional parameters, one for nhru by monthly parameters, one
 for other parameters of length &gt; 1, and one html file containing
-single valued parameters.</dd>
-</dl>
-<p class="last">out_dir (str): path to an output dir, default current directory
-xlabel (str): x label for plot(s)
-ylabel (str): y label for plot(s)
-cbar_label (str): label for colorbar on spatial plot(s)
-title (str): plot title
-mpl_style (str, list): name or list of names of matplotlib style sheets to use for plot(s).</p>
-</dd>
-<dt>Returns: </dt>
-<dd>None</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<span class="target" id="scenario"></span><dl class="class">
-<dt id="prms_python.Scenario">
-<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Scenario</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenario_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#Scenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Scenario" title="Permalink to this definition">¶</a></dt>
-<dd><p>Container for the process in which one modifies some base files then
-runs a simulation on the modified files. This also tracks metadata,
-including a title and description, if provided, plus start/end datetime
-and strings of the modification functions python code.</p>
-</dd></dl>
-
-<span class="target" id="scenarioseries"></span><dl class="class">
-<dt id="prms_python.ScenarioSeries">
-<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">ScenarioSeries</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenarios_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Container for a series of related scenario model runs. The user can
-initialize the series with a title and a description. Then to build
-the series the user provides a list of dictionaries with parameter-function
-key-value pairs, and optionally a title and description for each dictionary
-defining the individual scenario.</p>
-<p>The ScenarioSeries’ <code class="docutils literal notranslate"><span class="pre">build</span></code> method creates a directory structure under
-the series directory (<code class="docutils literal notranslate"><span class="pre">{series-directory}</span></code>) where each
-subdirectory is named with a UUID which can be matched to its title using
-the metadata in <code class="docutils literal notranslate"><span class="pre">{series-directory}/series_metadata.json</span></code>.</p>
-<p>In the future we may add a way for the user to access the results of
-the scenario simulations directly through the series, but for now the
-results are written to disk and the user must load them manually. It’s
-maybe a little clunky, but here we use the title metadata to be able to
-reference the statsvar file for a particular set of scale factors. See
-below how to build the statvar path after running a series of scenarios.
-See the online documentation for a full example.</p>
-<dl class="docutils">
-<dt>Example:</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sc_ser</span> <span class="o">=</span> <span class="n">ScenarioSeries</span><span class="p">(</span>
-<span class="go">        &#39;base_inputs&#39;, &#39;scenario_dir&#39;, title=&#39;my title&#39;,</span>
-<span class="go">        description=&#39;series description&#39;</span>
-<span class="go">    )</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_scale_fun</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-<span class="go">        def scale(x):</span>
-<span class="go">            return x*val</span>
-<span class="go">        return scale</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sc_list</span> <span class="o">=</span> <span class="p">[</span>
-<span class="go">        {</span>
-<span class="go">            &#39;rad_trncf&#39;: _scale_fun(val),</span>
-<span class="go">            &#39;snow_adj&#39;: _scale_fun(val),</span>
-<span class="go">            &#39;title&#39;:</span>
-<span class="go">                &#39;&quot;rad_trncf&quot;:{0:%.1f}|&quot;snow_adj&quot;:{0:%.1f}&#39;.format(val)</span>
-<span class="go">        } for val in np.arange(0.7, 0.9, 0.1)</span>
-<span class="go">    ]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sc_ser</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">sc_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sc_ser</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">series_md</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
-<span class="go">        open(os.path.join(&#39;scenario_dir&#39;, &#39;series_metadata.json&#39;)).read()</span>
-<span class="go">    )</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid_title_map</span> <span class="o">=</span> <span class="n">series_md</span><span class="p">[</span><span class="s1">&#39;uuid_title_map&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">uu</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">uuid_title_map</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
-<span class="go">            if v == &#39;&quot;rad_trncf&quot;:0.7|&quot;snow_adj&quot;:0.7&#39;][0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">statvar_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-<span class="go">        &#39;scenario_dir&#39;, uu, &#39;outputs&#39;, &#39;statvar.dat&#39;</span>
-<span class="go">    )</span>
+single valued parameters.</li>
+<li><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to an output dir, default current directory</li>
+<li><strong>xlabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – x label for plot(s)</li>
+<li><strong>ylabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – y label for plot(s)</li>
+<li><strong>cbar_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – label for colorbar on spatial plot(s)</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – plot title</li>
+<li><strong>mpl_style</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – name or list of names of matplotlib style sheets to
+use for plot(s).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>If the plot method is called with the keyword argument <code class="docutils literal notranslate"><span class="pre">which</span></code> set
+to a parameter that has length one, i.e. single valued it will simply
+print out the value e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path/to/parameters&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;radj_sppt&#39;</span><span class="p">)</span>
+<span class="go">    radj_sppt is single valued with value: 0.4924942352224324</span>
 </pre></div>
 </div>
+<p>The default action is particularly useful which makes four multi-page
+pdfs of most PRMS parameters where each file contains parameters
+of different dimensions e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">mpl_style</span><span class="o">=</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>will produce the following four files named by parameters of certain
+dimensions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="c1"># list files in current directory</span>
+<span class="go">    nhru_param_maps.pdf</span>
+<span class="go">    nhru_by_nmonths_param_maps.pdf</span>
+<span class="go">    non_spatial_param_plots.pdf</span>
+<span class="go">    single_valued_params.html</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="prms_python.Parameters.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>out_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#Parameters.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Parameters.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes current state of <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> to disk in PRMS text format</p>
+<p>To reduce memory usage the <code class="docutils literal notranslate"><span class="pre">write</span></code> method copies parameters
+from the initial <code class="docutils literal notranslate"><span class="pre">base_file</span></code> parameter file for all parameters
+that were never modified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>out_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to write <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> data to PRMS text
+format.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="simulation">
+<h3><a class="toc-backref" href="#id17">Simulation</a><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id3"></span><dl class="class">
+<dt id="prms_python.Simulation">
+<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Simulation</code><span class="sig-paren">(</span><em>input_dir=None</em>, <em>simulation_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#Simulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that runs and manages file structure for a single PRMS simulation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class provides low-level managment of a PRMS simulation
+by copying model input files from <code class="docutils literal notranslate"><span class="pre">input_dir</span></code> argument to an output dir
+<code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code>. The file stucture for an individual simulation after
+calling the <code class="docutils literal notranslate"><span class="pre">run</span></code> method is simple, two subdirectories “inputs” and
+“outputs” are created under <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> and the respective input
+and output files from the current PRMS simulation are transfered there after
+the <code class="docutils literal notranslate"><span class="pre">Simulation.run()</span></code> method is called which executes the PRMS model,
+(see examples below in <a class="reference internal" href="#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a>).</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> instance checks that all required PRMS inputs (control,
+parameters, data) exist in the expected locations. If simulation_dir is
+provided and does not exist, it will be created. If it does exist it will
+be overwritten.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory that contains control, parameter,
+and data files for the simulation</li>
+<li><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory path to bundle inputs and outputs</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>see <a class="reference internal" href="#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> – if input directory does not contain a PRMS <em>data</em>,
+<em>parameters</em>, and <em>control</em> file.</td>
+</tr>
+</tbody>
+</table>
+<dl class="classmethod">
+<dt id="prms_python.Simulation.from_data">
+<em class="property">classmethod </em><code class="descname">from_data</code><span class="sig-paren">(</span><em>data</em>, <em>parameters</em>, <em>control_path</em>, <em>simulation_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#Simulation.from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Simulation.from_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> from a <a class="reference internal" href="#prms_python.Data" title="prms_python.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> object,
+plus a path to the <em>control</em> file, and providing a <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code>
+where the simulation should be run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#prms_python.Data" title="prms_python.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Data</span></code> object for simulation</li>
+<li><strong>parameters</strong> (<a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> object for simulation</li>
+<li><strong>control_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to control file</li>
+<li><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory where simulations will be
+run and where input and output will be stored. If it exists it will
+be overwritten.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt><a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> ready to be run using <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> for</dt>
+<dd><p class="first last">inputs and outputs</p>
 </dd>
 </dl>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;path_to_data_file&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path_to_parameters_file&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;path_to_control_file&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim_dir</span> <span class="o">=</span> <span class="s1">&#39;path_to_create_simulation&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">sim_dir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> – if <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> arguments are not of type
+<a class="reference internal" href="#prms_python.Data" title="prms_python.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a> and <a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="prms_python.Simulation.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>prms_exec='prms'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#Simulation.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Simulation.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> instance using PRMS input files from <code class="docutils literal notranslate"><span class="pre">input_dir</span></code>
+and copy to the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> file structure under <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> if
+given, otherwise leave PRMS input output unstructured and in <code class="docutils literal notranslate"><span class="pre">input_dir</span></code></p>
+<p>This method runs a single PRMS simulation from a <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> instance,
+waits until the process has completed and then transfers model input and
+output files to respective newly created directories. See example of the
+file structure that is created under different workflows of the <code class="docutils literal notranslate"><span class="pre">run</span></code>
+method below.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to executable</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>If we create a <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> instance by only assigning the
+<code class="docutils literal notranslate"><span class="pre">input_dir</span></code> argument and call its <code class="docutils literal notranslate"><span class="pre">run</span></code> method the model will be
+run in the <code class="docutils literal notranslate"><span class="pre">input_dir</span></code> and all model input and output files will
+remain in <code class="docutils literal notranslate"><span class="pre">input_dir</span></code>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+<span class="go">                              &#39;PRMS-Python&#39;,</span>
+<span class="go">                              &#39;prms_python&#39;,</span>
+<span class="go">                              &#39;models&#39;,</span>
+<span class="go">                              &#39;lbcd&#39;</span>
+<span class="go">                            )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span>
+<span class="go">    [&#39;data&#39;,</span>
+<span class="go">     &#39;data_3deg_upshift&#39;,</span>
+<span class="go">     &#39;parameters&#39;,</span>
+<span class="go">     &#39;parameters_adjusted&#39;,</span>
+<span class="go">     &#39;control&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span> <span class="c1"># all input and outputs in input_dir</span>
+<span class="go">    [&#39;data&#39;,</span>
+<span class="go">     &#39;data_3deg_upshift&#39;,</span>
+<span class="go">     &#39;parameters&#39;,</span>
+<span class="go">     &#39;parameters_adjusted&#39;,</span>
+<span class="go">     &#39;control&#39;,</span>
+<span class="go">     &#39;statvar.dat&#39;,</span>
+<span class="go">     &#39;prms_ic.out&#39;,</span>
+<span class="go">     &#39;prms.out&#39; ]</span>
+</pre></div>
+</div>
+<p>Instead if we assigned a path for <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> keyword
+argument and then called <code class="docutils literal notranslate"><span class="pre">run</span></code>, i.e.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="s1">&#39;path_simulation&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>the files structure for the PRMS simulation created by <code class="docutils literal notranslate"><span class="pre">Simulation.run()</span></code>
+would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>path_simulation
+├── inputs
+│   ├── control
+│   ├── data
+│   └── parameters
+└── outputs
+    ├── data_3deg_upshift
+    ├── parameters_adjusted
+    ├── prms_ic.out
+    ├── prms.out
+    └── statvar.dat
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As shown in the last example, currently the <code class="docutils literal notranslate"><span class="pre">Simulation.run</span></code> routine only
+recognizes the <em>data</em>, <em>parameters</em>. and <em>control</em> file as PRMS inputs,
+all other files found in <code class="docutils literal notranslate"><span class="pre">input_dir</span></code> before <em>and</em> after normal completion
+of the PRMS simulation will be transferred to <code class="docutils literal notranslate"><span class="pre">simulation_dir/outputs/</span></code>.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="simulationseries">
+<h3><a class="toc-backref" href="#id18">SimulationSeries</a><a class="headerlink" href="#simulationseries" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id4"></span><dl class="class">
+<dt id="prms_python.SimulationSeries">
+<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">SimulationSeries</code><span class="sig-paren">(</span><em>simulations</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#SimulationSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.SimulationSeries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Series of simulations all to be run through a common interface.</p>
+<p>Utilizes <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.Pool</span></code> class to parallelize the
+execution of series of PRMS simulations. SimulationSeries also
+allows the user to define the PRMS executable command which is
+set to “prms” as default. It is best to add the prms executable to
+your $PATH environment variable. Each simulation that is run through
+<code class="docutils literal notranslate"><span class="pre">SimulationSeries</span></code> will follow the strict file structure as defined
+by <a class="reference internal" href="#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a>. This class is useful particularly for
+creating new programatic workflows not provided yet by PRMS-Python.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>simulations</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – list of <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> objects
+to be run.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>Lets say you have already created a series of PRMS models by modifying
+the input climatic forcing data, e.g. you have 100 <em>data</em> files and
+you want to run each using the same <em>control</em> and <em>parameters</em> file.
+For simplicity lets say there is a directory that contains all 100
+<em>data</em> files e.g. data1, data2, … or whatever they are named and
+nothing else. This example also assumes that you want each simulation
+to be run and stored in directories named after the <em>data</em> files as
+shown.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;dir_that_contains_all_data_files&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path_to_parameter_file&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">control_path</span> <span class="o">=</span> <span class="s1">&#39;path_to_control&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># a list comprehension to make multiple simulations with</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># different data files, alternatively you could use a for loop</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sims</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">            Simulation.from_data</span>
+<span class="go">              (</span>
+<span class="go">                Data(data_file),</span>
+<span class="go">                params,</span>
+<span class="go">                control_path,</span>
+<span class="go">                simulation_dir=&#39;sim_{}&#39;.format(data_file)</span>
+<span class="go">              )</span>
+<span class="go">            for data_file in os.listdir(data_dir)</span>
+<span class="go">            ]</span>
+</pre></div>
+</div>
+<p>Next we can use <code class="docutils literal notranslate"><span class="pre">SimulationSeries</span></code> to run all of these
+simulations in parrallel. For example we may use 8 logical cores
+on a common desktop computer.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim_series</span> <span class="o">=</span> <span class="n">SimulationSeries</span><span class="p">(</span><span class="n">sims</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim_series</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">nprocs</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">SimulationSeries.run()</span></code> method will run all 100 simulations
+where chunks of 8 at a time will be run in parrallel. Inputs and
+outputs of each simulation will be sent to each simulation’s
+<code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> following the file structure of
+<a class="reference internal" href="#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> and <a class="reference internal" href="#prms_python.SimulationSeries" title="prms_python.SimulationSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationSeries</span></code></a> classes
+are low-level in that they alone do not create metadata for
+PRMS simulation scenarios. In other words they do not produce
+any additional files that may help the user know what differs
+between individual simulations.</p>
+</div>
+<dl class="method">
+<dt id="prms_python.SimulationSeries.outputs_iter">
+<code class="descname">outputs_iter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#SimulationSeries.outputs_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.SimulationSeries.outputs_iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <code class="xref py py-class docutils literal notranslate"><span class="pre">generator</span></code> of directories with the path to the
+<code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> as well as paths to the <em>statvar.dat</em> output
+file, and <em>data</em> and <em>parameters</em> input files used in the simulation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> –</p>
+<dl class="last docutils">
+<dt>dictionary of paths to simulation directory,</dt>
+<dd><p class="first last">input, and output files.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ser</span> <span class="o">=</span> <span class="n">SimulationSeries</span><span class="p">(</span><span class="n">simulations</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ser</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">ser</span><span class="o">.</span><span class="n">outputs_iter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Would return something like</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+<span class="go">    {</span>
+<span class="go">       &#39;simulation_dir&#39;: &#39;path/to/sim/&#39;,</span>
+<span class="go">       &#39;statvar&#39;: &#39;path/to/statvar&#39;,</span>
+<span class="go">       &#39;data&#39;: &#39;path/to/data&#39;,</span>
+<span class="go">       &#39;parameters&#39;: &#39;path/to/parameters&#39;</span>
+<span class="go">     }</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="prms_python.SimulationSeries.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>prms_exec='prms'</em>, <em>nproc=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#SimulationSeries.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.SimulationSeries.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to run multiple <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> objects in parrallel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+executable</li>
+<li><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – number of logical or physical processors
+for parrallel execution of PRMS simulations.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>see <a class="reference internal" href="#prms_python.SimulationSeries" title="prms_python.SimulationSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulationSeries</span></code></a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If <code class="docutils literal notranslate"><span class="pre">nproc</span></code> is not assigned the deault action is to use half
+of the available processecors on the machine using the Python
+<a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> module.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="scenario">
+<h3><a class="toc-backref" href="#id19">Scenario</a><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id5"></span><dl class="class">
+<dt id="prms_python.Scenario">
+<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Scenario</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenario_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#Scenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Scenario" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container for the process in which one modifies input parameters then
+runs a simulation while tracking metadata.</p>
+<p>Metadata includes a title and description, if provided, plus start/end
+datetime, and parameter names of parameters that were modified including
+string representations of the Python modification functions that were
+applied to each parameter. The metadata file is in <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> format
+making it conveniently read as a Python dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory that contains initial <em>control</em>,
+<em>parameter</em>, and <em>data</em> files to be used for <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>.
+The <em>parameters</em> file in <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> will not be modifed
+instead will be copied to <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> and them modified.</li>
+<li><strong>scenario_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory path to bundle inputs and outputs</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – title of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, if given will be
+added to <code class="docutils literal notranslate"><span class="pre">Scenario.metadata</span></code> attribute as well as the
+<code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file in <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> written after
+calling the <a class="reference internal" href="#prms_python.Scenario.build" title="prms_python.Scenario.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.build()</span></code></a> and <a class="reference internal" href="#prms_python.Scenario.run" title="prms_python.Scenario.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.run()</span></code></a>
+methods.</li>
+<li><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – description of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, also
+is added to <code class="docutils literal notranslate"><span class="pre">Scenario.metadata</span></code> as <code class="docutils literal notranslate"><span class="pre">title</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="prms_python.Scenario.metadata">
+<code class="descname">metadata</code><a class="headerlink" href="#prms_python.Scenario.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">scenario.ScenarioMetadata</span></code> – a dictionary-like
+class in <code class="xref py py-mod docutils literal notranslate"><span class="pre">prms_python.scenario</span></code> that tracks <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> imformation including user-defined parameter
+modifications and descriptions, and file structure.</p>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<p>This example is kept simple for clarity, here we adjust a
+single PRMS parameter <em>tmin_lapse</em> by using a single arbitrary
+mathematical function. We use the example PRMS model included
+with PRMS-Python for this example,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_dir</span> <span class="o">=</span> <span class="s1">&#39;PRMS-Python/test/data/models/lbcd&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scenario_directory</span> <span class="o">=</span> <span class="s1">&#39;scenario_testing&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Scenario example&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;adjust tmin_lapse using sine wave function&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create Scenario instance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scenario_obj</span> <span class="o">=</span> <span class="n">Scenario</span>
+<span class="go">        (</span>
+<span class="go">          base_dir=input_dir,</span>
+<span class="go">          scenario_dir=scenario_directory,</span>
+<span class="go">          title=title,</span>
+<span class="go">          description=desc</span>
+<span class="go">        )</span>
+</pre></div>
+</div>
+<p>Next we need to build a dictionary to modify, in this case
+<em>tmin_lapse</em>, here we use a vectorized sine function</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># build the modification function and dictionary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">a_func</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+<span class="go">        return 4 + np.sin(np.linspace(0,2*np.pi,num=len(arr)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># make dictionary with parameter names as keys and modification</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># function as values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">param_mod_dic</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tmin_lapse</span><span class="o">=</span><span class="n">a_func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scenario_obj</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">param_mod_funs</span><span class="o">=</span><span class="n">param_mod_dic</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After building a <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> instance the input files are
+copied to <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> which was assigned ‘scenario_testing’:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scenario_testing
+├── control
+├── data
+└── parameters
+</pre></div>
+</div>
+<p>After calling <code class="docutils literal notranslate"><span class="pre">build</span></code> the input files from <code class="docutils literal notranslate"><span class="pre">input_dir</span></code> were
+first copied to <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> and then the functions in
+<code class="docutils literal notranslate"><span class="pre">param_mod_dic</span></code> are applied the the parameters names (key)
+in <code class="docutils literal notranslate"><span class="pre">param_mod_dic</span></code>. To run the <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> use the the <code class="docutils literal notranslate"><span class="pre">run</span></code>
+method</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scenario_obj</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now the simulation is run and the <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file is created,
+the final file structure will be similar to this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scenario_testing
+├── inputs
+│   ├── control
+│   ├── data
+│   └── parameters
+├── metadata.json
+└── outputs
+    ├── prms_ic.out
+    ├── prms.out
+    └── statvar.dat
+</pre></div>
+</div>
+<p>Finally, here is what is contained in <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> for this example
+which is also updates in the <a class="reference internal" href="#prms_python.Scenario.metadata" title="prms_python.Scenario.metadata"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Scenario.metadata</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scenario_obj</span><span class="o">.</span><span class="n">metadata</span>
+<span class="go">    {</span>
+<span class="go">      &#39;title&#39;: &#39;Scenario example&#39;,</span>
+<span class="go">      &#39;description&#39;: &#39;adjust tmin_lapse using sine wave function&#39;,</span>
+<span class="go">      &#39;start_datetime&#39;: &#39;2018-09-01T19:20:21.723003&#39;,</span>
+<span class="go">      &#39;end_datetime&#39;: &#39;2018-09-01T19:20:31.117004&#39;,</span>
+<span class="go">      &#39;mod_funs_dict&#39;: {</span>
+<span class="go">                         &#39;tmin_lapse&#39;: &#39;def parab(arr):</span>
+<span class="go">                                            return 4 + np.sin(np.linspace(0,2*np.pi,num=len(arr)))&#39;</span>
+<span class="go">                       }</span>
+<span class="go">    }</span>
+</pre></div>
+</div>
+<p>As shown the metadata retirieved the parameter modification function
+as a string representation of the exact Python function(s) used for
+modifying the user-defined parameter(s).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The main differentiator between <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> and
+<a class="reference internal" href="#prms_python.ScenarioSeries" title="prms_python.ScenarioSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScenarioSeries</span></code></a> is that <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> is designed for modifying
+one or more parameters of a <strong>single</strong> <em>parameters</em> file whereas
+<code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> is designed for modifying and tracking the
+modification of one or more parameters in <strong>multiple</strong> PRMS
+<em>parameters</em> files, therefore resulting in multiple PRMS simulations.</p>
+</div>
+<dl class="method">
+<dt id="prms_python.Scenario.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>param_mod_funs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#Scenario.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Scenario.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a user-defined dictionary with param names as keys and Python
+functions as values, copy the original input files as given when
+initializing a <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> instance to the <code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code>
+then apply the functions in the user-defined dictionary to the
+parameters there. The <code class="docutils literal notranslate"><span class="pre">build</span></code> method must be called before running
+the <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> (calling <a class="reference internal" href="#prms_python.Scenario.run" title="prms_python.Scenario.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.run()</span></code></a> ).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><strong>param_mod_funs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – dictionary with parameter names as keys
+and Python functions as values to apply to the names (key)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>see <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> for a full example.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> that was assigned for the current
+instance already exists, it will be overwritten when <code class="docutils literal notranslate"><span class="pre">build</span></code>
+is invoked.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="prms_python.Scenario.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>prms_exec='prms'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#Scenario.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Scenario.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the PRMS simulation for a <em>built</em> <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+executable</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>see <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> for full example</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> – if the <a class="reference internal" href="#prms_python.Scenario.build" title="prms_python.Scenario.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.build()</span></code></a> method has not yet
+been called.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="scenarioseries">
+<h3><a class="toc-backref" href="#id20">ScenarioSeries</a><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id6"></span><dl class="class">
+<dt id="prms_python.ScenarioSeries">
+<em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">ScenarioSeries</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenarios_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and manage a series of model runs where parameters are modified.</p>
+<p>First initialize the series with an optional title and description.
+Then to build the series the user provides a list of dictionaries with
+parameter-function key-value pairs, and optionally a title and
+description for each dictionary defining the individual scenario.</p>
+<p>The ScenarioSeries’ <code class="docutils literal notranslate"><span class="pre">build</span></code> method creates a file structure under
+the series directory (<code class="docutils literal notranslate"><span class="pre">scenarios_dir</span></code>) where each subdirectory is
+named with a <a class="reference external" href="https://docs.python.org/3/library/uuid.html#module-uuid" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">uuid</span></code></a> which can be later matched to its title using
+the metadata in <code class="docutils literal notranslate"><span class="pre">scenario_dir/series_metadata.json</span></code> (see <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a>).
+In the future we may add a way for the user to access the results of
+the scenario simulations directly through the <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code>
+instance, but for now the results are written to disk. Therefore each
+scenario’s title metadata can be used to refer to which parmaters were
+modified and how for post-processing and analysis. One could also use
+the description metadata for this purpose.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to base inputs; ‘control’, ‘parameters’,
+and ‘data’ must be present there</li>
+<li><strong>scenarios_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory where scenario data will be written
+to; will be overwritten or created if it does not exist</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – title of the ScenarioSeries instance</li>
+<li><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – description of the ScenarioSeries
+instance</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="prms_python.ScenarioSeries.metadata">
+<code class="descname">metadata</code><a class="headerlink" href="#prms_python.ScenarioSeries.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – dictionary with title, description, and UUID map
+dictionary for individiual <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> output directories,
+the UUID dictionary (<code class="docutils literal notranslate"><span class="pre">uuid_title_map</span></code>)is left empty until
+calling <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="prms_python.ScenarioSeries.scenarios">
+<code class="descname">scenarios</code><a class="headerlink" href="#prms_python.ScenarioSeries.scenarios" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> – empty list that will be filled with <a href="#id7"><span class="problematic" id="id8">``</span></a>Scenario``s
+after defining them by calling <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<p>There are three steps to both <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and ScenarioSeries,
+first we initialize the object</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">series</span> <span class="o">=</span> <span class="n">ScenarioSeries</span><span class="p">(</span>
+<span class="go">               base_dir = &#39;dir_with_input_files&#39;,</span>
+<span class="go">               scenarios_dir = &#39;dir_to_run_series&#39;,</span>
+<span class="go">               title = &#39;title_for_group_of_scenarios&#39;,</span>
+<span class="go">               description = &#39;description_for_scenarios&#39;</span>
+<span class="go">             )</span>
+</pre></div>
+</div>
+<p>The next step is to “build” the <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> by calling the
+<a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a> method which defines which parameters
+to modify, how to modify them, and then performs the modification
+which readies the series to be “run” (the last step). See the
+<a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a> method for the next step example.</p>
+<p>Also see <a class="reference internal" href="tutorial.html#scenario-and-scenarioseries-tutorial"><span class="std std-ref">Scenario &amp; ScenarioSeries</span></a> for full example</p>
 <dl class="method">
 <dt id="prms_python.ScenarioSeries.build">
 <code class="descname">build</code><span class="sig-paren">(</span><em>scenarios_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build the scenarios from a list of scenario definitions in dicitonary
-form. Each element of scenarios_list can have any number of parameters
+form.</p>
+<p>Each element of <code class="docutils literal notranslate"><span class="pre">scenarios_list</span></code> can have any number of parameters
 as keys with a function for each value. The other two acceptable keys
-are title and description which will be passed on to each individual
-Scenario’s metadata for future lookups.</p>
-<p>See the example in ScenarioSeries docstring above for a usage example.</p>
-<p>Calling <code class="docutils literal notranslate"><span class="pre">build</span></code> will create the directory structure explained in
-the class docstring.</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd><dl class="first last docutils">
-<dt>scenarios_list (list): list of dictionaries with key-value</dt>
-<dd>pairs being parameter-function definition pairs or
-title-title string or description-description string.</dd>
-</dl>
-</dd>
-<dt>Returns:</dt>
-<dd>None</dd>
-</dl>
+are <code class="docutils literal notranslate"><span class="pre">title</span></code> and <code class="docutils literal notranslate"><span class="pre">description</span></code> which will be passed on to each
+individual Scenario’s metadata in <code class="docutils literal notranslate"><span class="pre">series_metadata.json</span></code> for future
+lookups. The <code class="docutils literal notranslate"><span class="pre">build</span></code> method also creates a file structure that uses
+UUID values as individiual <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> subdirectories as shown below.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scenarios_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – list of dictionaries with key-value
+pairs being parameter-function definition pairs or
+title-title string or description-description string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Following the initialization of a <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> instance as
+shown the example docstring there, we “build” the series by
+defining a list of param named-keyed function-valued
+dictionaries. This example uses arbitrary functions on two
+PRMS parameters <em>snowinfil_max</em> and <em>snow_adj</em>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_function1</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="c1">#Note, function must start with underscore</span>
+<span class="go">        return x * 0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">_function2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="go">        return x + 5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic1</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;snowinfil_max&#39;</span><span class="p">:</span> <span class="n">_function1</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;scenario1&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dic2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;snowinfil_max&#39;</span><span class="p">:</span> <span class="n">_function2</span><span class="p">,</span>
+<span class="go">            &#39;snow_adj&#39;: function1,</span>
+<span class="go">            &#39;title&#39;: &#39;scenario2&#39;,</span>
+<span class="go">            &#39;description&#39;: &#39;we adjusted two snow parameters&#39;</span>
+<span class="go">           }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_scenario_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dic1</span><span class="p">,</span> <span class="n">dic2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># now we can build the series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">series</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">example_scenario_list</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example that follows from <a class="reference internal" href="#prms_python.ScenarioSeries" title="prms_python.ScenarioSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScenarioSeries</span></code></a> example the
+file structure that is created by the <code class="docutils literal notranslate"><span class="pre">build</span></code> method is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dir_to_run_series
+├── 670d6352-2852-400a-997e-7b12ba34f0b0
+│   ├── control
+│   ├── data
+│   └── parameters
+├── base_inputs
+│   ├── control
+│   ├── data
+│   └── parameters
+├── ee9526a9-8fe6-4e88-b357-7dfd7111208a
+│   ├── control
+│   ├── data
+│   └── parameters
+└── series_metadata.json
+</pre></div>
+</div>
+<p>As shown the build method has copied the original inputs from the
+<code class="docutils literal notranslate"><span class="pre">base_dir</span></code> given on initialization of <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> to a new
+subdirectory of the <code class="docutils literal notranslate"><span class="pre">scenarios_dir</span></code>, it also applied the
+modifications to the parameters for both scenarios above and move the
+input files to their respective directories. At this stage the
+<code class="docutils literal notranslate"><span class="pre">metadata</span></code> will not have updated the UUID map dictionary to each
+scenarios subdirectory because they have not yet been run. See the
+<a class="reference internal" href="#prms_python.ScenarioSeries.run" title="prms_python.ScenarioSeries.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.run()</span></code></a> method for further explanation including
+the final file structure and metadata file contents.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="prms_python.ScenarioSeries.from_parameters_iter">
 <em class="property">classmethod </em><code class="descname">from_parameters_iter</code><span class="sig-paren">(</span><em>base_directory</em>, <em>parameters_iter</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries.from_parameters_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries.from_parameters_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a ScenarioSeries from a list of parameters and the path to a
-directory in which scenarios should be saved and a data and control
-file can be found.</p>
+<dd><p>Alternative way to initialize and build a <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> in one
+step.</p>
+<p>Create and build a <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> by including the param-keyed-
+function-valued dictionary (<code class="docutils literal notranslate"><span class="pre">parameters_iter</span></code>) that is otherwise
+passed in <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>base_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory that contains model input files</li>
+<li><strong>parameters_iter</strong> (<em>list of dicts</em>) – list of dictionaries for each
+<code class="docutils literal notranslate"><span class="pre">Scenario</span></code> as described in <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> and
+<a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – title for group of scenarios</li>
+<li><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – description for group of scenarios</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="prms_python.ScenarioSeries.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>prms_exec='prms'</em>, <em>nproc=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a “built” <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> and make final updates
+to file structure and metadata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+executable. Default = ‘prms’</li>
+<li><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – number of processceors available to
+parallelize PRMS simulations, if None (default) then use
+half of what the <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> detects on the
+machine.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>This example starts where the example ends in
+<a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>, calling <code class="docutils literal notranslate"><span class="pre">run</span></code> will run the
+models for all scenarios and then update the file structure</p>
+<p>as well as create individual <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> metadata files as such:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dir_to_run_series
+├── 5498c21d-d064-45f4-9912-044734fd230e
+│   ├── inputs
+│   │   ├── control
+│   │   ├── data
+│   │   └── parameters
+│   ├── metadata.json
+│   └── outputs
+│       ├── prms_ic.out
+│       ├── prms.out
+│       └── statvar.dat
+├── 9d28ec5a-b570-4abb-8000-8dac113cbed3
+│   ├── inputs
+│   │   ├── control
+│   │   ├── data
+│   │   └── parameters
+│   ├── metadata.json
+│   └── outputs
+│       ├── prms_ic.out
+│       ├── prms.out
+│       └── statvar.dat
+├── base_inputs
+│   ├── control
+│   ├── data
+│   └── parameters
+└── series_metadata.json
+</pre></div>
+</div>
+<p>As we can see the file structure follows the combined structures
+as defined by <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> and <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a>. The content
+of the top-level metadata file <code class="docutils literal notranslate"><span class="pre">series_metadata.json</span></code> is as such:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;title_for_group_of_scenarios&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;description_for_scenarios&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;uuid_title_map&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;5498c21d-d064-45f4-9912-044734fd230e&quot;</span><span class="p">:</span> <span class="s2">&quot;scenario1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;9d28ec5a-b570-4abb-8000-8dac113cbed3&quot;</span><span class="p">:</span> <span class="s2">&quot;scenario2&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Therefore one can use the <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> file to track between UUID’s and
+individual scenario titles. The json files are read as a Python
+dictionary which makes them particularly convenient. The contents of
+an individual scenarios <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file included a string
+representation of the function(s) that were applied to the
+paramter(s):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s2">&quot;end_datetime&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-03T00:00:40.793817&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mod_funs_dict&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;snowinfil_max&quot;</span><span class="p">:</span> <span class="s2">&quot;def _function1(x):</span>
+                              <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">0.5</span><span class="s2">&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;start_datetime&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-03T00:00:30.421353&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;scenario1&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As shown, it is important to give appropriate scenario titles when
+building a <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> dictionary in order to later
+understand how parameters were modified in each scenario. If not
+one would have to rely on the individual <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> files
+in each scenario directory which may be more cumbersome.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
 
-<span class="target" id="optimizer"></span><dl class="class">
+</div>
+<div class="section" id="optimizer">
+<h3><a class="toc-backref" href="#id21">Optimizer</a><a class="headerlink" href="#optimizer" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id9"></span><dl class="class">
 <dt id="prms_python.Optimizer">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Optimizer</code><span class="sig-paren">(</span><em>parameters</em>, <em>data</em>, <em>control_file</em>, <em>working_dir</em>, <em>title</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Optimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Container for PRMS parameter optimization routines that are 
+<dd><p>Container for PRMS parameter optimization routines that are
 defined as stages similar to what is described in Hay, et al, 2006
 (<a class="reference external" href="ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf">ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf</a>).
-Currently the <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> method provides random parameter 
+Currently the <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> method provides random parameter
 resampling routines using uniform and normal random variables.</p>
-<p>Example:</p>
+<p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="k">import</span> <span class="n">Data</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Parameters</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path/to/parameters&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;path/to/data&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">control</span> <span class="o">=</span> <span class="s1">&#39;path/to/control&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">work_directory</span> <span class="o">=</span> <span class="s1">&#39;path/to/create/simulations&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">optr</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">work_directory</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;the title&#39;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;desc&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">measured</span> <span class="o">=</span> <span class="s1">&#39;path/to/measured/csv&#39;</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">statvar_name</span> <span class="o">=</span> <span class="s1">&#39;basin_cfs&#39;</span> <span class="c1"># or any other valid statvar </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optr</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="p">(</span>
+<span class="go">                     params,</span>
+<span class="go">                     data,</span>
+<span class="go">                     control,</span>
+<span class="go">                     work_directory,</span>
+<span class="go">                     title=&#39;the title&#39;,</span>
+<span class="go">                     description=&#39;desc&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">measured</span> <span class="o">=</span> <span class="s1">&#39;path/to/measured/csv&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">statvar_name</span> <span class="o">=</span> <span class="s1">&#39;basin_cfs&#39;</span> <span class="c1"># or any other valid statvar</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">params_to_resample</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dday_intcp&#39;</span><span class="p">,</span> <span class="s1">&#39;dday_slope&#39;</span><span class="p">]</span> <span class="c1"># list of params</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">optr</span><span class="o">.</span><span class="n">monte_carlo</span><span class="p">(</span><span class="n">measured</span><span class="p">,</span> <span class="n">params_to_resample</span><span class="p">,</span> <span class="n">statvar_name</span><span class="p">)</span>
 </pre></div>
@@ -365,20 +1231,27 @@ resampling routines using uniform and normal random variables.</p>
 <dt id="prms_python.Optimizer.monte_carlo">
 <code class="descname">monte_carlo</code><span class="sig-paren">(</span><em>reference_path</em>, <em>param_names</em>, <em>statvar_name</em>, <em>stage</em>, <em>n_sims=10</em>, <em>method='uniform'</em>, <em>mu_factor=1</em>, <em>noise_factor=0.1</em>, <em>nproc=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#Optimizer.monte_carlo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Optimizer.monte_carlo" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> method of <code class="docutils literal notranslate"><span class="pre">Optimizer</span></code> performs parameter
-random resampling techniques to a set of PRMS parameters and 
+random resampling techniques to a set of PRMS parameters and
 executes and manages the corresponding simulations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>reference_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to measured data for optimization</li>
+<li><strong>param_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – list of parameter names to resample</li>
+<li><strong>statvar_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of statisical variable output name for
+optimization</li>
+<li><strong>stage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – custom name of optimization stage e.g. ‘ddsolrad’</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">reference_path (str): path to measured data for optimization
-param_names (list): list of parameter names to resample
-statvar_name (str): name of statisical variable output name for</p>
-<blockquote>
-<div>optimization</div></blockquote>
-<p class="last">stage (str): custom name of optimization stage e.g. ‘ddsolrad’</p>
-</dd>
 <dt>Kwargs:</dt>
 <dd><dl class="first docutils">
-<dt>n_sims (int): number of simulations to conduct </dt>
+<dt>n_sims (int): number of simulations to conduct</dt>
 <dd>parameter optimization/uncertaitnty analysis.</dd>
 </dl>
 <p>method (str): resampling method for parameters (normal or uniform)
@@ -399,10 +1272,10 @@ i.e. a value of 1.5 will sample from a normal rv with mean
 <dl class="method">
 <dt id="prms_python.Optimizer.plot_optimization">
 <code class="descname">plot_optimization</code><span class="sig-paren">(</span><em>freq='daily'</em>, <em>method='time_series'</em>, <em>plot_vars='both'</em>, <em>plot_1to1=True</em>, <em>return_fig=False</em>, <em>n_plots=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#Optimizer.plot_optimization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Optimizer.plot_optimization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Basic plotting of current optimization results with limited options. 
+<dd><p>Basic plotting of current optimization results with limited options.
 Plots measured, original simluated, and optimization simulated variabes
-Not recommended for plotting results when n_sims is very large, instead 
-use options from an OptimizationResult object, or employ a user-defined 
+Not recommended for plotting results when n_sims is very large, instead
+use options from an OptimizationResult object, or employ a user-defined
 method using the result data.</p>
 <dl class="docutils">
 <dt>Kwargs:</dt>
@@ -410,41 +1283,52 @@ method using the result data.</p>
 <dt>freq (str): frequency of time series plots, value can be ‘daily’</dt>
 <dd>or ‘monthly’ for solar radiation</dd>
 <dt>method (str): ‘time_series’ for time series sub plot of each</dt>
-<dd>simulation alongside measured radiation. Another choice is 
+<dd>simulation alongside measured radiation. Another choice is
 ‘correlation’ which plots each measured daily solar radiation
 value versus the corresponding simulated variable as subplots
 one for each simulation in the optimization. With coefficients
 of determiniationi i.e. square of pearson correlation coef.</dd>
-<dt>plot_vars (str): what to plot alongside simulated srad: </dt>
+<dt>plot_vars (str): what to plot alongside simulated srad:</dt>
 <dd>‘meas’: plot simulated along with measured swrad
 ‘orig’: plot simulated along with the original simulated swrad
 ‘both’: plot simulated, with original simulation and measured</dd>
-<dt>plot_1to1 (bool): if True plot one to one line on correlation </dt>
+<dt>plot_1to1 (bool): if True plot one to one line on correlation</dt>
 <dd>scatter plot, otherwise exclude.</dd>
 </dl>
 <p class="last">return_fig (bool): flag whether to return matplotlib figure</p>
 </dd>
-<dt>Returns: </dt>
-<dd><dl class="first last docutils">
-<dt>f (matplotlib.figure.Figure): If kwarg return_fig=True, then return</dt>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>If kwarg return_fig=True, then return</dt>
 <dd>copy of the figure that is generated to the user.</dd>
 </dl>
-</dd>
-</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">f (matplotlib.figure.Figure)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
-<span class="target" id="optimizationresult"></span><dl class="class">
+</div>
+<div class="section" id="optimizationresult">
+<h3><a class="toc-backref" href="#id22">OptimizationResult</a><a class="headerlink" href="#optimizationresult" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id10"></span><dl class="class">
 <dt id="prms_python.OptimizationResult">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">OptimizationResult</code><span class="sig-paren">(</span><em>working_dir</em>, <em>stage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#OptimizationResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.OptimizationResult" title="Permalink to this definition">¶</a></dt>
-<dd><p>The <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> object serves to collect and manage output 
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> object serves to collect and manage output
 from an <code class="docutils literal notranslate"><span class="pre">Optimizer</span></code> method. Upon initialization and a given optimization
 stage that was used when running the Optimizer method, e.g. <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>,
-the class gathers all JSON metadata that was produced for the given stage. 
-The <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> has three main user methods: first <code class="docutils literal notranslate"><span class="pre">result_table</span></code> 
-which returns the top n simulations according to four model performance 
-metrics (Nash-Sutcliffe efficiency (NSE), root-mean squared-error (RMSE), 
+the class gathers all JSON metadata that was produced for the given stage.
+The <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> has three main user methods: first <code class="docutils literal notranslate"><span class="pre">result_table</span></code>
+which returns the top n simulations according to four model performance
+metrics (Nash-Sutcliffe efficiency (NSE), root-mean squared-error (RMSE),
 percent bias (PBIAS), and the coefficient of determination (COEF_DET) as
 calculated against measured data. For example the table may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ddsolrad_res</span> <span class="o">=</span> <span class="n">OptimizationResult</span><span class="p">(</span><span class="n">work_directory</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">)</span>
@@ -452,7 +1336,7 @@ calculated against measured data. For example the table may look like:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">top10</span>
 <span class="go">    ========================  ========  =======  =========   ========</span>
 <span class="go">    ddsolrad parameters       NSE       RMSE     PBIAS       COEF_DET</span>
-<span class="go">    ========================  ========  =======  =========   ======== </span>
+<span class="go">    ========================  ========  =======  =========   ========</span>
 <span class="go">    orig_params               0.956267  39.4725  -0.885715   0.963116</span>
 <span class="go">    tmax_index_54.2224631748  0.921626  47.6092  -0.849256   0.94402</span>
 <span class="go">    tmax_index_44.8823940703  0.879965  58.9194  5.79603     0.922021</span>
@@ -460,8 +1344,8 @@ calculated against measured data. For example the table may look like:</p>
 <span class="go">    ========================  ========  =======  =========   ========</span>
 </pre></div>
 </div>
-<p>Second, the <code class="docutils literal notranslate"><span class="pre">get_top_ranked_sims</span></code> which returns a dictionary that map 
-key information about the top n ranked simulations, an example returned 
+<p>Second, the <code class="docutils literal notranslate"><span class="pre">get_top_ranked_sims</span></code> which returns a dictionary that map
+key information about the top n ranked simulations, an example returned
 dictionary may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">{</span>
 <span class="go">      &#39;dir_name&#39; : [&#39;pathToSim1&#39;, &#39;pathToSim2&#39;],</span>
@@ -471,89 +1355,110 @@ dictionary may look like:</p>
 <span class="go">    }</span>
 </pre></div>
 </div>
-<p>The third method of <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> is <code class="docutils literal notranslate"><span class="pre">archive</span></code> which essentially 
-opens all parameter and statvar files from each simulation of the given 
+<p>The third method of <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> is <code class="docutils literal notranslate"><span class="pre">archive</span></code> which essentially
+opens all parameter and statvar files from each simulation of the given
 stage and archives the parameters that were modified and their modified values
-and the statistical variable (PRMS time series output) that is associated with 
+and the statistical variable (PRMS time series output) that is associated with
 the optimization stage.  Other <code class="docutils literal notranslate"><span class="pre">Optimizer</span></code> simulation metadata is also gathered
 and new JSON metadata containing only this information is created and written
-within a newly created “archived” subdirectory within the same directory that 
+within a newly created “archived” subdirectory within the same directory that
 the <code class="docutils literal notranslate"><span class="pre">Optimizer</span></code> routine managed simulations. The <code class="docutils literal notranslate"><span class="pre">OptimizationResult.archive</span></code>
 method then recursively deletes the simulation data for each of the given stage.</p>
 <dl class="method">
 <dt id="prms_python.OptimizationResult.archive">
 <code class="descname">archive</code><span class="sig-paren">(</span><em>remove_sims=True</em>, <em>remove_meta=False</em>, <em>metric_freq='daily'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#OptimizationResult.archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.OptimizationResult.archive" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create archive directory to hold json files that contain 
-information of adjusted parameters, model output, and performance 
-metrics for each Optimizer simulation of the 
+<dd><p>Create archive directory to hold json files that contain
+information of adjusted parameters, model output, and performance
+metrics for each Optimizer simulation of the
 OptimizationResult.stage in the OptimizationResult.working_dir.</p>
 <dl class="docutils">
-<dt>Kwargs:                                                              </dt>
+<dt>Kwargs:</dt>
 <dd><dl class="first last docutils">
-<dt>remove_sims (bool) <span class="classifier-delimiter">:</span> <span class="classifier">If True recursively delete all folders </span></dt>
-<dd>and files associated with original simulations of the 
-OptimizationResult.stage in the 
-OptimizationResult.working_dir, if False do not delete 
+<dt>remove_sims (bool) <span class="classifier-delimiter">:</span> <span class="classifier">If True recursively delete all folders</span></dt>
+<dd>and files associated with original simulations of the
+OptimizationResult.stage in the
+OptimizationResult.working_dir, if False do not delete
 simulations.</dd>
 <dt>remove_meta (bool) <span class="classifier-delimiter">:</span> <span class="classifier">Whether to delete original Optimizer</span></dt>
 <dd>JSON metadata files, default is False.</dd>
-<dt>metric_freq (Str) <span class="classifier-delimiter">:</span> <span class="classifier">Frequency of output metric computation </span></dt>
-<dd>for recording of model performance. Can be ‘daily’ 
-(default) or ‘monthly’. Note, other results can be computed 
+<dt>metric_freq (Str) <span class="classifier-delimiter">:</span> <span class="classifier">Frequency of output metric computation</span></dt>
+<dd>for recording of model performance. Can be ‘daily’
+(default) or ‘monthly’. Note, other results can be computed
 later with archived results.</dd>
 </dl>
 </dd>
-<dt>Returns:                                                                </dt>
-<dd>None</dd>
 </dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 </div>
+</div>
 <div class="section" id="select-helper-functions">
-<h2>Select helper functions<a class="headerlink" href="#select-helper-functions" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="load-data"></span><dl class="function">
-<dt id="prms_python.load_data_file">
-<code class="descclassname">prms_python.</code><code class="descname">load_data_file</code><span class="sig-paren">(</span><em>data_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#load_data_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.load_data_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the data file and load into a datetime indexed Pandas dataframe object.</p>
-<dl class="docutils">
-<dt>Arguments: </dt>
-<dd>data_file (str): data file path</dd>
-<dt>Returns:</dt>
-<dd><dl class="first last docutils">
-<dt>df (pandas.DataFrame): Pandas dataframe of input time series data </dt>
-<dd>from data file with datetime index</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<span class="target" id="load-statvar"></span><dl class="function">
+<h2><a class="toc-backref" href="#id23">Select helper functions</a><a class="headerlink" href="#select-helper-functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="load-statvar">
+<h3><a class="toc-backref" href="#id24">load_statvar</a><a class="headerlink" href="#load-statvar" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id11"></span><dl class="function">
 <dt id="prms_python.load_statvar">
 <code class="descclassname">prms_python.</code><code class="descname">load_statvar</code><span class="sig-paren">(</span><em>statvar_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#load_statvar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.load_statvar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the statvar file and load into a datetime indexed
 Pandas dataframe object</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd>statvar_file (str): statvar file path</dd>
-<dt>Returns:</dt>
-<dd><dl class="first last docutils">
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>statvar_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – statvar file path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
 <dt>(pandas.DataFrame) Pandas DataFrame of PRMS variables date indexed</dt>
 <dd>from statvar file</dd>
 </dl>
-</dd>
-</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<span class="target" id="modify-params"></span><dl class="function">
+</div>
+<div class="section" id="modify-params">
+<h3><a class="toc-backref" href="#id25">modify_params</a><a class="headerlink" href="#modify-params" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id12"></span><dl class="function">
 <dt id="prms_python.modify_params">
 <code class="descclassname">prms_python.</code><code class="descname">modify_params</code><span class="sig-paren">(</span><em>params_in</em>, <em>params_out</em>, <em>param_mods=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#modify_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.modify_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a parameter file in and a dictionary of param_mods, write modified
 parameters to params_out.</p>
-<p>Example:</p>
-<p>Below we modify the monthly jh_coef by increasing it 10% for every month.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params_in</span> <span class="o">=</span> <span class="s1">&#39;models/lbdc/params&#39;</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>params_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – location on disk of the base parameter file</li>
+<li><strong>params_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – location on disk where the modified parameters will
+be written</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first"><strong>param_mods</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – param name-keyed, param modification function-valued</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>Below we modify the monthly <em>jh_coef</em> parameter by increasing it 10%
+for every month,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params_in</span> <span class="o">=</span> <span class="s1">&#39;models/lbcd/parameters&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">params_out</span> <span class="o">=</span> <span class="s1">&#39;scenarios/jh_coef_1.1/params&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scale_10pct</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mf">1.1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">modify_params</span><span class="p">(</span><span class="n">params_in</span><span class="p">,</span> <span class="n">params_out</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;jh_coef&#39;</span><span class="p">:</span> <span class="n">scale_10pct</span><span class="p">})</span>
@@ -561,36 +1466,42 @@ parameters to params_out.</p>
 </div>
 <p>So param_mods is a dictionary of with keys being parameter names and
 values a function that operates on a single value. Currently we only
-accept functions that operate without reference to any other parameters. 
-The function will be applied to every cell, month, or cascade routing rule 
-for which the parameter is defined.</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd><p class="first">params_in (str): location on disk of the base parameter file</p>
-<dl class="docutils">
-<dt>params_out (str): location on disk where the modified parameters will </dt>
-<dd>be written</dd>
-</dl>
-<p class="last">param_mods (dict): param name-keyed, param modification function-valued</p>
-</dd>
-<dt>Returns:</dt>
-<dd>None</dd>
-</dl>
-</dd></dl>
-
-<span class="target" id="nash-sutcliffe"></span><dl class="function">
-<dt id="prms_python.nash_sutcliffe">
-<code class="descclassname">prms_python.</code><code class="descname">nash_sutcliffe</code><span class="sig-paren">(</span><em>observed</em>, <em>modeled</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#nash_sutcliffe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.nash_sutcliffe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the Nash-Sutcliffe Goodness-of-fit</p>
-<dl class="docutils">
-<dt>Arguments:</dt>
-<dd><p class="first">observed (numpy.ndarray): historic observational data</p>
-<p class="last">modeled (numpy.ndarray): model output with matching time index</p>
-</dd>
-</dl>
+accept functions that operate without reference to any other
+parameters. The function will be applied to every cell, month, or
+cascade routing rule for which the parameter is defined.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="nash-sutcliffe">
+<h3><a class="toc-backref" href="#id26">nash_sutcliffe</a><a class="headerlink" href="#nash-sutcliffe" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id13"></span><dl class="function">
+<dt id="prms_python.nash_sutcliffe">
+<code class="descclassname">prms_python.</code><code class="descname">nash_sutcliffe</code><span class="sig-paren">(</span><em>observed</em>, <em>modeled</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#nash_sutcliffe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.nash_sutcliffe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Nash-Sutcliffe Goodness-of-fit</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>observed</strong> (<em>numpy.ndarray</em>) – historic observational data</li>
+<li><strong>modeled</strong> (<em>numpy.ndarray</em>) – model output with matching time index</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
 </div>
 
 
@@ -623,22 +1534,22 @@ for which the parameter is defined.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial and Recipes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#select-helper-functions">Select helper functions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="tutorial.html" title="previous chapter">Tutorial and Recipes</a></li>
+      <li>Previous: <a href="cli.html" title="previous chapter">Command-Line Interface</a></li>
   </ul></li>
 </ul>
 </div>

@@ -50,36 +50,49 @@
 
 <div class="viewcode-block" id="Parameters"><a class="viewcode-back" href="../../api.html#prms_python.Parameters">[docs]</a><span class="k">class</span> <span class="nc">Parameters</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Disk-based representation of a PRMS parameter file. The ``Parameters``</span>
-<span class="sd">    object has the following instance attributes:</span>
+<span class="sd">    Disk-based representation of a PRMS parameter file. </span>
+<span class="sd">    </span>
+<span class="sd">    For the sake of memory efficiency, we only load parameters from </span>
+<span class="sd">    ``base_file`` that get modified through item assignment or accessed directly. </span>
+<span class="sd">    Internally, a reference is kept to only previously accessed parameter data, </span>
+<span class="sd">    so when ``write`` is called most copying is from ``base_file`` directly. </span>
+<span class="sd">    When parameters are accessed or modified using the dictionary-like syntax, </span>
+<span class="sd">    a ``np.ndarray`` representation of the parameter is returned. As a result </span>
+<span class="sd">    ``numpy`` mathematical rules including efficient vectorization of math applied </span>
+<span class="sd">    to arrays can be applied to modify parameters directly. The ``Parameter`` </span>
+<span class="sd">    objects user methods allow for visualization of most PRMS parameters, function </span>
+<span class="sd">    based modification of parameters, and a write function that writes the data </span>
+<span class="sd">    back to PRMS text format.  </span>
 
-<span class="sd">    :ivar base_file: initial value: ``base_file``</span>
-<span class="sd">    :ivar base_file_reader: initial value: ``open(base_file)``</span>
-<span class="sd">    :ivar dimensions: initial value: ``collections.OrderedDict`` returned from ``self.__read_base(base_file)`` </span>
-<span class="sd">    :ivar base_params: initial value: ``list()`` returned from ``self.__read_base(base_file)``</span>
-<span class="sd">    :ivar param_arrays: initial value: empty ``dict()`` </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        base_file (str): path to PRMS parameters file </span>
 
-<span class="sd">    For the sake of</span>
-<span class="sd">    memory efficiency, we only load parameters from ``base_file`` that get</span>
-<span class="sd">    modified through item assignment, for example</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        base_file (str): path to PRMS parameters file </span>
+<span class="sd">        base_file_reader (file): file handle of PRMS parameters file</span>
+<span class="sd">        dimensions (:obj:`collections.OrderedDict`): dictionary with </span>
+<span class="sd">            parameter dimensions as defined in parameters file loaded on</span>
+<span class="sd">            initialization</span>
+<span class="sd">        base_params (list of dicts): list of dictionaries of parameter</span>
+<span class="sd">            metadata loaded on initialization e.g. name, dimension(s), data </span>
+<span class="sd">            type, length of data array, and lines where data starts and ends </span>
+<span class="sd">            in file</span>
+<span class="sd">        param_arrays (dict): dictionary with parameteter names as keys and</span>
+<span class="sd">            ``numpy.array`` and ``numpy.ndarray`` representations of parameter</span>
+<span class="sd">            values as keys. Initially empty, uses getter and setter functions.</span>
 
-<span class="sd">    &gt;&gt;&gt; p = Parameters(&#39;example_params&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; p[&#39;jh_coef&#39;] = p[&#39;jh_coef&#39;]*1.1</span>
-<span class="sd">    &gt;&gt;&gt; p.write(&#39;example_modified_params&#39;)</span>
-
-<span class="sd">    will read parameter information from the params file to check that</span>
-<span class="sd">    ``jh_coef`` is present in the parameter file, read the lines corresponding</span>
-<span class="sd">    to ``jh_coef`` data and assign the new value as requested. Internally,</span>
-<span class="sd">    a reference is kept to only modified parameter data, so when </span>
-<span class="sd">    ``p.write(modified_params_file)`` is called most copying is from ``base_file``</span>
-<span class="sd">    to ``modified_params_file``. When parameters are accessed using the </span>
-<span class="sd">    dictionary-like syntax, a ``np.ndarray`` representation of the parameter is </span>
-<span class="sd">    returned. As a result ``numpy`` mathematical rules including efficient </span>
-<span class="sd">    vectorization of math applied to arrays can be applied to modify parameters </span>
-<span class="sd">    directly. The ``Parameter`` objects user methods allow for visualization of </span>
-<span class="sd">    most PRMS parameters, function based modification of parameters, and a write </span>
-<span class="sd">    function that writes the data back to PRMS text format.  </span>
-
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; p = Parameters(&#39;path/to/a/parameter/file&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; p[&#39;jh_coef&#39;] = p[&#39;jh_coef&#39;]*1.1</span>
+<span class="sd">        &gt;&gt;&gt; p.write(&#39;example_modified_params&#39;)</span>
+<span class="sd">    </span>
+<span class="sd">        will read parameter information from the params file to check that</span>
+<span class="sd">        *jh_coef* is present in the parameter file, read the lines corresponding</span>
+<span class="sd">        to *jh_coef* data and assign the new value as requested. Calling</span>
+<span class="sd">        the ``write`` method next will copy all parameters except *jh_coef*</span>
+<span class="sd">        to the new parameter file and append the newly modified *jh_coef*</span>
+<span class="sd">        to the end of the new file from the modified values stored in the</span>
+<span class="sd">        parameter instance ``p``. </span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_file</span><span class="p">):</span>
@@ -88,7 +101,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_base</span><span class="p">(</span><span class="n">base_file</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">param_arrays</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Parameters.write"><a class="viewcode-back" href="../../api.html#prms_python.Parameters.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes current state of ``Parameters`` to disk in PRMS text format</span>
+
+<span class="sd">        To reduce memory usage the ``write`` method copies parameters</span>
+<span class="sd">        from the initial ``base_file`` parameter file for all parameters</span>
+<span class="sd">        that were never modified. </span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            out_name (str): path to write ``Parameters`` data to PRMS text</span>
+<span class="sd">                format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_type_dic</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;1&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> 
                          <span class="s1">&#39;2&#39;</span><span class="p">:</span> <span class="s1">&#39;float&#39;</span><span class="p">}</span> <span class="c1"># retain PRMS data types</span>
 
@@ -145,12 +172,15 @@
                     <span class="n">out_file</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
                                          <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">new_arr</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span>\
                                         <span class="n">astype</span><span class="p">(</span><span class="n">data_type_dic</span><span class="p">[</span><span class="n">param_info</span>\
-                                        <span class="p">[</span><span class="s1">&#39;vartype&#39;</span><span class="p">]])])</span>
+                                        <span class="p">[</span><span class="s1">&#39;vartype&#39;</span><span class="p">]])])</span></div>
 
 <div class="viewcode-block" id="Parameters.plot"><a class="viewcode-back" href="../../api.html#prms_python.Parameters.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>\
                     <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cbar_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mpl_style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Versatile method that plots series or 2D spatial grid depending on </span>
+<span class="sd">        Versatile method that plots most parameters in a standard PRMS parameter</span>
+<span class="sd">        file assuming the PRMS model was built on a uniform spatial grid. </span>
+<span class="sd">        </span>
+<span class="sd">        Plots parameters as line plots for series or 2D spatial grid depending on </span>
 <span class="sd">        parameter dimension. The PRMS parameter file is assumed to hold parameters </span>
 <span class="sd">        for a model that was set up on a uniform rectangular grid with the spatial </span>
 <span class="sd">        index of HRUs starting in the upper left corner and moving left to </span>
@@ -161,26 +191,52 @@
 <span class="sd">        </span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            nrows (int): The number of rows in the PRMS model grid for plotting </span>
-<span class="sd">                spatial parameters. Function will only work for rectangular </span>
-<span class="sd">                gridded models with HRU indices starting in the upper left cell </span>
-<span class="sd">                moving left to right across columns and down across rows.</span>
+<span class="sd">                spatial parameters. Will only work correctly for rectangular gridded models </span>
+<span class="sd">                with HRU indices starting in the upper left cell moving left to right </span>
+<span class="sd">                across columns and down across rows.</span>
 <span class="sd">        </span>
-<span class="sd">        Kwargs:</span>
+<span class="sd">        Keyword Arguments:</span>
 <span class="sd">            which (str): name of PRMS parameter to plot or &#39;all&#39;. If &#39;all&#39; then</span>
 <span class="sd">                the function will print 3 multipage pdfs, one for nhru </span>
 <span class="sd">                dimensional parameters, one for nhru by monthly parameters, one </span>
 <span class="sd">                for other parameters of length &gt; 1, and one html file containing</span>
 <span class="sd">                single valued parameters.</span>
-
 <span class="sd">            out_dir (str): path to an output dir, default current directory</span>
 <span class="sd">            xlabel (str): x label for plot(s)</span>
 <span class="sd">            ylabel (str): y label for plot(s)</span>
 <span class="sd">            cbar_label (str): label for colorbar on spatial plot(s)</span>
 <span class="sd">            title (str): plot title</span>
-<span class="sd">            mpl_style (str, list): name or list of names of matplotlib style sheets to use for plot(s).</span>
+<span class="sd">            mpl_style (str, list): name or list of names of matplotlib style sheets to </span>
+<span class="sd">                use for plot(s).</span>
 <span class="sd">    </span>
 <span class="sd">        Returns: </span>
 <span class="sd">            None</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            If the plot method is called with the keyword argument ``which`` set</span>
+<span class="sd">            to a parameter that has length one, i.e. single valued it will simply</span>
+<span class="sd">            print out the value e.g.:</span>
+
+<span class="sd">            &gt;&gt;&gt; p = Parameters(&#39;path/to/parameters&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; p.plot(nrows=10, which=&#39;radj_sppt&#39;)</span>
+<span class="sd">                radj_sppt is single valued with value: 0.4924942352224324</span>
+
+<span class="sd">            The default action is particularly useful which makes four multi-page</span>
+<span class="sd">            pdfs of most PRMS parameters where each file contains parameters</span>
+<span class="sd">            of different dimensions e.g.:</span>
+
+<span class="sd">            &gt;&gt;&gt; p.plot(nrows=10, which=&#39;all&#39;, mpl_style=&#39;ggplot&#39;)</span>
+
+<span class="sd">            will produce the following four files named by parameters of certain</span>
+<span class="sd">            dimensions:</span>
+
+<span class="sd">            &gt;&gt;&gt; import os</span>
+<span class="sd">            &gt;&gt;&gt; os.listdir(os.getcwd()) # list files in current directory</span>
+<span class="sd">                nhru_param_maps.pdf    </span>
+<span class="sd">                nhru_by_nmonths_param_maps.pdf</span>
+<span class="sd">                non_spatial_param_plots.pdf  </span>
+<span class="sd">                single_valued_params.html</span>
+<span class="sd">    </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span>
     
@@ -510,39 +566,37 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">param_arrays</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 
-
-
 <div class="viewcode-block" id="modify_params"><a class="viewcode-back" href="../../api.html#prms_python.modify_params">[docs]</a><span class="k">def</span> <span class="nf">modify_params</span><span class="p">(</span><span class="n">params_in</span><span class="p">,</span> <span class="n">params_out</span><span class="p">,</span> <span class="n">param_mods</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Given a parameter file in and a dictionary of param_mods, write modified</span>
 <span class="sd">    parameters to params_out.</span>
 
-<span class="sd">    Example:</span>
-
-<span class="sd">    Below we modify the monthly jh_coef by increasing it 10% for every month.</span>
-
-<span class="sd">        &gt;&gt;&gt; params_in = &#39;models/lbdc/params&#39;</span>
-<span class="sd">        &gt;&gt;&gt; params_out = &#39;scenarios/jh_coef_1.1/params&#39;</span>
-<span class="sd">        &gt;&gt;&gt; scale_10pct = lambda x: x * 1.1</span>
-<span class="sd">        &gt;&gt;&gt; modify_params(params_in, params_out, {&#39;jh_coef&#39;: scale_10pct})</span>
-
-<span class="sd">    So param_mods is a dictionary of with keys being parameter names and</span>
-<span class="sd">    values a function that operates on a single value. Currently we only</span>
-<span class="sd">    accept functions that operate without reference to any other parameters. </span>
-<span class="sd">    The function will be applied to every cell, month, or cascade routing rule </span>
-<span class="sd">    for which the parameter is defined.</span>
 
 <span class="sd">    Arguments:</span>
 <span class="sd">        params_in (str): location on disk of the base parameter file</span>
-
 <span class="sd">        params_out (str): location on disk where the modified parameters will </span>
 <span class="sd">            be written</span>
 
+<span class="sd">    Keyword Arguments:</span>
 <span class="sd">        param_mods (dict): param name-keyed, param modification function-valued</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 
+<span class="sd">    Example:</span>
+<span class="sd">        Below we modify the monthly *jh_coef* parameter by increasing it 10% </span>
+<span class="sd">        for every month,</span>
+<span class="sd">    </span>
+<span class="sd">            &gt;&gt;&gt; params_in = &#39;models/lbcd/parameters&#39;</span>
+<span class="sd">            &gt;&gt;&gt; params_out = &#39;scenarios/jh_coef_1.1/params&#39;</span>
+<span class="sd">            &gt;&gt;&gt; scale_10pct = lambda x: x * 1.1</span>
+<span class="sd">            &gt;&gt;&gt; modify_params(params_in, params_out, {&#39;jh_coef&#39;: scale_10pct})</span>
+<span class="sd">    </span>
+<span class="sd">        So param_mods is a dictionary of with keys being parameter names and</span>
+<span class="sd">        values a function that operates on a single value. Currently we only</span>
+<span class="sd">        accept functions that operate without reference to any other </span>
+<span class="sd">        parameters. The function will be applied to every cell, month, or </span>
+<span class="sd">        cascade routing rule for which the parameter is defined.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">p_in</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="n">params_in</span><span class="p">)</span>
 
@@ -581,11 +635,11 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial and Recipes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 
 <div class="relations">

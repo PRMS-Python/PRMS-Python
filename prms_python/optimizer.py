@@ -29,18 +29,22 @@ class Optimizer:
     resampling routines using uniform and normal random variables. 
 
     Example:
-
-    >>> from prms_python import Data, Optimizer, Parameters
-    >>> params = Parameters('path/to/parameters')
-    >>> data = Data('path/to/data')
-    >>> control = 'path/to/control'
-    >>> work_directory = 'path/to/create/simulations'
-    >>> optr = Optimizer(params, data, control, work_directory, \
-title='the title', description='desc')
-    >>> measured = 'path/to/measured/csv' 
-    >>> statvar_name = 'basin_cfs' # or any other valid statvar 
-    >>> params_to_resample = ['dday_intcp', 'dday_slope'] # list of params
-    >>> optr.monte_carlo(measured, params_to_resample, statvar_name)
+        >>> from prms_python import Data, Optimizer, Parameters
+        >>> params = Parameters('path/to/parameters')
+        >>> data = Data('path/to/data')
+        >>> control = 'path/to/control'
+        >>> work_directory = 'path/to/create/simulations'
+        >>> optr = Optimizer(
+                             params, 
+                             data, 
+                             control, 
+                             work_directory, 
+                             title='the title', 
+                             description='desc')
+        >>> measured = 'path/to/measured/csv' 
+        >>> statvar_name = 'basin_cfs' # or any other valid statvar 
+        >>> params_to_resample = ['dday_intcp', 'dday_slope'] # list of params
+        >>> optr.monte_carlo(measured, params_to_resample, statvar_name)
 
     '''
         

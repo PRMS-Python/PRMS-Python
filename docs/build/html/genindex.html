@@ -43,6 +43,7 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
@@ -59,8 +60,20 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#prms_python.ScenarioSeries.build">build() (prms_python.ScenarioSeries method)</a>
+      <li><a href="api.html#prms_python.Parameters.base_file">base_file (prms_python.Parameters attribute)</a>
 </li>
+      <li><a href="api.html#prms_python.Parameters.base_file_reader">base_file_reader (prms_python.Parameters attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#prms_python.Parameters.base_params">base_params (prms_python.Parameters attribute)</a>
+</li>
+      <li><a href="api.html#prms_python.Scenario.build">build() (prms_python.Scenario method)</a>
+
+      <ul>
+        <li><a href="api.html#prms_python.ScenarioSeries.build">(prms_python.ScenarioSeries method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -69,15 +82,23 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.Data">Data (class in prms_python)</a>
 </li>
+      <li><a href="api.html#prms_python.Data.data_frame">data_frame (prms_python.Data attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#prms_python.Data.data_frame">data_frame (prms_python.Data attribute)</a>
+      <li><a href="api.html#prms_python.Data.date_header">date_header (prms_python.Data attribute)</a>
+</li>
+      <li><a href="api.html#prms_python.Parameters.dimensions">dimensions (prms_python.Parameters attribute)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#prms_python.Simulation.from_data">from_data() (prms_python.Simulation class method)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.ScenarioSeries.from_parameters_iter">from_parameters_iter() (prms_python.ScenarioSeries class method)</a>
 </li>
@@ -86,10 +107,6 @@
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#prms_python.load_data_file">load_data_file() (in module prms_python)</a>
-</li>
-  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.load_statvar">load_statvar() (in module prms_python)</a>
 </li>
@@ -100,11 +117,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.Data.metadata">metadata (prms_python.Data attribute)</a>
+
+      <ul>
+        <li><a href="api.html#prms_python.Scenario.metadata">(prms_python.Scenario attribute)</a>
 </li>
-      <li><a href="api.html#prms_python.Data.modify">modify() (prms_python.Data method)</a>
+        <li><a href="api.html#prms_python.ScenarioSeries.metadata">(prms_python.ScenarioSeries attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#prms_python.Data.modify">modify() (prms_python.Data method)</a>
+</li>
       <li><a href="api.html#prms_python.modify_params">modify_params() (in module prms_python)</a>
 </li>
       <li><a href="api.html#prms_python.Optimizer.monte_carlo">monte_carlo() (prms_python.Optimizer method)</a>
@@ -129,12 +152,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.Optimizer">Optimizer (class in prms_python)</a>
 </li>
+      <li><a href="api.html#prms_python.SimulationSeries.outputs_iter">outputs_iter() (prms_python.SimulationSeries method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#prms_python.Parameters.param_arrays">param_arrays (prms_python.Parameters attribute)</a>
+</li>
       <li><a href="api.html#prms_python.Parameters">Parameters (class in prms_python)</a>
 </li>
   </ul></td>
@@ -146,14 +173,36 @@
   </ul></td>
 </tr></table>
 
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#prms_python.Scenario.run">run() (prms_python.Scenario method)</a>
+
+      <ul>
+        <li><a href="api.html#prms_python.ScenarioSeries.run">(prms_python.ScenarioSeries method)</a>
+</li>
+        <li><a href="api.html#prms_python.Simulation.run">(prms_python.Simulation method)</a>
+</li>
+        <li><a href="api.html#prms_python.SimulationSeries.run">(prms_python.SimulationSeries method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.Scenario">Scenario (class in prms_python)</a>
 </li>
+      <li><a href="api.html#prms_python.ScenarioSeries.scenarios">scenarios (prms_python.ScenarioSeries attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.ScenarioSeries">ScenarioSeries (class in prms_python)</a>
+</li>
+      <li><a href="api.html#prms_python.Simulation">Simulation (class in prms_python)</a>
+</li>
+      <li><a href="api.html#prms_python.SimulationSeries">SimulationSeries (class in prms_python)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -170,7 +219,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#prms_python.Data.write">write() (prms_python.Data method)</a>
+
+      <ul>
+        <li><a href="api.html#prms_python.Parameters.write">(prms_python.Parameters method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -205,11 +258,11 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial and Recipes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 
 <div class="relations">
