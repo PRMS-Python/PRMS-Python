@@ -3,7 +3,8 @@ from setuptools import setup
 requires = [
     'click==6.6',
     'numpy==1.11.1',
-    'pandas==0.18.1'
+    'pandas==0.18.1',
+    'matplotlib==2.0.0'
 ]
 
 tests_require = []
@@ -11,7 +12,7 @@ tests_require = []
 classifiers = [
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3.4',    
+    'Programming Language :: Python :: 3.4',
     'Environment :: Console',
     'Development Status :: 4 - Beta',
     'Topic :: Scientific/Engineering',
