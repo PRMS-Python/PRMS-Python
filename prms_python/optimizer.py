@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 optimizer.py -- holds ``Optimizer`` and ``OptimizationResult`` classes for 
 optimization routines and management conducted on PRMS parameters.

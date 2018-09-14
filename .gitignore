@@ -19,7 +19,6 @@ notebooks/jupyternb-scenario-series-example/
 
 **/utility_functions.ipynb
 **/scripts/*.data
-scripts/
 dry_creek
 **/dry_creek/
 prms_python.egg-info

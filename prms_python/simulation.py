@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 simulation.py -- Contains ``Simulation`` and ``SimulationSeries`` classes and 
 associated functions for managing PRMS simulations at a low level.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 data.py -- holds ``Data`` class for standard PRMS climate input data.
 '''
