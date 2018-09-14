@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 scenario.py -- holds ``Scenario`` and ``ScenarioSeries`` classes for PRMS 
 managing parameter-based model scenarios that may be used for hypotheses

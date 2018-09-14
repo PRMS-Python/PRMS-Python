@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 parameters.py -- holds ``Parameter`` class with multiple functionality for 
 the standard PRMS parameters input file.

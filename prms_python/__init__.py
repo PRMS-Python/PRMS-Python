@@ -12,7 +12,7 @@ if the input meteorological data were to change?
 
 """
 
-__name__ = 'prms-python'
+__name__ = 'prms_python'
 __author__ = 'John Volk and Matthew Turner'
 __version__ = '1.0.0'
 
