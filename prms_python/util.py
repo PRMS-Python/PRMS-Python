@@ -1,49 +1,146 @@
 """
-Utilities for working with PRMS data or other functionality that aren't
+util.py -- Utilities for working with PRMS data or other functionality that aren't
 appropriate to put elsewhere at this time.
 """
-import os
+
+import os, shutil, json
 import numpy as np
 import pandas as pd
 
-def delete_out_files(work_directory, file_name=''):
+def calc_emp_CDF(data):
     """
-    Delete all output files of a certain name from PRMS simulations,
-    can be useful since files can be large and may not be being used.
-    For example initial condition output files are often large and not
-    always used, alternatively animation files may no longer be needed.
+    Create empirical CDF of arbitrary data
+    
+    Arguments:
+        data (array_like) : array to calculate CDF on
+
+    Returns:
+        X (numpy.ndarray) : array of x values of CDF (sorted data)
+        
+        F (numpy.ndarray) : array of CDF values for each X value or cumulative 
+            exceedence probability, in [0,1].
+    """
+    n_bins = len(data)
+    X = np.sort(data)
+    F = np.array(range(n_bins))/float(n_bins)
+    return X,F
+
+def Kolmogorov_Smirnov(uncond, cond, n_bins=10000):
+    """ 
+    Calculate the Kolmogorov-Smirnov statistic between two datasets by first 
+    computing their empirical CDFs
+    
+    Arguments:
+        uncond (array_like) : data for creating the unconditional CDF.
+        cond (array_like) : data for creating the conditional CDF
+        n_bins (int) : number of bins for both CDFs, note if n_bins > length
+            of either dataset then CDF values are interpolated by numpy
+        
+    Returns: 
+        KS (float) : Kolmogorov-Smirnov statistic, i.e. absolute max distance
+            between uncond and cond CDFs
+    """
+    # create unconditional CDF (F_Uc)
+    H,X = np.histogram(uncond, bins=n_bins, normed=True)
+    dx = X[1] - X[0]
+    F_Uc = np.cumsum(H)*dx    
+    # create conditional CDF (F_C)
+    H,X = np.histogram(cond, bins=n_bins, normed=True)
+    dx = X[1] - X[0]
+    F_C = np.cumsum(H)*dx
+    # Calc max absolulte divergence
+    KS = np.max(np.abs(F_Uc - F_C)) 
+    return KS
+
+def remove_all_optimization_sims_of_other_stage(work_directory, stage):
+    """
+    Track number of simulation directories not tracked by a specific stage
+    and recursively delete them and their contents. This was created to avoid
+    having nutracked simulations in an optimizer working directory for example
+    when an optimization method was interupted before data was saved to a meta
+    data file.
+    
+    Arguments:
+        work_directory (str) : Directory to look for Optimization metadata 
+            json files and simulation directories to keep or remove.         
+        stage (str) : Optimization stage that will not have its simulation
+            data deleted. All other stages if any are found in metadata files
+            will have their associated simulation directories deleted.        
+    Returns:
+        None
+    """
+    from .optimizer import OptimizationResult # avoid circular import
+
+    try:
+        result = OptimizationResult(work_directory,stage=stage)    
+        tracked_dirs = []    
+        for f in result.metadata_json_paths[stage]:
+            with open(f) as fh:
+                json_data = json.load(fh)
+                tracked_dirs.extend(json_data.get('sim_dirs'))
+        count = 0
+        for d in os.listdir(result.working_dir):
+            path = os.path.join(result.working_dir, d)
+            if path in tracked_dirs:
+                continue      
+            elif os.path.isdir(path) and '_archived' not in path:
+                count+=1
+                for dirpath, dirnames, filenames in os.walk(path,\
+                                                                topdown=False):
+                    shutil.rmtree(dirpath, ignore_errors=True)                    
+
+    # if no json file in working dir for given stage, delete any other sim dirs 
+    except:
+        count = 0
+        for d in os.listdir(work_directory):
+            path = os.path.join(work_directory, d)
+            if os.path.isdir(path) and '_archived' not in path:
+                count+=1
+                for dirpath, dirnames, filenames in os.walk(path,\
+                                                                topdown=False):
+                    shutil.rmtree(dirpath, ignore_errors=True)                    
+
+    print('deleted {} simulations that were either not tracked by a JSON file'\
+          .format(count) + ' or were not part of {} optimization stage'\
+          .format(stage))
+
+  
+def delete_files(work_directory, file_name=''):
+    """
+    Recursively delete all files of a certain name from multiple PRMS 
+    simulations that are within a given directory. Can be useful to removw 
+    large files that are no longer needed. For example initial condition 
+    output files are often large and not always used, similarly animation, 
+    data, control, ... files may no longer be needed. 
 
     Arguments:
-        work_directory (str): path to directory with simulation outputs
-            two directories above where the actual prms_ic.out files exist.
-        file_name (str) = Name of the PRMS output file(s) to be removed, 
-            default='' empty string- nothing will be deleted.             
+        work_directory (str) : path to directory with simulations.
+        file_name (str) : Name of the PRMS input or output file(s) to be 
+            removed, default = '' empty string- nothing will be deleted.             
 
             e.g. if you have several simulation directories:
 
-			"test/results/intcp:-26.50_slope:0.49", 
+	    >>>		"test/results/intcp:-26.50_slope:0.49", 
 			"test/results/intcp:-11.68_slope:0.54", 
 			"test/results/intcp:-4.70_slope:0.51", 
 			"test/results/intcp:-35.39_slope:0.39", 
 			"test/results/intcp:-20.91_slope:0.41"
 
-            each of these contains an '/outputs' folder with a prms_ic.out 
-            file that you would like to delete. In this case, delete all ic 
-            files like so:
+            each of these contains an '/inputs' folder with a duplicate data 
+            file that you would like to delete. In this case, delete all 
+            data files like so:
 
             >>> work_dir = 'test/results/'
-            >>> delete_ic_files(work_dir, file_name='prms_ic.out')
+            >>> delete_ic_files(work_dir, file_name='data')
 		    
     Returns:
         None     
     """
-    for fd in os.listdir(work_directory):
-        if os.path.isdir(os.path.join(work_directory,fd)):
-            try:
-                os.remove(os.path.join(work_directory, fd, 'outputs', file_name))
-            except: # file might not exist
-                continue
-
+    for dirpath, dirnames, filenames in os.walk(work_directory, topdown=False):
+        paths = (os.path.join(dirpath, filename) for filename in filenames\
+                if filename == file_name)
+        for path in paths:
+            os.remove(path)        
 
 def load_statvar(statvar_file):
     """
@@ -107,11 +204,13 @@ def load_statvar(statvar_file):
 
 def load_data_file(data_file):
     """
-    Read the data file and load into a datetime indexed Pandas dataframe object
+    Read the data file and load into a datetime indexed Pandas dataframe object.
+    
     Arguments: 
-	data_file (string): data file path 
+	    data_file (str): data file path 
     Returns:
-	df (pandas.DataFrame): Pandas dataframe of input time series data from data file with datetime index
+	    df (pandas.DataFrame): Pandas dataframe of input time series data 
+	        from data file with datetime index
     """
     # valid input time series that can be put into a data file
     valid_input_variables = ('gate_ht',

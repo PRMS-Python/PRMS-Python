@@ -1,16 +1,8 @@
 '''
-PRMS-Python: Powerful, sane tools for manipulating PRMS input data to create
-new scenarios or parameterizations for sensitivity analysis, scenario
-modeling, or whatever other uses this might have.
-
-The fundamental process in scenario development is to modify some "base"
-starting data to create some "scenario" data. No matter what data we're using,
-once it's ready, we run a PRMS "simulation" on that data.
-
-This module presents a Simulation and Scenario class, where each tracks
-relevant provenance information and input files to facilitate better
-data management techniques to streamline later analyses.
+parameters.py -- holds ``Parameter`` class with multiple functionality for 
+the standard PRMS parameters input file.
 '''
+
 import datetime, calendar
 import io, os
 import itertools
@@ -26,30 +18,72 @@ OPJ = os.path.join
 
 class Parameters(object):
     '''
-    Disk-based representation of a PRMS parameter file. For the sake of
-    memory efficiency, we only load parameters from ``base_file`` that get
-    modifified through item assignment, for example
+    Disk-based representation of a PRMS parameter file. 
+    
+    For the sake of memory efficiency, we only load parameters from 
+    ``base_file`` that get modified through item assignment or accessed directly. 
+    Internally, a reference is kept to only previously accessed parameter data, 
+    so when ``write`` is called most copying is from ``base_file`` directly. 
+    When parameters are accessed or modified using the dictionary-like syntax, 
+    a ``np.ndarray`` representation of the parameter is returned. As a result 
+    ``numpy`` mathematical rules including efficient vectorization of math applied 
+    to arrays can be applied to modify parameters directly. The ``Parameter`` 
+    objects user methods allow for visualization of most PRMS parameters, function 
+    based modification of parameters, and a write function that writes the data 
+    back to PRMS text format.  
 
-    >>> p = Parameters('example_params')
-    >>> p['jh_coef'] = p['jh_coef']*1.1
-    >>> p.write('example_modified_params')
+    Arguments:
+        base_file (str): path to PRMS parameters file 
 
-    will read parameter information from the params file to check that
-    ``jh_coef`` is present in the parameter file, read the lines corresponding
-    to ``jh_coef`` data and assign the new value as requested. Internally,
-    a reference is kept to only modified parameter data,
-    so when ``p.write(modified_params_file)`` is called, mostly this will copy
-    from ``base_file`` to ``modified_params_file``.
+    Attributes:
+        base_file (str): path to PRMS parameters file 
+        base_file_reader (file): file handle of PRMS parameters file
+        dimensions (:obj:`collections.OrderedDict`): dictionary with 
+            parameter dimensions as defined in parameters file loaded on
+            initialization
+        base_params (list of dicts): list of dictionaries of parameter
+            metadata loaded on initialization e.g. name, dimension(s), data 
+            type, length of data array, and lines where data starts and ends 
+            in file
+        param_arrays (dict): dictionary with parameteter names as keys and
+            ``numpy.array`` and ``numpy.ndarray`` representations of parameter
+            values as keys. Initially empty, uses getter and setter functions.
+
+    Example:
+        >>> p = Parameters('path/to/a/parameter/file')
+        >>> p['jh_coef'] = p['jh_coef']*1.1
+        >>> p.write('example_modified_params')
+    
+        will read parameter information from the params file to check that
+        *jh_coef* is present in the parameter file, read the lines corresponding
+        to *jh_coef* data and assign the new value as requested. Calling
+        the ``write`` method next will copy all parameters except *jh_coef*
+        to the new parameter file and append the newly modified *jh_coef*
+        to the end of the new file from the modified values stored in the
+        parameter instance ``p``. 
     '''
 
     def __init__(self, base_file):
-
         self.base_file = base_file
         self.base_file_reader = open(base_file)
         self.dimensions, self.base_params = self.__read_base(base_file)
         self.param_arrays = dict()
 
     def write(self, out_name):
+        """
+        Writes current state of ``Parameters`` to disk in PRMS text format
+
+        To reduce memory usage the ``write`` method copies parameters
+        from the initial ``base_file`` parameter file for all parameters
+        that were never modified. 
+
+        Arguments:
+            out_name (str): path to write ``Parameters`` data to PRMS text
+                format.
+
+        Returns:
+            None
+        """
         data_type_dic = {'1': 'int', 
                          '2': 'float'} # retain PRMS data types
 
@@ -111,34 +145,66 @@ class Parameters(object):
     def plot(self, nrows, which='all', out_dir=None, xlabel=None,\
                     ylabel=None, cbar_label=None, title=None, mpl_style=None):
         """
-        Plot PRMS parameters as time series or 2D spatial grid depending on 
-        parameter dimension. The PRMS parameter file is assumed to represent 
-        a model that was set up on a uniform rectangular grid with the spatial 
-        index of HRUs starting in the upper left corner and moving left to 
-        right across columns and down rows. 
+        Versatile method that plots most parameters in a standard PRMS parameter
+        file assuming the PRMS model was built on a uniform spatial grid. 
         
-        Args:
-            params (prms_python.Parameters): An instance of Parameters that 
-                corresponds with the PRMS parameter file to plot. 
-            nrows (int): The number of rows in the PRMS model grid for plotting spatial
-                parameters. Function will only work for rectangular gridded models
-                with HRU indices starting in the upper left cell moving left to right
+        Plots parameters as line plots for series or 2D spatial grid depending on 
+        parameter dimension. The PRMS parameter file is assumed to hold parameters 
+        for a model that was set up on a uniform rectangular grid with the spatial 
+        index of HRUs starting in the upper left corner and moving left to 
+        right across columns and down rows. Default function is to print four
+        files, each with plots of varying parameter dimensions as explained 
+        under Kwargs ``which`` and more detailed explanation in the example
+        `Jupyter notebook <https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/param_examples.ipynb>`_.
+        
+        Arguments:
+            nrows (int): The number of rows in the PRMS model grid for plotting 
+                spatial parameters. Will only work correctly for rectangular gridded models 
+                with HRU indices starting in the upper left cell moving left to right 
                 across columns and down across rows.
         
-        Kwargs:
+        Keyword Arguments:
             which (str): name of PRMS parameter to plot or 'all'. If 'all' then
-                the function will print 3 multipage pdfs: one for nhru dimensional
-                parameters, one for nhru by monthly parameters, one for other parameters
-                of length > 1, and one html file containing single valued parameters
-            out_dir (str): path to an output dir, default: current directory
+                the function will print 3 multipage pdfs, one for nhru 
+                dimensional parameters, one for nhru by monthly parameters, one 
+                for other parameters of length > 1, and one html file containing
+                single valued parameters.
+            out_dir (str): path to an output dir, default current directory
             xlabel (str): x label for plot(s)
             ylabel (str): y label for plot(s)
             cbar_label (str): label for colorbar on spatial plot(s)
             title (str): plot title
-            mpl_style (str, list): name or list of names of matplotlib style sheets
-                to use for plot(s)
+            mpl_style (str, list): name or list of names of matplotlib style sheets to 
+                use for plot(s).
     
-        Returns: None
+        Returns: 
+            None
+
+        Examples:
+            If the plot method is called with the keyword argument ``which`` set
+            to a parameter that has length one, i.e. single valued it will simply
+            print out the value e.g.:
+
+            >>> p = Parameters('path/to/parameters')
+            >>> p.plot(nrows=10, which='radj_sppt')
+                radj_sppt is single valued with value: 0.4924942352224324
+
+            The default action is particularly useful which makes four multi-page
+            pdfs of most PRMS parameters where each file contains parameters
+            of different dimensions e.g.:
+
+            >>> p.plot(nrows=10, which='all', mpl_style='ggplot')
+
+            will produce the following four files named by parameters of certain
+            dimensions:
+
+            >>> import os
+            >>> os.listdir(os.getcwd()) # list files in current directory
+                nhru_param_maps.pdf    
+                nhru_by_nmonths_param_maps.pdf
+                non_spatial_param_plots.pdf  
+                single_valued_params.html
+    
         """
         params = self
     
@@ -152,7 +218,7 @@ class Parameters(object):
             os.mkdir(out_dir)
             
         nhru = params.dimensions['nhru']
-        ncols = nhru//nrows
+        ncols = nhru // nrows
         
         if not mpl_style:
             mpl_style = 'classic'
@@ -162,7 +228,7 @@ class Parameters(object):
         if which == 'all':
             ## spatial parameters with dimension of length nhru
             p_names = [param['name'] for param in params.base_params if\
-                       param['length'] == nhru and len(param['dimnames'])==1 ]
+                       param['length'] == nhru and len(param['dimnames'])==1]
             with PdfPages(OPJ(out_dir,'nhru_param_maps.pdf')) as pdf:
                 for p in p_names:
                     try:
@@ -174,7 +240,7 @@ class Parameters(object):
                         cax = divider.append_axes("right", size="5%", pad=0.05)
                         plt.colorbar(im, cax=cax)
                         ax.set_title('{}'.format(p))
-                        ax.tick_params(left='off', bottom='off', labelleft='off', labelbottom='off')
+                        ax.tick_params(left='off', bottom='off', labelleft='off',labelbottom='off')
                         pdf.savefig()
                         plt.close()
                     except:
@@ -308,7 +374,7 @@ class Parameters(object):
 
     def __make_dimensions_dict(self, base_file):
         """
-        Extract dimensions and each dimension length. Run before
+        Extract dimensions and each dimension length. Runs before
         __make_parameter_dict.
         """
         ret = OrderedDict()
@@ -468,38 +534,37 @@ class Parameters(object):
 
             self.param_arrays[key] = value
 
-
-
 def modify_params(params_in, params_out, param_mods=None):
     '''
     Given a parameter file in and a dictionary of param_mods, write modified
     parameters to params_out.
 
-    Example:
-
-    Below we modify the monthly jh_coef by increasing it 10% for every month.
-
-        >>> params_in = 'models/lbdc/params'
-        >>> params_out = 'scenarios/jh_coef_1.1/params'
-        >>> scale_10pct = lambda x: x * 1.1
-        >>> modify_params(params_in, params_out, {'jh_coef': scale_10pct})
-
-    So param_mods is a dictionary of with keys being parameter names and
-    values a function that operates on a single value. Currently we only
-    accept functions that operate on single values without reference to any
-    other parameters. The function will be applied to every cell, month, or
-    cascade routing rule for which the parameter is defined.
 
     Arguments:
         params_in (str): location on disk of the base parameter file
+        params_out (str): location on disk where the modified parameters will 
+            be written
 
-        params_out (str): location on disk where the modified parameters will be written
-
+    Keyword Arguments:
         param_mods (dict): param name-keyed, param modification function-valued
 
     Returns:
         None
 
+    Example:
+        Below we modify the monthly *jh_coef* parameter by increasing it 10% 
+        for every month,
+    
+            >>> params_in = 'models/lbcd/parameters'
+            >>> params_out = 'scenarios/jh_coef_1.1/params'
+            >>> scale_10pct = lambda x: x * 1.1
+            >>> modify_params(params_in, params_out, {'jh_coef': scale_10pct})
+    
+        So param_mods is a dictionary of with keys being parameter names and
+        values a function that operates on a single value. Currently we only
+        accept functions that operate without reference to any other 
+        parameters. The function will be applied to every cell, month, or 
+        cascade routing rule for which the parameter is defined.
     '''
     p_in = Parameters(params_in)
 

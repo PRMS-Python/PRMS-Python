@@ -1,0 +1,709 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>prms_python.scenario &#8212; PRMS-Python v1.0.0</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../_static/prms-python-32x.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for prms_python.scenario</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">scenario.py -- holds ``Scenario`` and ``ScenarioSeries`` classes for PRMS </span>
+<span class="sd">managing parameter-based model scenarios that may be used for hypotheses</span>
+<span class="sd">testing.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">.parameters</span> <span class="k">import</span> <span class="n">modify_params</span><span class="p">,</span> <span class="n">Parameters</span>
+<span class="kn">from</span> <span class="nn">.data</span> <span class="k">import</span> <span class="n">Data</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">load_statvar</span>
+<span class="kn">from</span> <span class="nn">.simulation</span> <span class="k">import</span> <span class="n">Simulation</span>
+
+
+<div class="viewcode-block" id="ScenarioSeries"><a class="viewcode-back" href="../../api.html#prms_python.ScenarioSeries">[docs]</a><span class="k">class</span> <span class="nc">ScenarioSeries</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create and manage a series of model runs where parameters are modified. </span>
+<span class="sd">    </span>
+<span class="sd">    First initialize the series with an optional title and description. </span>
+<span class="sd">    Then to build the series the user provides a list of dictionaries with </span>
+<span class="sd">    parameter-function key-value pairs, and optionally a title and </span>
+<span class="sd">    description for each dictionary defining the individual scenario.</span>
+
+<span class="sd">    The ScenarioSeries&#39; ``build`` method creates a file structure under</span>
+<span class="sd">    the series directory (``scenarios_dir``) where each subdirectory is </span>
+<span class="sd">    named with a :mod:`uuid` which can be later matched to its title using </span>
+<span class="sd">    the metadata in ``scenario_dir/series_metadata.json`` (see :mod:`json`). </span>
+<span class="sd">    In the future we may add a way for the user to access the results of </span>
+<span class="sd">    the scenario simulations directly through the ``ScenarioSeries`` </span>
+<span class="sd">    instance, but for now the results are written to disk. Therefore each </span>
+<span class="sd">    scenario&#39;s title metadata can be used to refer to which parmaters were </span>
+<span class="sd">    modified and how for post-processing and analysis. One could also use </span>
+<span class="sd">    the description metadata for this purpose. </span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        base_dir (str): path to base inputs; &#39;control&#39;, &#39;parameters&#39;,</span>
+<span class="sd">            and &#39;data&#39; must be present there</span>
+<span class="sd">        scenarios_dir (str): directory where scenario data will be written</span>
+<span class="sd">            to; will be overwritten or created if it does not exist</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">        title (str, optional): title of the ScenarioSeries instance</span>
+<span class="sd">        description (str, optional): description of the ScenarioSeries </span>
+<span class="sd">            instance</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        metadata (dict): dictionary with title, description, and UUID map</span>
+<span class="sd">           dictionary for individiual ``Scenario`` output directories, </span>
+<span class="sd">           the UUID dictionary (``uuid_title_map``)is left empty until </span>
+<span class="sd">           calling :meth:`ScenarioSeries.build`.</span>
+<span class="sd">        scenarios (list): empty list that will be filled with ``Scenario``s</span>
+<span class="sd">           after defining them by calling :meth:`ScenarioSeries.build`.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        There are three steps to both ``Scenario`` and ScenarioSeries,</span>
+<span class="sd">        first we initialize the object</span>
+
+<span class="sd">        &gt;&gt;&gt; series = ScenarioSeries(</span>
+<span class="sd">                       base_dir = &#39;dir_with_input_files&#39;,</span>
+<span class="sd">                       scenarios_dir = &#39;dir_to_run_series&#39;,</span>
+<span class="sd">                       title = &#39;title_for_group_of_scenarios&#39;,</span>
+<span class="sd">                       description = &#39;description_for_scenarios&#39;</span>
+<span class="sd">                     )</span>
+<span class="sd">        </span>
+<span class="sd">        The next step is to &quot;build&quot; the ``ScenarioSeries`` by calling the </span>
+<span class="sd">        :meth:`ScenarioSeries.build` method which defines which parameters</span>
+<span class="sd">        to modify, how to modify them, and then performs the modification</span>
+<span class="sd">        which readies the series to be &quot;run&quot; (the last step). See the</span>
+<span class="sd">        :meth:`ScenarioSeries.build` method for the next step example. </span>
+<span class="sd">       </span>
+<span class="sd">        Also see :ref:`scenario_and_scenarioseries_tutorial` for full example</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">,</span> <span class="n">scenarios_dir</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="n">base_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenarios_dir</span> <span class="o">=</span> <span class="n">scenarios_dir</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">)</span>
+
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="s1">&#39;base_inputs&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                             <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                             <span class="n">uuid_title_map</span><span class="o">=</span><span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ScenarioSeries.from_parameters_iter"><a class="viewcode-back" href="../../api.html#prms_python.ScenarioSeries.from_parameters_iter">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_parameters_iter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">base_directory</span><span class="p">,</span> <span class="n">parameters_iter</span><span class="p">,</span>
+                             <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Alternative way to initialize and build a ``ScenarioSeries`` in one</span>
+<span class="sd">        step.</span>
+
+<span class="sd">        Create and build a ``ScenarioSeries`` by including the param-keyed-</span>
+<span class="sd">        function-valued dictionary (``parameters_iter``) that is otherwise </span>
+<span class="sd">        passed in :meth:`ScenarioSeries.build`. </span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            base_directory (str): directory that contains model input files</span>
+<span class="sd">            parameters_iter (list of dicts): list of dictionaries for each</span>
+<span class="sd">                ``Scenario`` as described in :class:`Scenario` and </span>
+<span class="sd">                :meth:`ScenarioSeries.build`.</span>
+<span class="sd">            title (str): title for group of scenarios</span>
+<span class="sd">            description (str): description for group of scenarios</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">base_directory</span><span class="p">,</span> <span class="n">base_directory</span><span class="p">,</span>
+                     <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">parameters_iter</span><span class="p">:</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">parameters</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="n">uu</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+            <span class="n">series</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;uuid_title_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">uu</span><span class="p">:</span> <span class="n">title</span><span class="p">})</span>
+
+            <span class="n">scenario_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="n">uu</span><span class="p">)</span>
+
+            <span class="n">scenario</span> <span class="o">=</span> <span class="n">Scenario</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">scenario_dir</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+
+            <span class="n">scenario</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+            <span class="n">series</span><span class="o">.</span><span class="n">scenarios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="s1">&#39;series_metadata.json&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ScenarioSeries.build"><a class="viewcode-back" href="../../api.html#prms_python.ScenarioSeries.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scenarios_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the scenarios from a list of scenario definitions in dicitonary</span>
+<span class="sd">        form. </span>
+<span class="sd">        </span>
+<span class="sd">        Each element of ``scenarios_list`` can have any number of parameters</span>
+<span class="sd">        as keys with a function for each value. The other two acceptable keys</span>
+<span class="sd">        are ``title`` and ``description`` which will be passed on to each </span>
+<span class="sd">        individual Scenario&#39;s metadata in ``series_metadata.json`` for future </span>
+<span class="sd">        lookups. The ``build`` method also creates a file structure that uses</span>
+<span class="sd">        UUID values as individiual ``Scenario`` subdirectories as shown below.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            scenarios_list (list): list of dictionaries with key-value</span>
+<span class="sd">                pairs being parameter-function definition pairs or</span>
+<span class="sd">                title-title string or description-description string.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            Following the initialization of a ``ScenarioSeries`` instance as</span>
+<span class="sd">            shown the example docstring there, we &quot;build&quot; the series by </span>
+<span class="sd">            defining a list of param named-keyed function-valued </span>
+<span class="sd">            dictionaries. This example uses arbitrary functions on two </span>
+<span class="sd">            PRMS parameters *snowinfil_max* and *snow_adj*,</span>
+
+<span class="sd">            &gt;&gt;&gt; def _function1(x): #Note, function must start with underscore</span>
+<span class="sd">                    return x * 0.5</span>
+<span class="sd">            &gt;&gt;&gt; def _function2(x):</span>
+<span class="sd">                    return x + 5</span>
+<span class="sd">            &gt;&gt;&gt; dic1 = {&#39;snowinfil_max&#39;: _function1, &#39;title&#39;: &#39;scenario1&#39;}</span>
+<span class="sd">            &gt;&gt;&gt; dic2 = {&#39;snowinfil_max&#39;: _function2, </span>
+<span class="sd">                        &#39;snow_adj&#39;: function1,</span>
+<span class="sd">                        &#39;title&#39;: &#39;scenario2&#39;,</span>
+<span class="sd">                        &#39;description&#39;: &#39;we adjusted two snow parameters&#39;</span>
+<span class="sd">                       }</span>
+<span class="sd">            &gt;&gt;&gt; example_scenario_list = [dic1, dic2]</span>
+<span class="sd">            &gt;&gt;&gt; # now we can build the series</span>
+<span class="sd">            &gt;&gt;&gt; series.build(example_scenario_list)</span>
+
+<span class="sd">        In this example that follows from :class:`ScenarioSeries` example the</span>
+<span class="sd">        file structure that is created by the ``build`` method is as follows::</span>
+
+<span class="sd">            dir_to_run_series</span>
+<span class="sd">            ├── 670d6352-2852-400a-997e-7b12ba34f0b0</span>
+<span class="sd">            │   ├── control</span>
+<span class="sd">            │   ├── data</span>
+<span class="sd">            │   └── parameters</span>
+<span class="sd">            ├── base_inputs</span>
+<span class="sd">            │   ├── control</span>
+<span class="sd">            │   ├── data</span>
+<span class="sd">            │   └── parameters</span>
+<span class="sd">            ├── ee9526a9-8fe6-4e88-b357-7dfd7111208a</span>
+<span class="sd">            │   ├── control</span>
+<span class="sd">            │   ├── data</span>
+<span class="sd">            │   └── parameters</span>
+<span class="sd">            └── series_metadata.json</span>
+
+<span class="sd">        As shown the build method has copied the original inputs from the </span>
+<span class="sd">        ``base_dir`` given on initialization of ``ScenarioSeries`` to a new</span>
+<span class="sd">        subdirectory of the ``scenarios_dir``, it also applied the </span>
+<span class="sd">        modifications to the parameters for both scenarios above and move the</span>
+<span class="sd">        input files to their respective directories. At this stage the </span>
+<span class="sd">        ``metadata`` will not have updated the UUID map dictionary to each</span>
+<span class="sd">        scenarios subdirectory because they have not yet been run. See the </span>
+<span class="sd">        :meth:`ScenarioSeries.run` method for further explanation including</span>
+<span class="sd">        the final file structure and metadata file contents.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scenarios_list</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">description</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+
+            <span class="n">uu</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;uuid_title_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">uu</span><span class="p">:</span> <span class="n">title</span><span class="p">})</span>
+
+            <span class="n">scenario_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="n">uu</span><span class="p">)</span>
+
+            <span class="c1"># create Scenario</span>
+            <span class="n">scenario</span> <span class="o">=</span> <span class="n">Scenario</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">scenario_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">description</span>
+            <span class="p">)</span>
+
+            <span class="c1"># s now only contains parameter keys and function references vals</span>
+            <span class="n">scenario</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scenario</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenarios_dir</span><span class="p">,</span> <span class="s1">&#39;series_metadata.json&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ScenarioSeries.run"><a class="viewcode-back" href="../../api.html#prms_python.ScenarioSeries.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prms_exec</span><span class="o">=</span><span class="s1">&#39;prms&#39;</span><span class="p">,</span> <span class="n">nproc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run a &quot;built&quot; ``ScenarioSeries`` and make final updates</span>
+<span class="sd">        to file structure and metadata. </span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">            prms_exec (str): name of PRMS executable on $PATH or path to</span>
+<span class="sd">                executable. Default = &#39;prms&#39;</span>
+<span class="sd">            nproc (int or None): number of processceors available to </span>
+<span class="sd">                parallelize PRMS simulations, if None (default) then use</span>
+<span class="sd">                half of what the :mod:`multiprocessing` detects on the</span>
+<span class="sd">                machine.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            This example starts where the example ends in </span>
+<span class="sd">            :meth:`ScenarioSeries.build`, calling ``run`` will run the</span>
+<span class="sd">            models for all scenarios and then update the file structure </span>
+<span class="sd">        as well as create individual ``Scenario`` metadata files as such::</span>
+
+<span class="sd">            dir_to_run_series</span>
+<span class="sd">            ├── 5498c21d-d064-45f4-9912-044734fd230e</span>
+<span class="sd">            │   ├── inputs</span>
+<span class="sd">            │   │   ├── control</span>
+<span class="sd">            │   │   ├── data</span>
+<span class="sd">            │   │   └── parameters</span>
+<span class="sd">            │   ├── metadata.json</span>
+<span class="sd">            │   └── outputs</span>
+<span class="sd">            │       ├── prms_ic.out</span>
+<span class="sd">            │       ├── prms.out</span>
+<span class="sd">            │       └── statvar.dat</span>
+<span class="sd">            ├── 9d28ec5a-b570-4abb-8000-8dac113cbed3</span>
+<span class="sd">            │   ├── inputs</span>
+<span class="sd">            │   │   ├── control</span>
+<span class="sd">            │   │   ├── data</span>
+<span class="sd">            │   │   └── parameters</span>
+<span class="sd">            │   ├── metadata.json</span>
+<span class="sd">            │   └── outputs</span>
+<span class="sd">            │       ├── prms_ic.out</span>
+<span class="sd">            │       ├── prms.out</span>
+<span class="sd">            │       └── statvar.dat</span>
+<span class="sd">            ├── base_inputs</span>
+<span class="sd">            │   ├── control</span>
+<span class="sd">            │   ├── data</span>
+<span class="sd">            │   └── parameters</span>
+<span class="sd">            └── series_metadata.json</span>
+
+<span class="sd">        As we can see the file structure follows the combined structures </span>
+<span class="sd">        as defined by :class:`Simulation` and :class:`Scenario`. The content</span>
+<span class="sd">        of the top-level metadata file ``series_metadata.json`` is as such::</span>
+
+<span class="sd">            {</span>
+<span class="sd">              &quot;title&quot;: &quot;title_for_group_of_scenarios&quot;,</span>
+<span class="sd">              &quot;description&quot;: &quot;description_for_scenarios&quot;,</span>
+<span class="sd">              &quot;uuid_title_map&quot;: {</span>
+<span class="sd">                &quot;5498c21d-d064-45f4-9912-044734fd230e&quot;: &quot;scenario1&quot;,</span>
+<span class="sd">                &quot;9d28ec5a-b570-4abb-8000-8dac113cbed3&quot;: &quot;scenario2&quot;</span>
+<span class="sd">              }</span>
+<span class="sd">            }</span>
+<span class="sd">        </span>
+<span class="sd">        Therefore one can use the :mod:`json` file to track between UUID&#39;s and </span>
+<span class="sd">        individual scenario titles. The json files are read as a Python</span>
+<span class="sd">        dictionary which makes them particularly convenient. The contents of</span>
+<span class="sd">        an individual scenarios ``metadata.json`` file included a string</span>
+<span class="sd">        representation of the function(s) that were applied to the </span>
+<span class="sd">        paramter(s)::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;description&quot;: null,</span>
+<span class="sd">                &quot;end_datetime&quot;: &quot;2018-09-03T00:00:40.793817&quot;,</span>
+<span class="sd">                &quot;mod_funs_dict&quot;: {</span>
+<span class="sd">                    &quot;snowinfil_max&quot;: &quot;def _function1(x):</span>
+<span class="sd">                                          return x * 0.5&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                &quot;start_datetime&quot;: &quot;2018-09-03T00:00:30.421353&quot;,</span>
+<span class="sd">                &quot;title&quot;: &quot;scenario1&quot;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            As shown, it is important to give appropriate scenario titles when</span>
+<span class="sd">            building a ``ScenarioSeries`` dictionary in order to later </span>
+<span class="sd">            understand how parameters were modified in each scenario. If not</span>
+<span class="sd">            one would have to rely on the individual ``metadata.json`` files</span>
+<span class="sd">            in each scenario directory which may be more cumbersome.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">nproc</span><span class="p">:</span>
+            <span class="n">nproc</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span><span class="o">//</span><span class="mi">2</span>
+
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">nproc</span><span class="p">)</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_scenario_runner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenarios</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># multiprocessing req the function be def&#39;d at root scope so it&#39;s picklable</span>
+<span class="k">def</span> <span class="nf">_scenario_runner</span><span class="p">(</span><span class="n">scenario</span><span class="p">,</span> <span class="n">prms_exec</span><span class="o">=</span><span class="s1">&#39;prms&#39;</span><span class="p">):</span>
+    <span class="n">scenario</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">prms_exec</span><span class="o">=</span><span class="n">prms_exec</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Scenario"><a class="viewcode-back" href="../../api.html#prms_python.Scenario">[docs]</a><span class="k">class</span> <span class="nc">Scenario</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for the process in which one modifies input parameters then</span>
+<span class="sd">    runs a simulation while tracking metadata. </span>
+<span class="sd">    </span>
+<span class="sd">    Metadata includes a title and description, if provided, plus start/end </span>
+<span class="sd">    datetime, and parameter names of parameters that were modified including </span>
+<span class="sd">    string representations of the Python modification functions that were </span>
+<span class="sd">    applied to each parameter. The metadata file is in :mod:`json` format</span>
+<span class="sd">    making it conveniently read as a Python dictionary.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        base_dir (str): path to directory that contains initial *control*, </span>
+<span class="sd">            *parameter*, and *data* files to be used for ``Scenario``. </span>
+<span class="sd">            The *parameters* file in ``base_dir`` will not be modifed </span>
+<span class="sd">            instead will be copied to ``scenario_dir`` and them modified.</span>
+<span class="sd">        scenario_dir (str): directory path to bundle inputs and outputs</span>
+<span class="sd">        title (str, optional): title of ``Scenario``, if given will be </span>
+<span class="sd">            added to ``Scenario.metadata`` attribute as well as the </span>
+<span class="sd">            ``metadata.json`` file in ``scenario_dir`` written after </span>
+<span class="sd">            calling the :func:`Scenario.build()` and :func:`Scenario.run()` </span>
+<span class="sd">            methods.</span>
+<span class="sd">        description (str, optional): description of ``Scenario``, also</span>
+<span class="sd">            is added to ``Scenario.metadata`` as ``title``.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        metadata (:class:`scenario.ScenarioMetadata`): a dictionary-like </span>
+<span class="sd">            class in :mod:`prms_python.scenario` that tracks ``Scenario`` and </span>
+<span class="sd">            ``ScenarioSeries`` imformation including user-defined parameter </span>
+<span class="sd">            modifications and descriptions, and file structure. </span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        This example is kept simple for clarity, here we adjust a </span>
+<span class="sd">        single PRMS parameter *tmin_lapse* by using a single arbitrary</span>
+<span class="sd">        mathematical function. We use the example PRMS model included</span>
+<span class="sd">        with PRMS-Python for this example,</span>
+
+<span class="sd">        &gt;&gt;&gt; input_dir = &#39;PRMS-Python/test/data/models/lbcd&#39;</span>
+<span class="sd">        &gt;&gt;&gt; scenario_directory = &#39;scenario_testing&#39;</span>
+<span class="sd">        &gt;&gt;&gt; title = &#39;Scenario example&#39;</span>
+<span class="sd">        &gt;&gt;&gt; desc = &#39;adjust tmin_lapse using sine wave function&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # create Scenario instance</span>
+<span class="sd">        &gt;&gt;&gt; scenario_obj = Scenario</span>
+<span class="sd">                (  </span>
+<span class="sd">                  base_dir=input_dir, </span>
+<span class="sd">                  scenario_dir=scenario_directory, </span>
+<span class="sd">                  title=title, </span>
+<span class="sd">                  description=desc</span>
+<span class="sd">                )</span>
+<span class="sd">       </span>
+<span class="sd">        Next we need to build a dictionary to modify, in this case</span>
+<span class="sd">        *tmin_lapse*, here we use a vectorized sine function </span>
+
+<span class="sd">        &gt;&gt;&gt; # build the modification function and dictionary</span>
+<span class="sd">        &gt;&gt;&gt; def a_func(arr):</span>
+<span class="sd">                return 4 + np.sin(np.linspace(0,2*np.pi,num=len(arr)))</span>
+<span class="sd">        &gt;&gt;&gt; # make dictionary with parameter names as keys and modification</span>
+<span class="sd">        &gt;&gt;&gt; # function as values</span>
+<span class="sd">        &gt;&gt;&gt; param_mod_dic = dict(tmin_lapse=a_func) </span>
+<span class="sd">        &gt;&gt;&gt; scenario_obj.build(param_mod_funs=param_mod_dic)</span>
+
+<span class="sd">    After building a ``Scenario`` instance the input files are </span>
+<span class="sd">    copied to ``scenario_dir`` which was assigned &#39;scenario_testing&#39;::</span>
+
+<span class="sd">        scenario_testing</span>
+<span class="sd">        ├── control</span>
+<span class="sd">        ├── data</span>
+<span class="sd">        └── parameters</span>
+<span class="sd">        </span>
+<span class="sd">      </span>
+<span class="sd">    After calling ``build`` the input files from ``input_dir`` were </span>
+<span class="sd">    first copied to ``scenario_dir`` and then the functions in </span>
+<span class="sd">    ``param_mod_dic`` are applied the the parameters names (key)</span>
+<span class="sd">    in ``param_mod_dic``. To run the ``Scenario`` use the the ``run``</span>
+<span class="sd">    method</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; scenario_obj.run()</span>
+
+<span class="sd">    Now the simulation is run and the ``metadata.json`` file is created,</span>
+<span class="sd">    the final file structure will be similar to this::</span>
+
+<span class="sd">        scenario_testing    </span>
+<span class="sd">        ├── inputs</span>
+<span class="sd">        │   ├── control</span>
+<span class="sd">        │   ├── data</span>
+<span class="sd">        │   └── parameters</span>
+<span class="sd">        ├── metadata.json</span>
+<span class="sd">        └── outputs</span>
+<span class="sd">            ├── prms_ic.out</span>
+<span class="sd">            ├── prms.out</span>
+<span class="sd">            └── statvar.dat</span>
+<span class="sd"> </span>
+<span class="sd">    Finally, here is what is contained in ``metadata.json`` for this example </span>
+<span class="sd">    which is also updates in the :attr:`Scenario.metadata`</span>
+
+<span class="sd">        &gt;&gt;&gt; scenario_obj.metadata</span>
+<span class="sd">            {</span>
+<span class="sd">              &#39;title&#39;: &#39;Scenario example&#39;, </span>
+<span class="sd">              &#39;description&#39;: &#39;adjust tmin_lapse using sine wave function&#39;, </span>
+<span class="sd">              &#39;start_datetime&#39;: &#39;2018-09-01T19:20:21.723003&#39;, </span>
+<span class="sd">              &#39;end_datetime&#39;: &#39;2018-09-01T19:20:31.117004&#39;, </span>
+<span class="sd">              &#39;mod_funs_dict&#39;: {</span>
+<span class="sd">                                 &#39;tmin_lapse&#39;: &#39;def parab(arr):</span>
+<span class="sd">                                                    return 4 + np.sin(np.linspace(0,2*np.pi,num=len(arr)))&#39; </span>
+<span class="sd">                               }</span>
+<span class="sd">            }</span>
+
+<span class="sd">    As shown the metadata retirieved the parameter modification function</span>
+<span class="sd">    as a string representation of the exact Python function(s) used for </span>
+<span class="sd">    modifying the user-defined parameter(s). </span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        The main differentiator between :class:`Scenario` and </span>
+<span class="sd">        :class:`ScenarioSeries` is that ``Scenario`` is designed for modifying</span>
+<span class="sd">        one or more parameters of a **single** *parameters* file whereas</span>
+<span class="sd">        ``ScenarioSeries`` is designed for modifying and tracking the </span>
+<span class="sd">        modification of one or more parameters in **multiple** PRMS </span>
+<span class="sd">        *parameters* files, therefore resulting in multiple PRMS simulations. </span>
+<span class="sd">     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">,</span> <span class="n">scenario_dir</span><span class="p">,</span>
+                 <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="n">base_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span> <span class="o">=</span> <span class="n">scenario_dir</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">ScenarioMetadata</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_ready</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Scenario.build"><a class="viewcode-back" href="../../api.html#prms_python.Scenario.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_mod_funs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Take a user-defined dictionary with param names as keys and Python</span>
+<span class="sd">        functions as values, copy the original input files as given when</span>
+<span class="sd">        initializing a :class:`Scenario` instance to the ``simulation_dir``</span>
+<span class="sd">        then apply the functions in the user-defined dictionary to the </span>
+<span class="sd">        parameters there. The ``build`` method must be called before running </span>
+<span class="sd">        the ``Scenario`` (calling :func:`Scenario.run()` ). </span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">            param_mod_funs (dict): dictionary with parameter names as keys</span>
+<span class="sd">                and Python functions as values to apply to the names (key)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            see :class:`Scenario` for a full example.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            If the ``scenario_dir`` that was assigned for the current </span>
+<span class="sd">            instance already exists, it will be overwritten when ``build``</span>
+<span class="sd">            is invoked. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_mod_funs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+
+            <span class="c1"># create scenario_dir that will be used as Simulation input dir</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">)</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;control&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span>
+            <span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span>
+            <span class="p">)</span>
+
+            <span class="n">old_params_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">)</span>
+            <span class="n">new_params_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">param_mod_funs</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">old_params_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">modify_params</span><span class="p">(</span><span class="n">old_params_path</span><span class="p">,</span> <span class="n">new_params_path</span><span class="p">,</span> <span class="n">param_mod_funs</span><span class="p">)</span>
+
+            <span class="n">param_mod_funs_metadata</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">param_name</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">param_mod_fun</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_mod_fun</span> <span class="ow">in</span> <span class="n">param_mod_funs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;mod_funs_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_mod_funs_metadata</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_ready</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Scenario.run"><a class="viewcode-back" href="../../api.html#prms_python.Scenario.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prms_exec</span><span class="o">=</span><span class="s1">&#39;prms&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the PRMS simulation for a *built* ``Scenario`` instance.</span>
+
+<span class="sd">        Keyword Arguments: </span>
+<span class="sd">            prms_exec (str): name of PRMS executable on $PATH or path to </span>
+<span class="sd">                executable</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            see :class:`Scenario` for full example</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: if the :func:`Scenario.build` method has not yet</span>
+<span class="sd">                been called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_ready</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;Scenario has not yet been prepared: run build_scenario first&#39;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;start_datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">prms_exec</span><span class="o">=</span><span class="n">prms_exec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;end_datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dir</span><span class="p">,</span> <span class="s1">&#39;metadata.json&#39;</span><span class="p">))</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">ScenarioMetadata</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_datetime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">end_datetime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mod_funs_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                                  <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                  <span class="n">start_datetime</span><span class="o">=</span><span class="n">start_datetime</span><span class="p">,</span>
+                                  <span class="n">end_datetime</span><span class="o">=</span><span class="n">end_datetime</span><span class="p">,</span>
+                                  <span class="n">mod_funs_dict</span><span class="o">=</span><span class="n">mod_funs_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_dict</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dict</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>\
+                               <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/prms-python-200x.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=docs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial and Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, John Volk and Matthew Turner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

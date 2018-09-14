@@ -9,9 +9,13 @@
 ## ipython notebook checkpoint folders
 **/.ipynb_checkpoints/
 
+# builds for uploading to PyPI
+dist/
+build/
+prms_python.egg-info/
+
 venv
 notebooks/jupyternb-scenario-series-example/
-docs/build
 
 **/utility_functions.ipynb
 **/scripts/*.data
