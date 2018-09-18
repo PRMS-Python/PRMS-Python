@@ -21,4 +21,4 @@ from prms_python.optimizer import Optimizer, OptimizationResult
 from prms_python.parameters import Parameters, modify_params
 from prms_python.simulation import Simulation, SimulationSeries
 from prms_python.scenario import Scenario, ScenarioSeries
-from prms_python.util import load_statvar, load_data_file, nash_sutcliffe
+from prms_python.util import load_statvar, load_data, nash_sutcliffe

@@ -15,17 +15,19 @@ and functions.
 ``Data``
 --------------
 
-The ``Data`` class loads a PRMS data file into a Pandas DataFrame and allows 
-for easy modification and writing of modified PRMS data files. 
+The :ref:`Data Class <data>` class loads a PRMS data file into a Pandas DataFrame and allows 
+for easy modification and writing of PRMS data files. 
 
 A PRMS data file holds time series variables that are used as input for running
-PRMS including daily temperature and precipitation. Being tabular and date-indexed 
+PRMS, e.g. daily air temperature and precipitation. Being tabular and date-indexed 
 the data file is well represented and managed as a :obj:`pandas.DataFrame`. 
-A common paractice in hydrologic modeling is to evaluate hydrologic response to multiple climate 
-change scenarios. The ``Data`` class offers function-based modification of time 
-series variable/s so that the user can quickly create new climate inputs for PRMS.
-The user can visualize the data file variables from Pandas and rewrite modified data 
-to disk in the PRMS format using methods of the ``Data`` class.
+A common paractice in hydrologic modeling is to evaluate hydrologic response 
+to multiple climate change scenarios. The ``Data`` class offers function-based 
+modification of time series variable/s so that the user can quickly create new 
+climate inputs for PRMS. The user can visualize the data file variables from 
+easily using Pandas, matplotlib or other plotting libraries. After modification 
+of climatic variables the ``Data.write`` method will save the data 
+to disk in the PRMS ascii format.
 
 .. code-block:: python
 
@@ -42,9 +44,25 @@ to disk in the PRMS format using methods of the ``Data`` class.
     # write new modified data file to disk 
     d.write('test/data/temp_plus2_data')
 
+The ``Data.data_frame`` property is the :obj:`pandas.DataFrame` representation
+of hydro-climatic variables found in a PRMS data file. As such it can also
+be assigned within Python. However in order to create a data file from scratch
+using the ``Data`` object one must also assign the ``Data.metadata`` property.
+For an example of what is stored in the ``metadata`` attribute please refer
+to the `data examples Jupyter notebook <https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/data_examples.ipynb>`_. 
 
-The ``Scenario`` and ``ScenarioSeries`` will soon incorporate this functionality 
-to implement either a single Scenario or a series of Scenarios.
+The ``write`` method of data has dual functions
+depending on the status of a ``Data`` instance-- if the method is called before
+the ``Data.data_frame`` is accessed then the original file will be simply copied
+to the path given to ``write``, on the other hand if the ``data_frame`` has been
+accessed within Python then the ``write`` method writes the current state of the
+data in the ``data_frame`` from memory. The first function is useful in reducing
+memory use and computational cost when using the ``Data`` class in more advanced
+workflows.
+
+The ``Scenario`` and ``ScenarioSeries`` will soon incorporate the functionality 
+to modify the climatic data within either a single Scenario or a 
+series of Scenarios.
 
 ``Parameters``
 --------------
@@ -55,12 +73,11 @@ modify, and save PRMS parameters files. It can be used similarly to a
 Pandas DataFrame. 
 
 The PRMS parameters file contains data arrays of varying dimensionality, which
-is why we can't just use a DataFrame to do these manipulations. The 
+is why we can't simply use a DataFrame to do these manipulations. The 
 implementation of the ``Parameters`` class is loosely based on the netCDF
 data structure, where metadata about each parameter is kept separately. 
 Parameters are read into memory only if the user selects or modifies a 
-particular parameter. 
-This allows for memory-efficient processing of Parameter files.
+particular parameter. This allows for memory-efficient processing of Parameter files.
 
 Below is an example of reading a parameter file, reading a particular variable
 from a parameter file, replacing that parameter data with other data (in this
@@ -90,14 +107,17 @@ The ``Scenario`` and ``ScenarioSeries`` use this functionality (via the
 series of Scenarios.
 
 
-``Simulation``
---------------
+``Simulation & SimulationSeries``
+---------------------------------
 
-The ``Simulation`` class provides a simple wrapper around running the PRMS
+The :ref:`Simulation class <simulation>` provides a simple wrapper around running the PRMS
 model. It encourages standardization of input file names by requiring the
 three PRMS inputs to be named `data`, `parameters`, and `control`. In order to
 add some natural metadata to the inputs, the user should use a memorable name
-for the directory that holds these three files. 
+for the directory that holds these three files. The ``Simulation`` and 
+``SimulationSeries`` however are more useful as building blocks for more
+advanced workflows or for new PRMS-Python submodules and routines, e.g. 
+new optimization routines.
 
 After the user prepares their input files, say into a directory called
 ``prms-sim-example``, they can run the following in either a Python script or a
@@ -136,20 +156,75 @@ keyword argument in the ``Simulation`` constructor, like so
     sim = Simulation('prms-sim-example', simulation_dir='sim-dir-1')
     sim.run()
 
+Additional examples of ``Simulation`` including the file structure can be found in 
+the API :meth:`prms_python.Simulation.run` and the class method ``from_data`` which
+allows for initialization from PRMS-Python ``Data`` and ``Parameter`` objects can
+be found in the API at :meth:`prms_python.Simulation.from_data`. 
+
+``SimulationSeries``
+````````````````````
+
+The :ref:`SimulationSeries class <simulationseries>` offers the same functionality
+as ``Simulation`` for an arbitrary number of simulations, with the added function
+of running PRMS in parralel. The example below is taken from the PRMS-Python API.
+
+Lets say you have already created a series of PRMS models by modifying
+the input climatic forcing data, e.g. you have 100 *data* files and
+you want to run each using the same *control* and *parameters* file.
+For simplicity lets say there is a directory that contains all 100
+*data* files e.g. data1, data2, ... or whatever they are named and
+nothing else. This example also assumes that you want each simulation
+to be run and stored in directories named after the *data* files as
+shown.
+
+.. code-block:: python
+
+    data_dir = 'dir_that_contains_all_data_files'
+    params = Parameters('path_to_parameter_file')
+    control_path = 'path_to_control'
+    # a list comprehension to make multiple simulations with
+    # different data files, alternatively you could use a for loop
+    sims = [
+            Simulation.from_data
+              (
+                Data(data_file),
+                params,
+                control_path,
+                simulation_dir='sim_{}'.format(data_file)
+              )
+            for data_file in os.listdir(data_dir)
+            ]
+   
+Next we can use ``SimulationSeries`` to run all of these
+simulations in parrallel. For example we may use 8 logical cores
+on a common desktop computer.
+
+.. code-block:: python
+
+    sim_series = SimulationSeries(sims)
+    sim_series.run(nprocs=8)
+
+The ``SimulationSeries.run()`` method will run all 100 simulations
+where chunks of 8 at a time will be run in parrallel. Inputs and
+outputs of each simulation will be sent to each simulation's
+``simulation_dir`` following the file structure of
+:func:`Simulation.run()`.
+
+
 .. _scenario_and_scenarioseries_tutorial:
 
 ``Scenario & ScenarioSeries``
 -----------------------------
 
-The ``Scenario`` class implements data management on top of the ``Simulation``
-class, enforcing the user to separate base input data and simulation input and
-output data, plus simple, optional metadata. Let's dive in with an example, 
-assuming there are properly-formed files called ``data``, ``control``, and
-``parameters``, in a directory called ``base-inputs``. We'll use a simulation
-directory called ``sim-dir`` and further provide a title and description for
-the Scenario. If ``sim-dir`` exists it will be overwritten and if it does not
-exist it will be created. It's up to the user to make sure data doesn't get
-overwritten.
+The :ref:`Scenario class <scenario>` implements data management on top of the 
+``Simulation`` class, enforcing the user to separate base input data and 
+simulation input and output data, plus simple, optional metadata. Let's dive 
+in with an example, assuming there are properly-formed files called ``data``, 
+``control``, and ``parameters``, in a directory called ``base-inputs``. 
+We'll use a simulation directory called ``sim-dir`` and further provide a title 
+and description for the Scenario. If ``sim-dir`` exists it will be overwritten 
+and if it does not exist it will be created. It's up to the user to make sure 
+data doesn't get overwritten.
 
 Both Scenarios and ScenarioSeries have a three-step process for set-up and run.
 First the Scenario or ScenarioSeries must be initialized with the base and
@@ -245,10 +320,40 @@ that build the ``scenario_list``.
 
 Note that this will square the number of scenarios to be done.
 
-The ``title`` might look strange, but we use this metadata to recover information
+The ``title`` might look strange, but it is useful as part of the metadata to recover information
 about the individual Scenarios in the data analysis steps shown below in
-:ref:`example`.
+:ref:`example`. Alternatively, if the title is omitted the subdirectory names of 
+each scenario will not be intuitively matched to the unique universal identifiers
+that are assigned automatically by ``ScenarioSeries.build``. However metadata for
+each scenario's simulation will be stored in its respective directory and could 
+later be used to refer which parameter(s) were modified and how because the metadata 
+file contains a text representation of the Python functions that were used to modify the
+parameter(s). 
 
+Additional explanations and examples including the file structures and metadata created
+by the ``Scenario`` and ``ScenarioSeries`` are found in the API :class:`prms_python.Scenario` and :class:`prms_python.ScenarioSeries`. 
+
+``Optimizer & OptimizationResult``
+----------------------------------
+
+The :ref:`Optimizer class <optimizer>` holds routines for PRMS parameter
+optimization or calibration, and sensitivity.uncertainty analysis. Currently
+the ``Optimizer.monte_carlo`` method offers a parameter resampling routine that
+can automate the resampling or an arbitrary number of PRMS parameters, conduct
+simulations for each set of resampled parameters, and self-generate metadata for
+each. The routine uses the stand-alone function :any:`prms_python.optimizer.resample_param`
+which utilizes the uniform and normal distributions with added functionalities for
+parameters of varying dimensions. In other words there are different rules for
+parameter resampling for spatial parameters or parameters of large dimension than 
+those of single value or monthly dimensions. 
+
+The :ref:`OptimizationResult class <optimizationresult>` is designed to aid 
+management and analysis of output from a single optimization stage. 
+
+Note, this section is currently under development, please refer to the 
+example Jupyter notebook `here <https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/monte_carlo_param_resampling.ipynb>`_ for detailed documentation of the ``monte_carlo``
+parameter resampling routine. And the notebook `here <https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/monte_carlo_optimization_result.ipynb>`_ for explanations and 
+examples for ``OptimizationResult``.
 
 ``load_data & load_statvar``
 ----------------------------
@@ -285,7 +390,7 @@ Example: Parameter sensitivity
 ==============================
 
 This is a full example of how the tools outlined above can be used together to
-build a parameter sensitivity analysis. We'll be modifying two parameters,
+build a parameter sensitivity analysis and goodness-of-fit. We'll be modifying two parameters,
 the monthly *jh_coef* and the HRU scale *rad_trncf*. We will 
 create a list of scenario definitions to "build" the :class:`prms_python.ScenarioSeries`. We'll
 then use the parallelized :meth:`prms_python.ScenarioSeries.run` method to execute all
@@ -305,7 +410,7 @@ See inline comments for more details.
     import numpy as np
 
     from prms_python import (
-        ScenarioSeries, load_data_file, load_statvar, nash_sutcliffe
+        ScenarioSeries, load_data, load_statvar, nash_sutcliffe
     )
 
     # define some ScenarioSeries metadata and initialize the series

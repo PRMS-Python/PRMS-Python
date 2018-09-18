@@ -203,7 +203,7 @@ def load_statvar(statvar_file):
     return df
 
 
-def load_data_file(data_file):
+def load_data(data_file):
     """
     Read the data file and load into a datetime indexed Pandas dataframe object.
     

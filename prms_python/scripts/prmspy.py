@@ -11,7 +11,7 @@ from datetime import datetime
 from matplotlib.backends.backend_pdf import PdfPages
 
 from ..scenario import ScenarioSeries
-from ..util import load_data_file, load_statvar, nash_sutcliffe
+from ..util import load_data, load_statvar, nash_sutcliffe
 
 
 @click.group()
@@ -131,7 +131,7 @@ def param_scale_sim(base_data_dir,
 def nash_sutcliffe_matrix(data_dir, output_pdf_path):
     'Save a PDF of the Nash-Sutcliffe created from <data_dir> to <output_pdf_path>'
 
-    observed = load_data_file(
+    observed = load_data(
         os.path.join(data_dir, 'base_inputs', 'data')
     ).runoff_1
 

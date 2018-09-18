@@ -40,16 +40,18 @@ over dual parameter space that uses several of the previously described classes
 and functions.</p>
 <div class="section" id="data">
 <h2><code class="docutils literal notranslate"><span class="pre">Data</span></code><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class loads a PRMS data file into a Pandas DataFrame and allows
-for easy modification and writing of modified PRMS data files.</p>
+<p>The <a class="reference internal" href="api.html#id1"><span class="std std-ref">Data Class</span></a> class loads a PRMS data file into a Pandas DataFrame and allows
+for easy modification and writing of PRMS data files.</p>
 <p>A PRMS data file holds time series variables that are used as input for running
-PRMS including daily temperature and precipitation. Being tabular and date-indexed
+PRMS, e.g. daily air temperature and precipitation. Being tabular and date-indexed
 the data file is well represented and managed as a <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
-A common paractice in hydrologic modeling is to evaluate hydrologic response to multiple climate
-change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based modification of time
-series variable/s so that the user can quickly create new climate inputs for PRMS.
-The user can visualize the data file variables from Pandas and rewrite modified data
-to disk in the PRMS format using methods of the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class.</p>
+A common paractice in hydrologic modeling is to evaluate hydrologic response
+to multiple climate change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based
+modification of time series variable/s so that the user can quickly create new
+climate inputs for PRMS. The user can visualize the data file variables from
+easily using Pandas, matplotlib or other plotting libraries. After modification
+of climatic variables the <code class="docutils literal notranslate"><span class="pre">Data.write</span></code> method will save the data
+to disk in the PRMS ascii format.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="n">Data</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s1">&#39;test/data/data&#39;</span><span class="p">)</span>
 
@@ -64,8 +66,23 @@ to disk in the PRMS format using methods of the <code class="docutils literal no
 <span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> will soon incorporate this functionality
-to implement either a single Scenario or a series of Scenarios.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> property is the <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> representation
+of hydro-climatic variables found in a PRMS data file. As such it can also
+be assigned within Python. However in order to create a data file from scratch
+using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> object one must also assign the <code class="docutils literal notranslate"><span class="pre">Data.metadata</span></code> property.
+For an example of what is stored in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute please refer
+to the <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/data_examples.ipynb">data examples Jupyter notebook</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">write</span></code> method of data has dual functions
+depending on the status of a <code class="docutils literal notranslate"><span class="pre">Data</span></code> instance– if the method is called before
+the <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> is accessed then the original file will be simply copied
+to the path given to <code class="docutils literal notranslate"><span class="pre">write</span></code>, on the other hand if the <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> has been
+accessed within Python then the <code class="docutils literal notranslate"><span class="pre">write</span></code> method writes the current state of the
+data in the <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> from memory. The first function is useful in reducing
+memory use and computational cost when using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class in more advanced
+workflows.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> will soon incorporate the functionality
+to modify the climatic data within either a single Scenario or a
+series of Scenarios.</p>
 </div>
 <div class="section" id="parameters">
 <h2><code class="docutils literal notranslate"><span class="pre">Parameters</span></code><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
@@ -74,12 +91,11 @@ representation of a PRMS parameters file that allows the user to select,
 modify, and save PRMS parameters files. It can be used similarly to a
 Pandas DataFrame.</p>
 <p>The PRMS parameters file contains data arrays of varying dimensionality, which
-is why we can’t just use a DataFrame to do these manipulations. The
+is why we can’t simply use a DataFrame to do these manipulations. The
 implementation of the <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> class is loosely based on the netCDF
 data structure, where metadata about each parameter is kept separately.
 Parameters are read into memory only if the user selects or modifies a
-particular parameter.
-This allows for memory-efficient processing of Parameter files.</p>
+particular parameter. This allows for memory-efficient processing of Parameter files.</p>
 <p>Below is an example of reading a parameter file, reading a particular variable
 from a parameter file, replacing that parameter data with other data (in this
 case an array of all zeros), then saving the modified parameters to a new
@@ -104,13 +120,16 @@ Parameters file.</p>
 <cite>prms_python.modify_params</cite> function) to implement either a single Scenario or a
 series of Scenarios.</p>
 </div>
-<div class="section" id="simulation">
-<h2><code class="docutils literal notranslate"><span class="pre">Simulation</span></code><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class provides a simple wrapper around running the PRMS
+<div class="section" id="simulation-simulationseries">
+<h2><code class="docutils literal notranslate"><span class="pre">Simulation</span> <span class="pre">&amp;</span> <span class="pre">SimulationSeries</span></code><a class="headerlink" href="#simulation-simulationseries" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="api.html#id3"><span class="std std-ref">Simulation class</span></a> provides a simple wrapper around running the PRMS
 model. It encourages standardization of input file names by requiring the
 three PRMS inputs to be named <cite>data</cite>, <cite>parameters</cite>, and <cite>control</cite>. In order to
 add some natural metadata to the inputs, the user should use a memorable name
-for the directory that holds these three files.</p>
+for the directory that holds these three files. The <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SimulationSeries</span></code> however are more useful as building blocks for more
+advanced workflows or for new PRMS-Python submodules and routines, e.g.
+new optimization routines.</p>
 <p>After the user prepares their input files, say into a directory called
 <code class="docutils literal notranslate"><span class="pre">prms-sim-example</span></code>, they can run the following in either a Python script or a
 Python REPL</p>
@@ -140,18 +159,65 @@ keyword argument in the <code class="docutils literal notranslate"><span class="
 <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>Additional examples of <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> including the file structure can be found in
+the API <a class="reference internal" href="api.html#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prms_python.Simulation.run()</span></code></a> and the class method <code class="docutils literal notranslate"><span class="pre">from_data</span></code> which
+allows for initialization from PRMS-Python <code class="docutils literal notranslate"><span class="pre">Data</span></code> and <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> objects can
+be found in the API at <a class="reference internal" href="api.html#prms_python.Simulation.from_data" title="prms_python.Simulation.from_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prms_python.Simulation.from_data()</span></code></a>.</p>
+<div class="section" id="simulationseries">
+<h3><code class="docutils literal notranslate"><span class="pre">SimulationSeries</span></code><a class="headerlink" href="#simulationseries" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="api.html#id4"><span class="std std-ref">SimulationSeries class</span></a> offers the same functionality
+as <code class="docutils literal notranslate"><span class="pre">Simulation</span></code> for an arbitrary number of simulations, with the added function
+of running PRMS in parralel. The example below is taken from the PRMS-Python API.</p>
+<p>Lets say you have already created a series of PRMS models by modifying
+the input climatic forcing data, e.g. you have 100 <em>data</em> files and
+you want to run each using the same <em>control</em> and <em>parameters</em> file.
+For simplicity lets say there is a directory that contains all 100
+<em>data</em> files e.g. data1, data2, … or whatever they are named and
+nothing else. This example also assumes that you want each simulation
+to be run and stored in directories named after the <em>data</em> files as
+shown.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;dir_that_contains_all_data_files&#39;</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="s1">&#39;path_to_parameter_file&#39;</span><span class="p">)</span>
+<span class="n">control_path</span> <span class="o">=</span> <span class="s1">&#39;path_to_control&#39;</span>
+<span class="c1"># a list comprehension to make multiple simulations with</span>
+<span class="c1"># different data files, alternatively you could use a for loop</span>
+<span class="n">sims</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Simulation</span><span class="o">.</span><span class="n">from_data</span>
+          <span class="p">(</span>
+            <span class="n">Data</span><span class="p">(</span><span class="n">data_file</span><span class="p">),</span>
+            <span class="n">params</span><span class="p">,</span>
+            <span class="n">control_path</span><span class="p">,</span>
+            <span class="n">simulation_dir</span><span class="o">=</span><span class="s1">&#39;sim_{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
+          <span class="p">)</span>
+        <span class="k">for</span> <span class="n">data_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="p">]</span>
+</pre></div>
+</div>
+<p>Next we can use <code class="docutils literal notranslate"><span class="pre">SimulationSeries</span></code> to run all of these
+simulations in parrallel. For example we may use 8 logical cores
+on a common desktop computer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim_series</span> <span class="o">=</span> <span class="n">SimulationSeries</span><span class="p">(</span><span class="n">sims</span><span class="p">)</span>
+<span class="n">sim_series</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">nprocs</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">SimulationSeries.run()</span></code> method will run all 100 simulations
+where chunks of 8 at a time will be run in parrallel. Inputs and
+outputs of each simulation will be sent to each simulation’s
+<code class="docutils literal notranslate"><span class="pre">simulation_dir</span></code> following the file structure of
+<code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code>.</p>
+</div>
 </div>
 <div class="section" id="scenario-scenarioseries">
 <span id="scenario-and-scenarioseries-tutorial"></span><h2><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code><a class="headerlink" href="#scenario-scenarioseries" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> class implements data management on top of the <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>
-class, enforcing the user to separate base input data and simulation input and
-output data, plus simple, optional metadata. Let’s dive in with an example,
-assuming there are properly-formed files called <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">control</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">parameters</span></code>, in a directory called <code class="docutils literal notranslate"><span class="pre">base-inputs</span></code>. We’ll use a simulation
-directory called <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> and further provide a title and description for
-the Scenario. If <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> exists it will be overwritten and if it does not
-exist it will be created. It’s up to the user to make sure data doesn’t get
-overwritten.</p>
+<p>The <a class="reference internal" href="api.html#id5"><span class="std std-ref">Scenario class</span></a> implements data management on top of the
+<code class="docutils literal notranslate"><span class="pre">Simulation</span></code> class, enforcing the user to separate base input data and
+simulation input and output data, plus simple, optional metadata. Let’s dive
+in with an example, assuming there are properly-formed files called <code class="docutils literal notranslate"><span class="pre">data</span></code>,
+<code class="docutils literal notranslate"><span class="pre">control</span></code>, and <code class="docutils literal notranslate"><span class="pre">parameters</span></code>, in a directory called <code class="docutils literal notranslate"><span class="pre">base-inputs</span></code>.
+We’ll use a simulation directory called <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> and further provide a title
+and description for the Scenario. If <code class="docutils literal notranslate"><span class="pre">sim-dir</span></code> exists it will be overwritten
+and if it does not exist it will be created. It’s up to the user to make sure
+data doesn’t get overwritten.</p>
 <p>Both Scenarios and ScenarioSeries have a three-step process for set-up and run.
 First the Scenario or ScenarioSeries must be initialized with the base and
 simulation paths, plus, optionally, a title and description. Next, the
@@ -231,10 +297,37 @@ that build the <code class="docutils literal notranslate"><span class="pre">scen
 </pre></div>
 </div>
 <p>Note that this will square the number of scenarios to be done.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">title</span></code> might look strange, but we use this metadata to recover information
+<p>The <code class="docutils literal notranslate"><span class="pre">title</span></code> might look strange, but it is useful as part of the metadata to recover information
 about the individual Scenarios in the data analysis steps shown below in
-<a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a>.</p>
+<a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a>. Alternatively, if the title is omitted the subdirectory names of
+each scenario will not be intuitively matched to the unique universal identifiers
+that are assigned automatically by <code class="docutils literal notranslate"><span class="pre">ScenarioSeries.build</span></code>. However metadata for
+each scenario’s simulation will be stored in its respective directory and could
+later be used to refer which parameter(s) were modified and how because the metadata
+file contains a text representation of the Python functions that were used to modify the
+parameter(s).</p>
+<p>Additional explanations and examples including the file structures and metadata created
+by the <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> and <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code> are found in the API <a class="reference internal" href="api.html#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.Scenario</span></code></a> and <a class="reference internal" href="api.html#prms_python.ScenarioSeries" title="prms_python.ScenarioSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.ScenarioSeries</span></code></a>.</p>
 </div>
+</div>
+<div class="section" id="optimizer-optimizationresult">
+<h2><code class="docutils literal notranslate"><span class="pre">Optimizer</span> <span class="pre">&amp;</span> <span class="pre">OptimizationResult</span></code><a class="headerlink" href="#optimizer-optimizationresult" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="api.html#id9"><span class="std std-ref">Optimizer class</span></a> holds routines for PRMS parameter
+optimization or calibration, and sensitivity.uncertainty analysis. Currently
+the <code class="docutils literal notranslate"><span class="pre">Optimizer.monte_carlo</span></code> method offers a parameter resampling routine that
+can automate the resampling or an arbitrary number of PRMS parameters, conduct
+simulations for each set of resampled parameters, and self-generate metadata for
+each. The routine uses the stand-alone function <a class="reference internal" href="api.html#prms_python.optimizer.resample_param" title="prms_python.optimizer.resample_param"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.optimizer.resample_param</span></code></a>
+which utilizes the uniform and normal distributions with added functionalities for
+parameters of varying dimensions. In other words there are different rules for
+parameter resampling for spatial parameters or parameters of large dimension than
+those of single value or monthly dimensions.</p>
+<p>The <a class="reference internal" href="api.html#id10"><span class="std std-ref">OptimizationResult class</span></a> is designed to aid
+management and analysis of output from a single optimization stage.</p>
+<p>Note, this section is currently under development, please refer to the
+example Jupyter notebook <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/monte_carlo_param_resampling.ipynb">here</a> for detailed documentation of the <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code>
+parameter resampling routine. And the notebook <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/monte_carlo_optimization_result.ipynb">here</a> for explanations and
+examples for <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code>.</p>
 </div>
 <div class="section" id="load-data-load-statvar">
 <h2><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code><a class="headerlink" href="#load-data-load-statvar" title="Permalink to this headline">¶</a></h2>
@@ -265,7 +358,7 @@ like (not identical to) the one shown in <a class="reference internal" href="#ob
 <div class="section" id="example-parameter-sensitivity">
 <span id="example"></span><h1>Example: Parameter sensitivity<a class="headerlink" href="#example-parameter-sensitivity" title="Permalink to this headline">¶</a></h1>
 <p>This is a full example of how the tools outlined above can be used together to
-build a parameter sensitivity analysis. We’ll be modifying two parameters,
+build a parameter sensitivity analysis and goodness-of-fit. We’ll be modifying two parameters,
 the monthly <em>jh_coef</em> and the HRU scale <em>rad_trncf</em>. We will
 create a list of scenario definitions to “build” the <a class="reference internal" href="api.html#prms_python.ScenarioSeries" title="prms_python.ScenarioSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.ScenarioSeries</span></code></a>. We’ll
 then use the parallelized <a class="reference internal" href="api.html#prms_python.ScenarioSeries.run" title="prms_python.ScenarioSeries.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prms_python.ScenarioSeries.run()</span></code></a> method to execute all
@@ -392,7 +485,7 @@ There are some details on customizing the plots that can be viewed there.</p>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">prms_python</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ScenarioSeries</span><span class="p">,</span> <span class="n">load_data_file</span><span class="p">,</span> <span class="n">load_statvar</span><span class="p">,</span> <span class="n">nash_sutcliffe</span>
+    <span class="n">ScenarioSeries</span><span class="p">,</span> <span class="n">load_data</span><span class="p">,</span> <span class="n">load_statvar</span><span class="p">,</span> <span class="n">nash_sutcliffe</span>
 <span class="p">)</span>
 
 <span class="c1"># define some ScenarioSeries metadata and initialize the series</span>
@@ -505,11 +598,11 @@ There are some details on customizing the plots that can be viewed there.</p>
 </pre></div>
 </td></tr></table></div>
 <p>The resulting plots from the end of the example script are shown below</p>
-<div class="figure" id="id1">
+<div class="figure" id="id2">
 <span id="obs-mod-fig"></span><img alt="comparison of observed and modeled flow" src="_images/obs-mod-flow.png" />
 <p class="caption"><span class="caption-text">Comparison of observed and modeled flow</span></p>
 </div>
-<div class="figure" id="id2">
+<div class="figure" id="id3">
 <img alt="nash-sutcliffe matrix" src="_images/nash-sutcliffe-ex.png" />
 <p class="caption"><span class="caption-text">Nash-Sutcliffe Matrix of model efficiencies</span></p>
 </div>
@@ -548,8 +641,9 @@ There are some details on customizing the plots that can be viewed there.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial and Recipes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-simulationseries"><code class="docutils literal notranslate"><span class="pre">Simulation</span> <span class="pre">&amp;</span> <span class="pre">SimulationSeries</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scenario-scenarioseries"><code class="docutils literal notranslate"><span class="pre">Scenario</span> <span class="pre">&amp;</span> <span class="pre">ScenarioSeries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimizer-optimizationresult"><code class="docutils literal notranslate"><span class="pre">Optimizer</span> <span class="pre">&amp;</span> <span class="pre">OptimizationResult</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#load-data-load-statvar"><code class="docutils literal notranslate"><span class="pre">load_data</span> <span class="pre">&amp;</span> <span class="pre">load_statvar</span></code></a></li>
 </ul>
 </li>

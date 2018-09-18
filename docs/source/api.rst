@@ -77,6 +77,12 @@ modify_params
 .. _modify^params:
 .. autofunction:: prms_python.modify_params
 
+resample_param
+^^^^^^^^^^^^^^
+
+.. _resample^param:
+.. autofunction:: prms_python.optimizer.resample_param
+
 nash_sutcliffe
 ^^^^^^^^^^^^^^
 

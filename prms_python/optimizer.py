@@ -23,9 +23,8 @@ OPJ = os.path.join
 
 class Optimizer:
     '''
-    Container for PRMS parameter optimization routines that are 
-    defined as stages similar to what is described in Hay, et al, 2006
-    (ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf).
+    Container for PRMS parameter optimization and related routines.
+
     Currently the ``monte_carlo`` method provides random parameter 
     resampling routines using uniform and normal random variables. 
 
@@ -109,13 +108,14 @@ class Optimizer:
 	random resampling techniques to a set of PRMS parameters and 
         executes and manages the corresponding simulations.  
 
-        Args:
+        Arguments:
             reference_path (str): path to measured data for optimization
             param_names (list): list of parameter names to resample
             statvar_name (str): name of statisical variable output name for
                 optimization 
             stage (str): custom name of optimization stage e.g. 'ddsolrad' 
-        Kwargs:
+
+        Keyword Arguments:
             n_sims (int): number of simulations to conduct 
                 parameter optimization/uncertaitnty analysis.
             method (str): resampling method for parameters (normal or uniform)
@@ -126,6 +126,9 @@ class Optimizer:
             noise_factor (float): scales the variance of noise to add to
                 parameter values when using normal rv (method='normal')
             nproc (int): number of processors available to run PRMS simulations
+
+        Returns:
+            None
         '''
         if '_' in stage: 
             raise ValueError('stage name cannot contain an underscore')
@@ -212,7 +215,7 @@ class Optimizer:
         use options from an OptimizationResult object, or employ a user-defined 
         method using the result data.
 
-        Kwargs:
+        Keyword Arguments:
             freq (str): frequency of time series plots, value can be 'daily'
                 or 'monthly' for solar radiation 
             method (str): 'time_series' for time series sub plot of each
@@ -228,8 +231,9 @@ class Optimizer:
             plot_1to1 (bool): if True plot one to one line on correlation 
                 scatter plot, otherwise exclude.
             return_fig (bool): flag whether to return matplotlib figure 
+
         Returns: 
-            f (matplotlib.figure.Figure): If kwarg return_fig=True, then return
+            f (:obj:`matplotlib.figure.Figure`): If kwarg return_fig=True, then return
                 copy of the figure that is generated to the user. 
         """
         if not self.arb_outputs:
@@ -350,19 +354,19 @@ def _create_metafile_name(out_dir, opt_title, stage):
     are typically run in parallel that is why this step has to be 
     done after running multiple simulations from an optimization stage.
 
-    Args:
+    Arguments:
         out_dir (str): path to directory with model results, i.e. 
             location where simulation series outputs and optimization
             json files are located, aka Optimizer.working_dir
         opt_title (str): optimization instance title for file search
-    stage (str): stage of optimization, e.g. 'swrad', 'pet' 
+        stage (str): stage of optimization, e.g. 'swrad', 'pet' 
 
     Returns:
-    name (str): file name for the current optimization simulation series
-        metadata json file. E.g 'dry_creek_swrad_opt.json', or if
-        this is the second time you have run an optimization titled
-        'dry_creek' the next json file will be returned as 
-        'dry_creek_swrad_opt1.json' and so on with integer increments     
+        name (str): file name for the current optimization simulation series
+            metadata json file. E.g 'dry_creek_swrad_opt.json', or if
+            this is the second time you have run an optimization titled
+            'dry_creek' the next json file will be returned as 
+            'dry_creek_swrad_opt1.json' and so on with integer increments     
     """
     meta_re = re.compile(r'^{}_{}_opt(\d*)\.json'.format(opt_title, stage))
     reps = []
@@ -388,7 +392,7 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     Resample PRMS parameter by shifting all values by a constant that is 
     taken from a uniform distribution, where the range of the uniform 
     values is equal to the difference between the min and max of the allowable 
-    range from PRMS. The parameter min and max are set in Optimizer.param_ranges 
+    range. The parameter min and max are set in ``Optimizer.param_ranges``. 
     If the resampling method (``how`` argument) is set to 'normal', randomly 
     sample a normal distribution with mean = mean(parameter) X ``mu_factor`` and 
     sigma = param allowable range multiplied by ``noise_factor``. If parameters have
@@ -398,10 +402,11 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
     normal method then the original values are scaled by mu_factor and a normal 
     random variable with mean=0 and std dev = parameter range X ``noise_factor``. 
 
-    Args:
-        params (parameters.Parameters): ``Parameters`` object 
+    Arguments:
+        params (:class:`prms_python.Parameters`): ``Parameters`` object 
         param_name (str): name of PRMS parameter to resample
-    Kwargs: 
+
+    Keyword Arguments: 
         how (str): distribution to resample parameters from in the case 
             that each parameter element can be resampled (len <=366)
             Currently works for uniform and normal distributions. 
@@ -409,8 +414,14 @@ def resample_param(params, param_name, how='uniform', mu_factor=1,\
             use the result as the standard deviation for the normal rand.
             variable used to add element wise noise. i.e. higher 
             noise_factor will result in higher variance. Must be > 0.
+
     Returns:
-        ret (numpy.ndarry): ndarray of param after resampling 
+        ret (:obj:`numpy.ndarry`): ndarray of param after resampling 
+
+    Raises:
+        KeyError: if ``param_name`` not a valid parameter name
+        ValueError: if the parameter range has not been set in 
+            ``Optimizer.param_ranges``
     """
     p_min, p_max = Optimizer.param_ranges.get(param_name,(-1,-1))
     
@@ -593,12 +604,13 @@ class OptimizationResult:
         Create dictionary of each optimization with stage as key and lists
         of corresponding json file paths as values. 
 
-        Args:
+        Arguments:
             work_dir (str): path to directory with model results, i.e. 
                 location where simulation series outputs and optimization
                 json files are located, aka Optimizer.working_dir
             stage (str): the stage ('ddsolrad', 'jhpet', 'flow', etc.) of 
                 the optimization in which to gather the jsons
+
         Returns:
             ret (dict): dictionary of stage (keys) and lists of 
                 json file paths for that stage (values).  
@@ -771,18 +783,19 @@ class OptimizationResult:
             metrics for each Optimizer simulation of the 
             OptimizationResult.stage in the OptimizationResult.working_dir.                  
                                                                                     
-            Kwargs:                                                              
-                remove_sims (bool) : If True recursively delete all folders 
+            Keyword Arguments:                                                              
+                remove_sims (bool): If True recursively delete all folders 
                     and files associated with original simulations of the 
                     OptimizationResult.stage in the 
                     OptimizationResult.working_dir, if False do not delete 
                     simulations.
-                remove_meta (bool) : Whether to delete original Optimizer
+                remove_meta (bool): Whether to delete original Optimizer
                     JSON metadata files, default is False.
-                metric_freq (Str) : Frequency of output metric computation 
+                metric_freq (Str): Frequency of output metric computation 
                     for recording of model performance. Can be 'daily' 
                     (default) or 'monthly'. Note, other results can be computed 
                     later with archived results. 
+
             Returns:                                                                
                 None                          
             """

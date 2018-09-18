@@ -30,7 +30,8 @@
           <div class="body" role="main">
             
   <h1>Source code for prms_python.optimizer</h1><div class="highlight"><pre>
-<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">optimizer.py -- holds ``Optimizer`` and ``OptimizationResult`` classes for </span>
 <span class="sd">optimization routines and management conducted on PRMS parameters.</span>
 <span class="sd">&#39;&#39;&#39;</span>
@@ -54,9 +55,8 @@
 
 <div class="viewcode-block" id="Optimizer"><a class="viewcode-back" href="../../api.html#prms_python.Optimizer">[docs]</a><span class="k">class</span> <span class="nc">Optimizer</span><span class="p">:</span>
     <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Container for PRMS parameter optimization routines that are </span>
-<span class="sd">    defined as stages similar to what is described in Hay, et al, 2006</span>
-<span class="sd">    (ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf).</span>
+<span class="sd">    Container for PRMS parameter optimization and related routines.</span>
+
 <span class="sd">    Currently the ``monte_carlo`` method provides random parameter </span>
 <span class="sd">    resampling routines using uniform and normal random variables. </span>
 
@@ -140,13 +140,14 @@
 <span class="sd">	random resampling techniques to a set of PRMS parameters and </span>
 <span class="sd">        executes and manages the corresponding simulations.  </span>
 
-<span class="sd">        Args:</span>
+<span class="sd">        Arguments:</span>
 <span class="sd">            reference_path (str): path to measured data for optimization</span>
 <span class="sd">            param_names (list): list of parameter names to resample</span>
 <span class="sd">            statvar_name (str): name of statisical variable output name for</span>
 <span class="sd">                optimization </span>
 <span class="sd">            stage (str): custom name of optimization stage e.g. &#39;ddsolrad&#39; </span>
-<span class="sd">        Kwargs:</span>
+
+<span class="sd">        Keyword Arguments:</span>
 <span class="sd">            n_sims (int): number of simulations to conduct </span>
 <span class="sd">                parameter optimization/uncertaitnty analysis.</span>
 <span class="sd">            method (str): resampling method for parameters (normal or uniform)</span>
@@ -157,6 +158,9 @@
 <span class="sd">            noise_factor (float): scales the variance of noise to add to</span>
 <span class="sd">                parameter values when using normal rv (method=&#39;normal&#39;)</span>
 <span class="sd">            nproc (int): number of processors available to run PRMS simulations</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">stage</span><span class="p">:</span> 
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;stage name cannot contain an underscore&#39;</span><span class="p">)</span>
@@ -243,7 +247,7 @@
 <span class="sd">        use options from an OptimizationResult object, or employ a user-defined </span>
 <span class="sd">        method using the result data.</span>
 
-<span class="sd">        Kwargs:</span>
+<span class="sd">        Keyword Arguments:</span>
 <span class="sd">            freq (str): frequency of time series plots, value can be &#39;daily&#39;</span>
 <span class="sd">                or &#39;monthly&#39; for solar radiation </span>
 <span class="sd">            method (str): &#39;time_series&#39; for time series sub plot of each</span>
@@ -259,8 +263,9 @@
 <span class="sd">            plot_1to1 (bool): if True plot one to one line on correlation </span>
 <span class="sd">                scatter plot, otherwise exclude.</span>
 <span class="sd">            return_fig (bool): flag whether to return matplotlib figure </span>
+
 <span class="sd">        Returns: </span>
-<span class="sd">            f (matplotlib.figure.Figure): If kwarg return_fig=True, then return</span>
+<span class="sd">            f (:obj:`matplotlib.figure.Figure`): If kwarg return_fig=True, then return</span>
 <span class="sd">                copy of the figure that is generated to the user. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">arb_outputs</span><span class="p">:</span>
@@ -381,19 +386,19 @@
 <span class="sd">    are typically run in parallel that is why this step has to be </span>
 <span class="sd">    done after running multiple simulations from an optimization stage.</span>
 
-<span class="sd">    Args:</span>
+<span class="sd">    Arguments:</span>
 <span class="sd">        out_dir (str): path to directory with model results, i.e. </span>
 <span class="sd">            location where simulation series outputs and optimization</span>
 <span class="sd">            json files are located, aka Optimizer.working_dir</span>
 <span class="sd">        opt_title (str): optimization instance title for file search</span>
-<span class="sd">    stage (str): stage of optimization, e.g. &#39;swrad&#39;, &#39;pet&#39; </span>
+<span class="sd">        stage (str): stage of optimization, e.g. &#39;swrad&#39;, &#39;pet&#39; </span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    name (str): file name for the current optimization simulation series</span>
-<span class="sd">        metadata json file. E.g &#39;dry_creek_swrad_opt.json&#39;, or if</span>
-<span class="sd">        this is the second time you have run an optimization titled</span>
-<span class="sd">        &#39;dry_creek&#39; the next json file will be returned as </span>
-<span class="sd">        &#39;dry_creek_swrad_opt1.json&#39; and so on with integer increments     </span>
+<span class="sd">        name (str): file name for the current optimization simulation series</span>
+<span class="sd">            metadata json file. E.g &#39;dry_creek_swrad_opt.json&#39;, or if</span>
+<span class="sd">            this is the second time you have run an optimization titled</span>
+<span class="sd">            &#39;dry_creek&#39; the next json file will be returned as </span>
+<span class="sd">            &#39;dry_creek_swrad_opt1.json&#39; and so on with integer increments     </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">meta_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_opt(\d*)\.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">opt_title</span><span class="p">,</span> <span class="n">stage</span><span class="p">))</span>
     <span class="n">reps</span> <span class="o">=</span> <span class="p">[]</span>
@@ -413,13 +418,13 @@
         <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_opt</span><span class="si">{}</span><span class="s1">.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">opt_title</span><span class="p">,</span> <span class="n">stage</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">name</span>
 
-<span class="k">def</span> <span class="nf">resample_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">mu_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>\
+<div class="viewcode-block" id="resample_param"><a class="viewcode-back" href="../../api.html#prms_python.resample_param">[docs]</a><span class="k">def</span> <span class="nf">resample_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">mu_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>\
                    <span class="n">noise_factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resample PRMS parameter by shifting all values by a constant that is </span>
 <span class="sd">    taken from a uniform distribution, where the range of the uniform </span>
 <span class="sd">    values is equal to the difference between the min and max of the allowable </span>
-<span class="sd">    range from PRMS. The parameter min and max are set in Optimizer.param_ranges </span>
+<span class="sd">    range. The parameter min and max are set in ``Optimizer.param_ranges``. </span>
 <span class="sd">    If the resampling method (``how`` argument) is set to &#39;normal&#39;, randomly </span>
 <span class="sd">    sample a normal distribution with mean = mean(parameter) X ``mu_factor`` and </span>
 <span class="sd">    sigma = param allowable range multiplied by ``noise_factor``. If parameters have</span>
@@ -429,10 +434,11 @@
 <span class="sd">    normal method then the original values are scaled by mu_factor and a normal </span>
 <span class="sd">    random variable with mean=0 and std dev = parameter range X ``noise_factor``. </span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        params (parameters.Parameters): ``Parameters`` object </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        params (:class:`prms_python.Parameters`): ``Parameters`` object </span>
 <span class="sd">        param_name (str): name of PRMS parameter to resample</span>
-<span class="sd">    Kwargs: </span>
+
+<span class="sd">    Keyword Arguments: </span>
 <span class="sd">        how (str): distribution to resample parameters from in the case </span>
 <span class="sd">            that each parameter element can be resampled (len &lt;=366)</span>
 <span class="sd">            Currently works for uniform and normal distributions. </span>
@@ -440,8 +446,14 @@
 <span class="sd">            use the result as the standard deviation for the normal rand.</span>
 <span class="sd">            variable used to add element wise noise. i.e. higher </span>
 <span class="sd">            noise_factor will result in higher variance. Must be &gt; 0.</span>
+
 <span class="sd">    Returns:</span>
-<span class="sd">        ret (numpy.ndarry): ndarray of param after resampling </span>
+<span class="sd">        ret (:obj:`numpy.ndarry`): ndarray of param after resampling </span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        KeyError: if ``param_name`` not a valid parameter name</span>
+<span class="sd">        ValueError: if the parameter range has not been set in </span>
+<span class="sd">            ``Optimizer.param_ranges``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">p_min</span><span class="p">,</span> <span class="n">p_max</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="o">.</span><span class="n">param_ranges</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
     
@@ -528,7 +540,7 @@
                 <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">el</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="n">ret</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">+</span> <span class="n">el</span>
 
-    <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
 
 <span class="k">def</span> <span class="nf">_mod_params</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">param_names</span><span class="p">):</span>
     <span class="c1"># loop through list of params and assign their values to Parameter instance</span>
@@ -624,12 +636,13 @@
 <span class="sd">        Create dictionary of each optimization with stage as key and lists</span>
 <span class="sd">        of corresponding json file paths as values. </span>
 
-<span class="sd">        Args:</span>
+<span class="sd">        Arguments:</span>
 <span class="sd">            work_dir (str): path to directory with model results, i.e. </span>
 <span class="sd">                location where simulation series outputs and optimization</span>
 <span class="sd">                json files are located, aka Optimizer.working_dir</span>
 <span class="sd">            stage (str): the stage (&#39;ddsolrad&#39;, &#39;jhpet&#39;, &#39;flow&#39;, etc.) of </span>
 <span class="sd">                the optimization in which to gather the jsons</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            ret (dict): dictionary of stage (keys) and lists of </span>
 <span class="sd">                json file paths for that stage (values).  </span>
@@ -802,18 +815,19 @@
 <span class="sd">            metrics for each Optimizer simulation of the </span>
 <span class="sd">            OptimizationResult.stage in the OptimizationResult.working_dir.                  </span>
 <span class="sd">                                                                                    </span>
-<span class="sd">            Kwargs:                                                              </span>
-<span class="sd">                remove_sims (bool) : If True recursively delete all folders </span>
+<span class="sd">            Keyword Arguments:                                                              </span>
+<span class="sd">                remove_sims (bool): If True recursively delete all folders </span>
 <span class="sd">                    and files associated with original simulations of the </span>
 <span class="sd">                    OptimizationResult.stage in the </span>
 <span class="sd">                    OptimizationResult.working_dir, if False do not delete </span>
 <span class="sd">                    simulations.</span>
-<span class="sd">                remove_meta (bool) : Whether to delete original Optimizer</span>
+<span class="sd">                remove_meta (bool): Whether to delete original Optimizer</span>
 <span class="sd">                    JSON metadata files, default is False.</span>
-<span class="sd">                metric_freq (Str) : Frequency of output metric computation </span>
+<span class="sd">                metric_freq (Str): Frequency of output metric computation </span>
 <span class="sd">                    for recording of model performance. Can be &#39;daily&#39; </span>
 <span class="sd">                    (default) or &#39;monthly&#39;. Note, other results can be computed </span>
 <span class="sd">                    later with archived results. </span>
+
 <span class="sd">            Returns:                                                                </span>
 <span class="sd">                None                          </span>
 <span class="sd">            &quot;&quot;&quot;</span>

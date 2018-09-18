@@ -34,29 +34,30 @@
 <h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#classes" id="id14">Classes</a><ul>
-<li><a class="reference internal" href="#data" id="id15">Data</a></li>
-<li><a class="reference internal" href="#parameters" id="id16">Parameters</a></li>
-<li><a class="reference internal" href="#simulation" id="id17">Simulation</a></li>
-<li><a class="reference internal" href="#simulationseries" id="id18">SimulationSeries</a></li>
-<li><a class="reference internal" href="#scenario" id="id19">Scenario</a></li>
-<li><a class="reference internal" href="#scenarioseries" id="id20">ScenarioSeries</a></li>
-<li><a class="reference internal" href="#optimizer" id="id21">Optimizer</a></li>
-<li><a class="reference internal" href="#optimizationresult" id="id22">OptimizationResult</a></li>
+<li><a class="reference internal" href="#classes" id="id15">Classes</a><ul>
+<li><a class="reference internal" href="#data" id="id16">Data</a></li>
+<li><a class="reference internal" href="#parameters" id="id17">Parameters</a></li>
+<li><a class="reference internal" href="#simulation" id="id18">Simulation</a></li>
+<li><a class="reference internal" href="#simulationseries" id="id19">SimulationSeries</a></li>
+<li><a class="reference internal" href="#scenario" id="id20">Scenario</a></li>
+<li><a class="reference internal" href="#scenarioseries" id="id21">ScenarioSeries</a></li>
+<li><a class="reference internal" href="#optimizer" id="id22">Optimizer</a></li>
+<li><a class="reference internal" href="#optimizationresult" id="id23">OptimizationResult</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#select-helper-functions" id="id23">Select helper functions</a><ul>
-<li><a class="reference internal" href="#load-statvar" id="id24">load_statvar</a></li>
-<li><a class="reference internal" href="#modify-params" id="id25">modify_params</a></li>
-<li><a class="reference internal" href="#nash-sutcliffe" id="id26">nash_sutcliffe</a></li>
+<li><a class="reference internal" href="#select-helper-functions" id="id24">Select helper functions</a><ul>
+<li><a class="reference internal" href="#load-statvar" id="id25">load_statvar</a></li>
+<li><a class="reference internal" href="#modify-params" id="id26">modify_params</a></li>
+<li><a class="reference internal" href="#resample-param" id="id27">resample_param</a></li>
+<li><a class="reference internal" href="#nash-sutcliffe" id="id28">nash_sutcliffe</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="classes">
-<h2><a class="toc-backref" href="#id14">Classes</a><a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id15">Classes</a><a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="data">
-<h3><a class="toc-backref" href="#id15">Data</a><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id16">Data</a><a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id1"></span><dl class="class">
 <dt id="prms_python.Data">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>base_file=None</em>, <em>na_rep=-999</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/data.html#Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Data" title="Permalink to this definition">¶</a></dt>
@@ -241,7 +242,7 @@ and <code class="docutils literal notranslate"><span class="pre">data_frame</spa
 
 </div>
 <div class="section" id="parameters">
-<h3><a class="toc-backref" href="#id16">Parameters</a><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id17">Parameters</a><a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id2"></span><dl class="class">
 <dt id="prms_python.Parameters">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Parameters</code><span class="sig-paren">(</span><em>base_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#Parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Parameters" title="Permalink to this definition">¶</a></dt>
@@ -411,7 +412,7 @@ format.</td>
 
 </div>
 <div class="section" id="simulation">
-<h3><a class="toc-backref" href="#id17">Simulation</a><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id18">Simulation</a><a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id3"></span><dl class="class">
 <dt id="prms_python.Simulation">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Simulation</code><span class="sig-paren">(</span><em>input_dir=None</em>, <em>simulation_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#Simulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Simulation" title="Permalink to this definition">¶</a></dt>
@@ -588,7 +589,7 @@ of the PRMS simulation will be transferred to <code class="docutils literal notr
 
 </div>
 <div class="section" id="simulationseries">
-<h3><a class="toc-backref" href="#id18">SimulationSeries</a><a class="headerlink" href="#simulationseries" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id19">SimulationSeries</a><a class="headerlink" href="#simulationseries" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id4"></span><dl class="class">
 <dt id="prms_python.SimulationSeries">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">SimulationSeries</code><span class="sig-paren">(</span><em>simulations</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/simulation.html#SimulationSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.SimulationSeries" title="Permalink to this definition">¶</a></dt>
@@ -727,7 +728,7 @@ of the available processecors on the machine using the Python
 
 </div>
 <div class="section" id="scenario">
-<h3><a class="toc-backref" href="#id19">Scenario</a><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id20">Scenario</a><a class="headerlink" href="#scenario" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id5"></span><dl class="class">
 <dt id="prms_python.Scenario">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Scenario</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenario_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#Scenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Scenario" title="Permalink to this definition">¶</a></dt>
@@ -920,7 +921,7 @@ been called.</td>
 
 </div>
 <div class="section" id="scenarioseries">
-<h3><a class="toc-backref" href="#id20">ScenarioSeries</a><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id21">ScenarioSeries</a><a class="headerlink" href="#scenarioseries" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id6"></span><dl class="class">
 <dt id="prms_python.ScenarioSeries">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">ScenarioSeries</code><span class="sig-paren">(</span><em>base_dir</em>, <em>scenarios_dir</em>, <em>title=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/scenario.html#ScenarioSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.ScenarioSeries" title="Permalink to this definition">¶</a></dt>
@@ -1199,14 +1200,12 @@ in each scenario directory which may be more cumbersome.</p>
 
 </div>
 <div class="section" id="optimizer">
-<h3><a class="toc-backref" href="#id21">Optimizer</a><a class="headerlink" href="#optimizer" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id22">Optimizer</a><a class="headerlink" href="#optimizer" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id9"></span><dl class="class">
 <dt id="prms_python.Optimizer">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">Optimizer</code><span class="sig-paren">(</span><em>parameters</em>, <em>data</em>, <em>control_file</em>, <em>working_dir</em>, <em>title</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.Optimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Container for PRMS parameter optimization routines that are
-defined as stages similar to what is described in Hay, et al, 2006
-(<a class="reference external" href="ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf">ftp://brrftp.cr.usgs.gov/pub/mows/software/luca_s/jawraHay.pdf</a>).
-Currently the <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> method provides random parameter
+<dd><p>Container for PRMS parameter optimization and related routines.</p>
+<p>Currently the <code class="docutils literal notranslate"><span class="pre">monte_carlo</span></code> method provides random parameter
 resampling routines using uniform and normal random variables.</p>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">prms_python</span> <span class="k">import</span> <span class="n">Data</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Parameters</span>
@@ -1237,7 +1236,7 @@ executes and manages the corresponding simulations.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>reference_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to measured data for optimization</li>
 <li><strong>param_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – list of parameter names to resample</li>
 <li><strong>statvar_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of statisical variable output name for
@@ -1246,27 +1245,26 @@ optimization</li>
 </ul>
 </td>
 </tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>n_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of simulations to conduct
+parameter optimization/uncertaitnty analysis.</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – resampling method for parameters (normal or uniform)</li>
+<li><strong>mu_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – coefficient to scale mean of the parameter(s)
+to resample from when using the normal distribution to resample
+i.e. a value of 1.5 will sample from a normal rv with mean
+50% higher than the original parameter mean</li>
+<li><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – scales the variance of noise to add to
+parameter values when using normal rv (method=’normal’)</li>
+<li><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of processors available to run PRMS simulations</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd><dl class="first docutils">
-<dt>n_sims (int): number of simulations to conduct</dt>
-<dd>parameter optimization/uncertaitnty analysis.</dd>
-</dl>
-<p>method (str): resampling method for parameters (normal or uniform)
-mu_factor (float): coefficient to scale mean of the parameter(s)</p>
-<blockquote>
-<div>to resample from when using the normal distribution to resample
-i.e. a value of 1.5 will sample from a normal rv with mean
-50% higher than the original parameter mean</div></blockquote>
-<dl class="docutils">
-<dt>noise_factor (float): scales the variance of noise to add to</dt>
-<dd>parameter values when using normal rv (method=’normal’)</dd>
-</dl>
-<p class="last">nproc (int): number of processors available to run PRMS simulations</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
@@ -1277,38 +1275,40 @@ Plots measured, original simluated, and optimization simulated variabes
 Not recommended for plotting results when n_sims is very large, instead
 use options from an OptimizationResult object, or employ a user-defined
 method using the result data.</p>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd><dl class="first docutils">
-<dt>freq (str): frequency of time series plots, value can be ‘daily’</dt>
-<dd>or ‘monthly’ for solar radiation</dd>
-<dt>method (str): ‘time_series’ for time series sub plot of each</dt>
-<dd>simulation alongside measured radiation. Another choice is
-‘correlation’ which plots each measured daily solar radiation
-value versus the corresponding simulated variable as subplots
-one for each simulation in the optimization. With coefficients
-of determiniationi i.e. square of pearson correlation coef.</dd>
-<dt>plot_vars (str): what to plot alongside simulated srad:</dt>
-<dd>‘meas’: plot simulated along with measured swrad
-‘orig’: plot simulated along with the original simulated swrad
-‘both’: plot simulated, with original simulation and measured</dd>
-<dt>plot_1to1 (bool): if True plot one to one line on correlation</dt>
-<dd>scatter plot, otherwise exclude.</dd>
-</dl>
-<p class="last">return_fig (bool): flag whether to return matplotlib figure</p>
-</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>If kwarg return_fig=True, then return</dt>
-<dd>copy of the figure that is generated to the user.</dd>
-</dl>
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – frequency of time series plots, value can be ‘daily’
+or ‘monthly’ for solar radiation</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – ‘time_series’ for time series sub plot of each
+simulation alongside measured radiation. Another choice is
+‘correlation’ which plots each measured daily solar radiation
+value versus the corresponding simulated variable as subplots
+one for each simulation in the optimization. With coefficients
+of determiniationi i.e. square of pearson correlation coef.</li>
+<li><strong>plot_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – what to plot alongside simulated srad:
+‘meas’: plot simulated along with measured swrad
+‘orig’: plot simulated along with the original simulated swrad
+‘both’: plot simulated, with original simulation and measured</li>
+<li><strong>plot_1to1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True plot one to one line on correlation
+scatter plot, otherwise exclude.</li>
+<li><strong>return_fig</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – flag whether to return matplotlib figure</li>
+</ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">f (matplotlib.figure.Figure)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>If kwarg return_fig=True, then return</dt>
+<dd><p class="first last">copy of the figure that is generated to the user.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">f (<code class="xref py py-obj docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code>)</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1318,7 +1318,7 @@ of determiniationi i.e. square of pearson correlation coef.</dd>
 
 </div>
 <div class="section" id="optimizationresult">
-<h3><a class="toc-backref" href="#id22">OptimizationResult</a><a class="headerlink" href="#optimizationresult" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id23">OptimizationResult</a><a class="headerlink" href="#optimizationresult" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id10"></span><dl class="class">
 <dt id="prms_python.OptimizationResult">
 <em class="property">class </em><code class="descclassname">prms_python.</code><code class="descname">OptimizationResult</code><span class="sig-paren">(</span><em>working_dir</em>, <em>stage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#OptimizationResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.OptimizationResult" title="Permalink to this definition">¶</a></dt>
@@ -1371,28 +1371,28 @@ method then recursively deletes the simulation data for each of the given stage.
 information of adjusted parameters, model output, and performance
 metrics for each Optimizer simulation of the
 OptimizationResult.stage in the OptimizationResult.working_dir.</p>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd><dl class="first last docutils">
-<dt>remove_sims (bool) <span class="classifier-delimiter">:</span> <span class="classifier">If True recursively delete all folders</span></dt>
-<dd>and files associated with original simulations of the
-OptimizationResult.stage in the
-OptimizationResult.working_dir, if False do not delete
-simulations.</dd>
-<dt>remove_meta (bool) <span class="classifier-delimiter">:</span> <span class="classifier">Whether to delete original Optimizer</span></dt>
-<dd>JSON metadata files, default is False.</dd>
-<dt>metric_freq (Str) <span class="classifier-delimiter">:</span> <span class="classifier">Frequency of output metric computation</span></dt>
-<dd>for recording of model performance. Can be ‘daily’
-(default) or ‘monthly’. Note, other results can be computed
-later with archived results.</dd>
-</dl>
-</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>remove_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True recursively delete all folders
+and files associated with original simulations of the
+OptimizationResult.stage in the
+OptimizationResult.working_dir, if False do not delete
+simulations.</li>
+<li><strong>remove_meta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to delete original Optimizer
+JSON metadata files, default is False.</li>
+<li><strong>metric_freq</strong> (<em>Str</em>) – Frequency of output metric computation
+for recording of model performance. Can be ‘daily’
+(default) or ‘monthly’. Note, other results can be computed
+later with archived results.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1403,9 +1403,9 @@ later with archived results.</dd>
 </div>
 </div>
 <div class="section" id="select-helper-functions">
-<h2><a class="toc-backref" href="#id23">Select helper functions</a><a class="headerlink" href="#select-helper-functions" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id24">Select helper functions</a><a class="headerlink" href="#select-helper-functions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="load-statvar">
-<h3><a class="toc-backref" href="#id24">load_statvar</a><a class="headerlink" href="#load-statvar" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id25">load_statvar</a><a class="headerlink" href="#load-statvar" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id11"></span><dl class="function">
 <dt id="prms_python.load_statvar">
 <code class="descclassname">prms_python.</code><code class="descname">load_statvar</code><span class="sig-paren">(</span><em>statvar_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#load_statvar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.load_statvar" title="Permalink to this definition">¶</a></dt>
@@ -1429,7 +1429,7 @@ Pandas dataframe object</p>
 
 </div>
 <div class="section" id="modify-params">
-<h3><a class="toc-backref" href="#id25">modify_params</a><a class="headerlink" href="#modify-params" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id26">modify_params</a><a class="headerlink" href="#modify-params" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id12"></span><dl class="function">
 <dt id="prms_python.modify_params">
 <code class="descclassname">prms_python.</code><code class="descname">modify_params</code><span class="sig-paren">(</span><em>params_in</em>, <em>params_out</em>, <em>param_mods=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/parameters.html#modify_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.modify_params" title="Permalink to this definition">¶</a></dt>
@@ -1472,9 +1472,66 @@ cascade routing rule for which the parameter is defined.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="nash-sutcliffe">
-<h3><a class="toc-backref" href="#id26">nash_sutcliffe</a><a class="headerlink" href="#nash-sutcliffe" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="resample-param">
+<h3><a class="toc-backref" href="#id27">resample_param</a><a class="headerlink" href="#resample-param" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="id13"></span><dl class="function">
+<dt id="prms_python.optimizer.resample_param">
+<code class="descclassname">prms_python.optimizer.</code><code class="descname">resample_param</code><span class="sig-paren">(</span><em>params</em>, <em>param_name</em>, <em>how='uniform'</em>, <em>mu_factor=1</em>, <em>noise_factor=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/optimizer.html#resample_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.optimizer.resample_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample PRMS parameter by shifting all values by a constant that is
+taken from a uniform distribution, where the range of the uniform
+values is equal to the difference between the min and max of the allowable
+range. The parameter min and max are set in <code class="docutils literal notranslate"><span class="pre">Optimizer.param_ranges</span></code>.
+If the resampling method (<code class="docutils literal notranslate"><span class="pre">how</span></code> argument) is set to ‘normal’, randomly
+sample a normal distribution with mean = mean(parameter) X <code class="docutils literal notranslate"><span class="pre">mu_factor</span></code> and
+sigma = param allowable range multiplied by <code class="docutils literal notranslate"><span class="pre">noise_factor</span></code>. If parameters have
+array length &lt;= 366 then individual parameter values are resampled otherwise
+resample all param values at once, e.g. by taking a single random value
+from the uniform distribution. If they are taking all at once using the
+normal method then the original values are scaled by mu_factor and a normal
+random variable with mean=0 and std dev = parameter range X <code class="docutils literal notranslate"><span class="pre">noise_factor</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>params</strong> (<a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.Parameters</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> object</li>
+<li><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS parameter to resample</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>how</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – distribution to resample parameters from in the case
+that each parameter element can be resampled (len &lt;=366)
+Currently works for uniform and normal distributions.</li>
+<li><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – factor to multiply parameter range by,
+use the result as the standard deviation for the normal rand.
+variable used to add element wise noise. i.e. higher
+noise_factor will result in higher variance. Must be &gt; 0.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray of param after resampling</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarry</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a> – if <code class="docutils literal notranslate"><span class="pre">param_name</span></code> not a valid parameter name</li>
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – if the parameter range has not been set in
+<code class="docutils literal notranslate"><span class="pre">Optimizer.param_ranges</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="nash-sutcliffe">
+<h3><a class="toc-backref" href="#id28">nash_sutcliffe</a><a class="headerlink" href="#nash-sutcliffe" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="id14"></span><dl class="function">
 <dt id="prms_python.nash_sutcliffe">
 <code class="descclassname">prms_python.</code><code class="descname">nash_sutcliffe</code><span class="sig-paren">(</span><em>observed</em>, <em>modeled</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/prms_python/util.html#nash_sutcliffe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#prms_python.nash_sutcliffe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the Nash-Sutcliffe Goodness-of-fit</p>
