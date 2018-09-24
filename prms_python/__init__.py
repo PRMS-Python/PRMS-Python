@@ -14,7 +14,7 @@ if the input meteorological data were to change?
 
 __name__ = 'prms_python'
 __author__ = 'John Volk and Matthew Turner'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 from prms_python.data import Data
 from prms_python.optimizer import Optimizer, OptimizationResult

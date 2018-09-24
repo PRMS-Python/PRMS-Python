@@ -3,12 +3,18 @@
 util.py -- Utilities for working with PRMS data or other functionality that aren't
 appropriate to put elsewhere at this time.
 """
-
+import warnings
 import os, shutil, json
 import numpy as np
 import pandas as pd
 
 def calc_emp_CDF(data):
+    # changed function name for PEP 8 style
+    warnings.warn("calc_emp_CDF is deprecated, please use "+\
+                  "util.calc_emp_cdf instead", DeprecationWarning)
+    return calc_emp_cdf(data)
+
+def calc_emp_cdf(data):
     """
     Create empirical CDF of arbitrary data
     
@@ -27,6 +33,12 @@ def calc_emp_CDF(data):
     return X,F
 
 def Kolmogorov_Smirnov(uncond, cond, n_bins=10000):
+    # changed function name for PEP 8 style
+    warnings.warn("Kolmogorov_Smirnov is deprecated, please use "+\
+                  "util.komogorov_smirnov instead", DeprecationWarning)
+    return kolmogorov_smirnov(uncond, cond, n_bins=10000)
+
+def kolmogorov_smirnov(uncond, cond, n_bins=10000):
     """ 
     Calculate the Kolmogorov-Smirnov statistic between two datasets by first 
     computing their empirical CDFs
@@ -119,20 +131,21 @@ def delete_files(work_directory, file_name=''):
         file_name (str) : Name of the PRMS input or output file(s) to be 
             removed, default = '' empty string- nothing will be deleted.             
 
-            e.g. if you have several simulation directories:
+    Example: 
+        e.g. if you have several simulation directories:
 
-	    >>>		"test/results/intcp:-26.50_slope:0.49", 
-			"test/results/intcp:-11.68_slope:0.54", 
-			"test/results/intcp:-4.70_slope:0.51", 
-			"test/results/intcp:-35.39_slope:0.39", 
-			"test/results/intcp:-20.91_slope:0.41"
+	>>> "test/results/intcp:-26.50_slope:0.49", 
+	    "test/results/intcp:-11.68_slope:0.54", 
+	    "test/results/intcp:-4.70_slope:0.51", 
+	    "test/results/intcp:-35.39_slope:0.39", 
+	    "test/results/intcp:-20.91_slope:0.41"
 
-            each of these contains an '/inputs' folder with a duplicate data 
-            file that you would like to delete. In this case, delete all 
-            data files like so:
+        each of these contains an '/inputs' folder with a duplicate data 
+        file that you would like to delete. In this case, delete all 
+        data files like so:
 
-            >>> work_dir = 'test/results/'
-            >>> delete_ic_files(work_dir, file_name='data')
+        >>> work_dir = 'test/results/'
+        >>> delete_files(work_dir, file_name='data')
 		    
     Returns:
         None     
@@ -202,6 +215,12 @@ def load_statvar(statvar_file):
 
     return df
 
+
+def load_data_file(data_file):
+    # changed function name for PEP 8 style
+    warnings.warn("load_data_file is deprecated, please use "+\
+                  "util.load_data instead", DeprecationWarning)
+    return load_data(data_file)
 
 def load_data(data_file):
     """

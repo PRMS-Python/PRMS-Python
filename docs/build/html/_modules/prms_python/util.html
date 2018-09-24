@@ -25,8 +25,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <h1>Source code for prms_python.util</h1><div class="highlight"><pre>
@@ -35,12 +33,18 @@
 <span class="sd">util.py -- Utilities for working with PRMS data or other functionality that aren&#39;t</span>
 <span class="sd">appropriate to put elsewhere at this time.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="k">def</span> <span class="nf">calc_emp_CDF</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="c1"># changed function name for PEP 8 style</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;calc_emp_CDF is deprecated, please use &quot;</span><span class="o">+</span>\
+                  <span class="s2">&quot;util.calc_emp_cdf instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">calc_emp_cdf</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">calc_emp_cdf</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create empirical CDF of arbitrary data</span>
 <span class="sd">    </span>
@@ -59,6 +63,12 @@
     <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">F</span>
 
 <span class="k">def</span> <span class="nf">Kolmogorov_Smirnov</span><span class="p">(</span><span class="n">uncond</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="c1"># changed function name for PEP 8 style</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Kolmogorov_Smirnov is deprecated, please use &quot;</span><span class="o">+</span>\
+                  <span class="s2">&quot;util.komogorov_smirnov instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kolmogorov_smirnov</span><span class="p">(</span><span class="n">uncond</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">kolmogorov_smirnov</span><span class="p">(</span><span class="n">uncond</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">    Calculate the Kolmogorov-Smirnov statistic between two datasets by first </span>
 <span class="sd">    computing their empirical CDFs</span>
@@ -151,20 +161,21 @@
 <span class="sd">        file_name (str) : Name of the PRMS input or output file(s) to be </span>
 <span class="sd">            removed, default = &#39;&#39; empty string- nothing will be deleted.             </span>
 
-<span class="sd">            e.g. if you have several simulation directories:</span>
+<span class="sd">    Example: </span>
+<span class="sd">        e.g. if you have several simulation directories:</span>
 
-<span class="sd">	    &gt;&gt;&gt;		&quot;test/results/intcp:-26.50_slope:0.49&quot;, </span>
-<span class="sd">			&quot;test/results/intcp:-11.68_slope:0.54&quot;, </span>
-<span class="sd">			&quot;test/results/intcp:-4.70_slope:0.51&quot;, </span>
-<span class="sd">			&quot;test/results/intcp:-35.39_slope:0.39&quot;, </span>
-<span class="sd">			&quot;test/results/intcp:-20.91_slope:0.41&quot;</span>
+<span class="sd">	&gt;&gt;&gt; &quot;test/results/intcp:-26.50_slope:0.49&quot;, </span>
+<span class="sd">	    &quot;test/results/intcp:-11.68_slope:0.54&quot;, </span>
+<span class="sd">	    &quot;test/results/intcp:-4.70_slope:0.51&quot;, </span>
+<span class="sd">	    &quot;test/results/intcp:-35.39_slope:0.39&quot;, </span>
+<span class="sd">	    &quot;test/results/intcp:-20.91_slope:0.41&quot;</span>
 
-<span class="sd">            each of these contains an &#39;/inputs&#39; folder with a duplicate data </span>
-<span class="sd">            file that you would like to delete. In this case, delete all </span>
-<span class="sd">            data files like so:</span>
+<span class="sd">        each of these contains an &#39;/inputs&#39; folder with a duplicate data </span>
+<span class="sd">        file that you would like to delete. In this case, delete all </span>
+<span class="sd">        data files like so:</span>
 
-<span class="sd">            &gt;&gt;&gt; work_dir = &#39;test/results/&#39;</span>
-<span class="sd">            &gt;&gt;&gt; delete_ic_files(work_dir, file_name=&#39;data&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; work_dir = &#39;test/results/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; delete_files(work_dir, file_name=&#39;data&#39;)</span>
 <span class="sd">		    </span>
 <span class="sd">    Returns:</span>
 <span class="sd">        None     </span>
@@ -234,6 +245,12 @@
 
     <span class="k">return</span> <span class="n">df</span></div>
 
+
+<span class="k">def</span> <span class="nf">load_data_file</span><span class="p">(</span><span class="n">data_file</span><span class="p">):</span>
+    <span class="c1"># changed function name for PEP 8 style</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;load_data_file is deprecated, please use &quot;</span><span class="o">+</span>\
+                  <span class="s2">&quot;util.load_data instead&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">load_data</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="n">data_file</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -360,7 +377,6 @@
 </pre></div>
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -393,6 +409,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Change log</a></li>
 </ul>
 
 <div class="relations">
@@ -424,8 +441,8 @@
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
 
