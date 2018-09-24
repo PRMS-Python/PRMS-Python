@@ -1,4 +1,4 @@
-Copyright (c) 2016 John Volk
+Copyright (c) 2016-2018 John Volk and Matt Turner
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
