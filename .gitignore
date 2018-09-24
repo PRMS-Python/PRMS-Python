@@ -11,7 +11,7 @@
 
 # builds for uploading to PyPI
 dist/
-build/
+./build/
 prms_python.egg-info/
 
 venv
