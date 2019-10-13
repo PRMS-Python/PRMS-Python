@@ -63,11 +63,11 @@ class ScenarioSeries(object):
         first we initialize the object
 
         >>> series = ScenarioSeries(
-                       base_dir = 'dir_with_input_files',
-                       scenarios_dir = 'dir_to_run_series',
-                       title = 'title_for_group_of_scenarios',
-                       description = 'description_for_scenarios'
-                     )
+        >>>      base_dir = 'dir_with_input_files',
+        >>>      scenarios_dir = 'dir_to_run_series',
+        >>>      title = 'title_for_group_of_scenarios',
+        >>>      description = 'description_for_scenarios'
+        >>> )
         
         The next step is to "build" the ``ScenarioSeries`` by calling the 
         :meth:`ScenarioSeries.build` method which defines which parameters

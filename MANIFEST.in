@@ -1,0 +1,3 @@
+include license
+include environment.yml
+graft notebooks

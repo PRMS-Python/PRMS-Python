@@ -1,14 +1,9 @@
-.. PRMS-Python documentation master file, created by
-   sphinx-quickstart on Tue Jun 28 10:24:04 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Tutorial and Recipes
 ====================
 
-In this tutorial we walk through each important class and function, and 
-explain each one's purpose and use with an example. At the end of the tutorial
-in :ref:`example` we show a more advanced workflow involving parameter sensitivity
+In this tutorial we walk through each important class and function, and explain
+each one's purpose and use with an example. At the end of the tutorial in
+:ref:`example` we show a more advanced workflow involving parameter sensitivity
 over dual parameter space that uses several of the previously described classes
 and functions.
 

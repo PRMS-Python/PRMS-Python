@@ -65,6 +65,10 @@ OptimizationResult
 Select helper functions
 -----------------------
 
+load_data
+^^^^^^^^^^^^
+.. autofunction:: prms_python.load_data
+
 load_statvar
 ^^^^^^^^^^^^
 

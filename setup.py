@@ -39,7 +39,6 @@ PRMS-Python provides a Python interface to PRMS data files and manages PRMS simu
     packages=['prms_python', 'prms_python.scripts', 'test'],
     install_requires=requires,
     tests_require=tests_require,
-    package_data={'prms_python': ['models/lbcd/*']},
     include_package_data=True,
     entry_points='''
         [console_scripts]

@@ -1,19 +1,22 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Tutorial and Recipes &#8212; PRMS-Python v1.0.0</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <script type="text/javascript" src="_static/custom.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@1/dist/clipboard.min.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,9 +36,9 @@
             
   <div class="section" id="tutorial-and-recipes">
 <h1>Tutorial and Recipes<a class="headerlink" href="#tutorial-and-recipes" title="Permalink to this headline">¶</a></h1>
-<p>In this tutorial we walk through each important class and function, and
-explain each one’s purpose and use with an example. At the end of the tutorial
-in <a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a> we show a more advanced workflow involving parameter sensitivity
+<p>In this tutorial we walk through each important class and function, and explain
+each one’s purpose and use with an example. At the end of the tutorial in
+<a class="reference internal" href="#example"><span class="std std-ref">Example: Parameter sensitivity</span></a> we show a more advanced workflow involving parameter sensitivity
 over dual parameter space that uses several of the previously described classes
 and functions.</p>
 <div class="section" id="data">
@@ -44,7 +47,7 @@ and functions.</p>
 for easy modification and writing of PRMS data files.</p>
 <p>A PRMS data file holds time series variables that are used as input for running
 PRMS, e.g. daily air temperature and precipitation. Being tabular and date-indexed
-the data file is well represented and managed as a <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
+the data file is well represented and managed as a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
 A common paractice in hydrologic modeling is to evaluate hydrologic response
 to multiple climate change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based
 modification of time series variable/s so that the user can quickly create new
@@ -66,7 +69,7 @@ to disk in the PRMS ascii format.</p>
 <span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> property is the <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> representation
+<p>The <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> property is the <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> representation
 of hydro-climatic variables found in a PRMS data file. As such it can also
 be assigned within Python. However in order to create a data file from scratch
 using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> object one must also assign the <code class="docutils literal notranslate"><span class="pre">Data.metadata</span></code> property.
@@ -334,7 +337,7 @@ examples for <code class="docutils literal notranslate"><span class="pre">Optimi
 <p>Among other uses, if we want to compare the performance of our model to
 historical data for the purposes of parameterization or analyzing climate change
 scenarios, we will have to load the input and output hydrographs. The two
-functions <code class="xref any docutils literal notranslate"><span class="pre">prms_python.load_data</span></code> and <a class="reference internal" href="api.html#prms_python.load_statvar" title="prms_python.load_statvar"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_statvar</span></code></a>
+functions <a class="reference internal" href="api.html#prms_python.load_data" title="prms_python.load_data"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_data</span></code></a> and <a class="reference internal" href="api.html#prms_python.load_statvar" title="prms_python.load_statvar"><code class="xref any py py-func docutils literal notranslate"><span class="pre">prms_python.load_statvar</span></code></a>
 read the data and statvar files into a Pandas DataFrame, which allows for
 streamlined plotting and analysis.</p>
 <p>Here is a simple example of how to use these functions to generate a plot
@@ -598,13 +601,13 @@ There are some details on customizing the plots that can be viewed there.</p>
 </pre></div>
 </td></tr></table></div>
 <p>The resulting plots from the end of the example script are shown below</p>
-<div class="figure" id="id2">
+<div class="figure align-default" id="id2">
 <span id="obs-mod-fig"></span><img alt="comparison of observed and modeled flow" src="_images/obs-mod-flow.png" />
-<p class="caption"><span class="caption-text">Comparison of observed and modeled flow</span></p>
+<p class="caption"><span class="caption-text">Comparison of observed and modeled flow</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
-<div class="figure" id="id3">
+<div class="figure align-default" id="id3">
 <img alt="nash-sutcliffe matrix" src="_images/nash-sutcliffe-ex.png" />
-<p class="caption"><span class="caption-text">Nash-Sutcliffe Matrix of model efficiencies</span></p>
+<p class="caption"><span class="caption-text">Nash-Sutcliffe Matrix of model efficiencies</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 
@@ -628,7 +631,7 @@ There are some details on customizing the plots that can be viewed there.</p>
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=docs&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=PRMS-Python&type=watch&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -651,6 +654,7 @@ There are some details on customizing the plots that can be viewed there.</p>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
 </ul>
 
 <div class="relations">
@@ -663,17 +667,31 @@ There are some details on customizing the plots that can be viewed there.</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+<h3 class="donation">Donate/support</h3>
+
+
+
+<p>
+<a class="badge" href="https://www.patreon.com/bePatron?u=25576909">
+<img src="https://img.shields.io/badge/donate-%E2%9D%A4%C2%A0-ff69b4.svg?style=flat" alt="Donate">
+</a>
+</p>
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -682,8 +700,8 @@ There are some details on customizing the plots that can be viewed there.</p>
       &copy;2016, John Volk and Matthew Turner.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/tutorial.rst.txt"
