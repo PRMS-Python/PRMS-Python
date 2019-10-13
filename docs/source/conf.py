@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PRMS-Python'
-copyright = u'2016, John Volk and Matthew Turner'
+copyright = u'2016-2018, John Volk and Matthew Turner'
 author = u'John Volk and Matthew Turner'
 
 # The version info for the project you're documenting, acts as replacement for

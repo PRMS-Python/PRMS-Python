@@ -120,10 +120,8 @@ nosetests -v
 
 We welcome anyone seriously interested in contributing to PRMS-Python to do so in anyway they see fit. If you are not sure where to begin you can look for current issues or submit a new issue [here](https://github.com/PRMS-Python/PRMS-Python/issues). You may also [fork](https://help.github.com/articles/fork-a-repo/) PRMS-Python and submit a pull request if you would like to offer your direct changes to the package. 
 
-<!---  commented until paper accepted
-
 ## Citing PRMS-Python
 
-If you use PRMS-Python for published work we ask that you cite it as follows:
+If you use PRMS-Python for published work we ask that you please cite the [PRMS-Python manuscript](https://www.sciencedirect.com/science/article/pii/S1364815218308004) as follows:
 
--->
+Volk, J. M., & Turner, M. A. (2019). PRMS-Python: A Python framework for programmatic PRMS modeling and access to its data structures. Environmental Modelling & Software, 114, 152–165. https://doi.org/10.1016/J.ENVSOFT.2019.01.006
