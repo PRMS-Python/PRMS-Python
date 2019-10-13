@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Change log &#8212; PRMS-Python v1.0.0</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <script type="text/javascript" src="_static/custom.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@1/dist/clipboard.min.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="_static/prms-python-32x.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Citation" href="citation.html" /> 
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Pacifico|Open+Sans|Metrophobic' rel='stylesheet' type='text/css'>
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/prms-python-200x.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=PRMS-Python&repo=PRMS-Python&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial and Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#example-parameter-sensitivity">Example: Parameter sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Change log</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-1">Version 1.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0">Version 1.0.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1-0">Version 0.1.0</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="citation.html" title="previous chapter">Citation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+<h3 class="donation">Donate/support</h3>
+
+
+
+<p>
+<a class="badge" href="https://www.patreon.com/bePatron?u=25576909">
+<img src="https://img.shields.io/badge/donate-%E2%9D%A4%C2%A0-ff69b4.svg?style=flat" alt="Donate">
+</a>
+</p>
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="change-log">
+<span id="changes"></span><h1>Change log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="version-1-0-1">
+<h2>Version 1.0.1<a class="headerlink" href="#version-1-0-1" title="Permalink to this headline">¶</a></h2>
+<p>Substantial improvements and updates to online documentation. Renamed two util
+module functions to align with PEP style conventions specifically:
+<code class="docutils literal notranslate"><span class="pre">Kolmogorov_Smirnov</span></code> became <code class="docutils literal notranslate"><span class="pre">kolmogorov_smirnov</span></code> and <code class="docutils literal notranslate"><span class="pre">calc_emp_CDF</span></code>
+became <code class="docutils literal notranslate"><span class="pre">calc_emp_cdf</span></code>, also renamed <code class="docutils literal notranslate"><span class="pre">util.load_data_file</span></code> to
+<code class="docutils literal notranslate"><span class="pre">util.load_data</span></code> for consistency with <code class="docutils literal notranslate"><span class="pre">util.load_statvar</span></code>. Name changes
+are backwards compatible. Add interactive code snippets in online documentation,
+add conda environment file.</p>
+<div class="section" id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fix <cite>prmspy</cite> script errors after prms-python installation with Python 2</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="version-1-0-0">
+<h2>Version 1.0.0<a class="headerlink" href="#version-1-0-0" title="Permalink to this headline">¶</a></h2>
+<p>Stable version and first numbered release on PyPI. All functionality tested
+and passed on multiple platforms using several PRMS models.</p>
+<div class="section" id="major-submodules-classes-and-functions">
+<h3>Major submodules, classes and functions<a class="headerlink" href="#major-submodules-classes-and-functions" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>data
+- Data</p></li>
+<li><p>parameters
+- Parameters, modify_params</p></li>
+<li><p>simulation
+- Simulation, SimulationSeries</p></li>
+<li><p>scenario
+- Scenario, ScenarioSeries</p></li>
+<li><p>optimizer
+- Optimizer, OptimizationResult, resample_param</p></li>
+<li><p>util
+- load_statvar, nash_sutcliffe, and others</p></li>
+</ul>
+<p>This version also includes the command line interface script “<cite>prmspy</cite>”.
+Ongoing work on Docs website, includes mostly up-to-date Jupyter notebook
+examples.</p>
+</div>
+</div>
+<div class="section" id="version-0-1-0">
+<h2>Version 0.1.0<a class="headerlink" href="#version-0-1-0" title="Permalink to this headline">¶</a></h2>
+<p>First numbered version, was not setup for installation using PyPI. Many changes
+occured for initial development under this version which were not released.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016-2018, John Volk and Matthew Turner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/changelog.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -61,11 +61,7 @@ We recommend getting acquainted with PRMS-Python by reading and applying some ex
     tutorial
     cli
     api
-<<<<<<< HEAD
     citation
-
-=======
     changelog
->>>>>>> 88f12cc75c3e6682f81d3724fb5681e747481b1e
     
 

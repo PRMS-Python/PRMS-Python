@@ -9,7 +9,8 @@ module functions to align with PEP style conventions specifically:
 ``Kolmogorov_Smirnov`` became ``kolmogorov_smirnov`` and ``calc_emp_CDF`` 
 became ``calc_emp_cdf``, also renamed ``util.load_data_file`` to 
 ``util.load_data`` for consistency with ``util.load_statvar``. Name changes 
-are backwards compatible.
+are backwards compatible. Add interactive code snippets in online documentation,
+add conda environment file.
 
 Bug Fixes
 ---------

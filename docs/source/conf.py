@@ -148,6 +148,7 @@ html_theme_options = {
     'github_user': 'PRMS-Python',
     'github_repo': 'PRMS-Python',
     'logo': 'prms-python-200x.png',
+    'fixed_sidebar': 'true',
     'donate_url': 'https://www.patreon.com/bePatron?u=25576909'
 }
 
