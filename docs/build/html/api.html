@@ -91,7 +91,7 @@
 
 
 <p>
-<a class="badge" href="https://www.patreon.com/bePatron?u=25576909">
+<a class="badge" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JH3GLXKCGGQLG&currency_code=USD&source=url">
 <img src="https://img.shields.io/badge/donate-%E2%9D%A4%C2%A0-ff69b4.svg?style=flat" alt="Donate">
 </a>
 </p>
@@ -153,8 +153,8 @@ forcing file in a Python environment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – path to standard PRMS data file</p></li>
-<li><p><strong>na_rep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – how to represent missing values default = -999</p></li>
+<li><p><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – path to standard PRMS data file</p></li>
+<li><p><strong>na_rep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – how to represent missing values default = -999</p></li>
 </ul>
 </dd>
 </dl>
@@ -164,7 +164,7 @@ forcing file in a Python environment.</p>
 <dd><p>date and time header for PRMS data file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -175,7 +175,7 @@ forcing file in a Python environment.</p>
 <dd><p>valid hydro-climate variables for PRMS data file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -183,14 +183,14 @@ forcing file in a Python environment.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> class to create a new data file, it is up to the user
-to ensure that the metadata and <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> assigned are correct
+to ensure that the metadata and <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.1.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> assigned are correct
 and compatible.</p>
 </div>
 <dl class="method">
 <dt id="prms_python.Data.data_frame">
 <em class="property">property </em><code class="sig-name descname">data_frame</code><a class="headerlink" href="#prms_python.Data.data_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>A property that gets and sets the climatic forcing data for a standard PRMS
-climate input data file as a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+climate input data file as a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.1.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 <p class="rubric">Example</p>
 <p>d is a Data instance, calling</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">data_frame</span>
@@ -209,10 +209,10 @@ file path to a PRMS climate data file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if attribute is accessed before either assigning a PRMS data
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – if attribute is accessed before either assigning a PRMS data
     file on <code class="docutils literal notranslate"><span class="pre">Data</span></code> initialization or not assigning a compatabile
     date-indexed <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of hydro-climate variables.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – if a data type other than <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> is assigned.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.9)"><strong>TypeError</strong></a> – if a data type other than <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> is assigned.</p></li>
 </ul>
 </dd>
 </dl>
@@ -248,14 +248,14 @@ assign the appropriate date header that follows the line of number signs “#”
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if data in metadata is accessed before data is assigned,
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – if data in metadata is accessed before data is assigned,
     e.g. if accessed to write a PRMS data file from a <code class="docutils literal notranslate"><span class="pre">Data</span></code> instance
     that was initialized without a valid PRMS data file.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – if an object that is not a Python dictionary is assigned.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.9)"><strong>TypeError</strong></a> – if an object that is not a Python dictionary is assigned.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -270,7 +270,7 @@ time series inputs in the data file based on a user defined function.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>func</strong> (<em>function</em>) – function to apply to each variable in vars_to_adjust</p></li>
-<li><p><strong>vars_to_adjust</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – collection of variable names to apply func to.</p></li>
+<li><p><strong>vars_to_adjust</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – collection of variable names to apply func to.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -300,14 +300,14 @@ new values then this method simply copies the original PRMS
 data file to <code class="docutils literal notranslate"><span class="pre">out_path</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>out_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – full path to save or copy the current PRMS data
+<dd class="field-odd"><p><strong>out_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – full path to save or copy the current PRMS data
 in PRMS text format.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>None</p>
 </dd>
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if the <code class="docutils literal notranslate"><span class="pre">write</span></code> method is called without assigning either
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – if the <code class="docutils literal notranslate"><span class="pre">write</span></code> method is called without assigning either
     an initial data (<code class="docutils literal notranslate"><span class="pre">base_file</span></code>) path or assigning correct <code class="docutils literal notranslate"><span class="pre">metadata</span></code>
     and <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> properties.</p>
 </dd>
@@ -336,7 +336,7 @@ based modification of parameters, and a write function that writes the data
 back to PRMS text format.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to PRMS parameters file</p>
+<dd class="field-odd"><p><strong>base_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to PRMS parameters file</p>
 </dd>
 </dl>
 <dl class="attribute">
@@ -345,7 +345,7 @@ back to PRMS text format.</p>
 <dd><p>path to PRMS parameters file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -369,7 +369,7 @@ parameter dimensions as defined in parameters file loaded on
 initialization</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -396,7 +396,7 @@ in file</p>
 values as keys. Initially empty, uses getter and setter functions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -429,24 +429,24 @@ under Kwargs <code class="docutils literal notranslate"><span class="pre">which<
 <a class="reference external" href="https://github.com/PRMS-Python/PRMS-Python/blob/master/notebooks/param_examples.ipynb">Jupyter notebook</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>nrows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of rows in the PRMS model grid for plotting
+<dd class="field-odd"><p><strong>nrows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of rows in the PRMS model grid for plotting
 spatial parameters. Will only work correctly for rectangular gridded models
 with HRU indices starting in the upper left cell moving left to right
 across columns and down across rows.</p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>which</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS parameter to plot or ‘all’. If ‘all’ then
+<li><p><strong>which</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS parameter to plot or ‘all’. If ‘all’ then
 the function will print 3 multipage pdfs, one for nhru
 dimensional parameters, one for nhru by monthly parameters, one
 for other parameters of length &gt; 1, and one html file containing
 single valued parameters.</p></li>
-<li><p><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to an output dir, default current directory</p></li>
-<li><p><strong>xlabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – x label for plot(s)</p></li>
-<li><p><strong>ylabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – y label for plot(s)</p></li>
-<li><p><strong>cbar_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – label for colorbar on spatial plot(s)</p></li>
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – plot title</p></li>
-<li><p><strong>mpl_style</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – name or list of names of matplotlib style sheets to
+<li><p><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to an output dir, default current directory</p></li>
+<li><p><strong>xlabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – x label for plot(s)</p></li>
+<li><p><strong>ylabel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – y label for plot(s)</p></li>
+<li><p><strong>cbar_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – label for colorbar on spatial plot(s)</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – plot title</p></li>
+<li><p><strong>mpl_style</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – name or list of names of matplotlib style sheets to
 use for plot(s).</p></li>
 </ul>
 </dd>
@@ -490,7 +490,7 @@ from the initial <code class="docutils literal notranslate"><span class="pre">ba
 that were never modified.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>out_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to write <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> data to PRMS text
+<dd class="field-odd"><p><strong>out_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to write <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> data to PRMS text
 format.</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -523,9 +523,9 @@ be overwritten.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory that contains control, parameter,
+<li><p><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to directory that contains control, parameter,
 and data files for the simulation</p></li>
-<li><p><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory path to bundle inputs and outputs</p></li>
+<li><p><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – directory path to bundle inputs and outputs</p></li>
 </ul>
 </dd>
 </dl>
@@ -533,7 +533,7 @@ and data files for the simulation</p></li>
 <p>see <a class="reference internal" href="#prms_python.Simulation.run" title="prms_python.Simulation.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Simulation.run()</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.7)"><strong>RuntimeError</strong></a> – if input directory does not contain a PRMS <em>data</em>,
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.9)"><strong>RuntimeError</strong></a> – if input directory does not contain a PRMS <em>data</em>,
     <em>parameters</em>, and <em>control</em> file.</p>
 </dd>
 </dl>
@@ -548,8 +548,8 @@ where the simulation should be run.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<a class="reference internal" href="#prms_python.Data" title="prms_python.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Data</span></code> object for simulation</p></li>
 <li><p><strong>parameters</strong> (<a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> object for simulation</p></li>
-<li><p><strong>control_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to control file</p></li>
-<li><p><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory where simulations will be
+<li><p><strong>control_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to control file</p></li>
+<li><p><strong>simulation_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to directory where simulations will be
 run and where input and output will be stored. If it exists it will
 be overwritten.</p></li>
 </ul>
@@ -573,7 +573,7 @@ be overwritten.</p></li>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.7)"><strong>TypeError</strong></a> – if <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> arguments are not of type
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.9)"><strong>TypeError</strong></a> – if <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters</span></code> arguments are not of type
     <a class="reference internal" href="#prms_python.Data" title="prms_python.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a> and <a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a></p>
 </dd>
 </dl>
@@ -592,7 +592,7 @@ file structure that is created under different workflows of the <code class="doc
 method below.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
-<dd class="field-odd"><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to executable</p>
+<dd class="field-odd"><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS executable on $PATH or path to executable</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -675,7 +675,7 @@ by <a class="reference internal" href="#prms_python.Simulation.run" title="prms_
 creating new programatic workflows not provided yet by PRMS-Python.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>simulations</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – list of <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> objects
+<dd class="field-odd"><p><strong>simulations</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – list of <a class="reference internal" href="#prms_python.Simulation" title="prms_python.Simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code></a> objects
 to be run.</p>
 </dd>
 </dl>
@@ -733,7 +733,7 @@ between individual simulations.</p>
 file, and <em>data</em> and <em>parameters</em> input files used in the simulation.</p>
 <dl class="field-list">
 <dt class="field-odd">Yields</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> –</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> –</p>
 <dl class="simple">
 <dt>dictionary of paths to simulation directory,</dt><dd><p>input, and output files.</p>
 </dd>
@@ -765,9 +765,9 @@ file, and <em>data</em> and <em>parameters</em> input files used in the simulati
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+<li><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
 executable</p></li>
-<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – number of logical or physical processors
+<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – number of logical or physical processors
 for parrallel execution of PRMS simulations.</p></li>
 </ul>
 </dd>
@@ -778,7 +778,7 @@ for parrallel execution of PRMS simulations.</p></li>
 <p class="admonition-title">Note</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">nproc</span></code> is not assigned the deault action is to use half
 of the available processecors on the machine using the Python
-<a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> module.</p>
+<a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> module.</p>
 </div>
 </dd></dl>
 
@@ -795,22 +795,22 @@ runs a simulation while tracking metadata.</p>
 <p>Metadata includes a title and description, if provided, plus start/end
 datetime, and parameter names of parameters that were modified including
 string representations of the Python modification functions that were
-applied to each parameter. The metadata file is in <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> format
+applied to each parameter. The metadata file is in <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> format
 making it conveniently read as a Python dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to directory that contains initial <em>control</em>,
+<li><p><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to directory that contains initial <em>control</em>,
 <em>parameter</em>, and <em>data</em> files to be used for <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>.
 The <em>parameters</em> file in <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> will not be modifed
 instead will be copied to <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> and them modified.</p></li>
-<li><p><strong>scenario_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory path to bundle inputs and outputs</p></li>
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – title of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, if given will be
+<li><p><strong>scenario_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – directory path to bundle inputs and outputs</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – title of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, if given will be
 added to <code class="docutils literal notranslate"><span class="pre">Scenario.metadata</span></code> attribute as well as the
 <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file in <code class="docutils literal notranslate"><span class="pre">scenario_dir</span></code> written after
 calling the <a class="reference internal" href="#prms_python.Scenario.build" title="prms_python.Scenario.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.build()</span></code></a> and <a class="reference internal" href="#prms_python.Scenario.run" title="prms_python.Scenario.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.run()</span></code></a>
 methods.</p></li>
-<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – description of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, also
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – description of <code class="docutils literal notranslate"><span class="pre">Scenario</span></code>, also
 is added to <code class="docutils literal notranslate"><span class="pre">Scenario.metadata</span></code> as <code class="docutils literal notranslate"><span class="pre">title</span></code>.</p></li>
 </ul>
 </dd>
@@ -927,7 +927,7 @@ parameters there. The <code class="docutils literal notranslate"><span class="pr
 the <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> (calling <a class="reference internal" href="#prms_python.Scenario.run" title="prms_python.Scenario.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.run()</span></code></a> ).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
-<dd class="field-odd"><p><strong>param_mod_funs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – dictionary with parameter names as keys
+<dd class="field-odd"><p><strong>param_mod_funs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – dictionary with parameter names as keys
 and Python functions as values to apply to the names (key)</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -950,7 +950,7 @@ is invoked.</p>
 <dd><p>Run the PRMS simulation for a <em>built</em> <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
-<dd class="field-odd"><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+<dd class="field-odd"><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
 executable</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -961,7 +961,7 @@ executable</p>
 <p>see <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> for full example</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.7)"><strong>RuntimeError</strong></a> – if the <a class="reference internal" href="#prms_python.Scenario.build" title="prms_python.Scenario.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.build()</span></code></a> method has not yet
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.9)"><strong>RuntimeError</strong></a> – if the <a class="reference internal" href="#prms_python.Scenario.build" title="prms_python.Scenario.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">Scenario.build()</span></code></a> method has not yet
     been called.</p>
 </dd>
 </dl>
@@ -982,8 +982,8 @@ parameter-function key-value pairs, and optionally a title and
 description for each dictionary defining the individual scenario.</p>
 <p>The ScenarioSeries’ <code class="docutils literal notranslate"><span class="pre">build</span></code> method creates a file structure under
 the series directory (<code class="docutils literal notranslate"><span class="pre">scenarios_dir</span></code>) where each subdirectory is
-named with a <a class="reference external" href="https://docs.python.org/3/library/uuid.html#module-uuid" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">uuid</span></code></a> which can be later matched to its title using
-the metadata in <code class="docutils literal notranslate"><span class="pre">scenario_dir/series_metadata.json</span></code> (see <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a>).
+named with a <a class="reference external" href="https://docs.python.org/3/library/uuid.html#module-uuid" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">uuid</span></code></a> which can be later matched to its title using
+the metadata in <code class="docutils literal notranslate"><span class="pre">scenario_dir/series_metadata.json</span></code> (see <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a>).
 In the future we may add a way for the user to access the results of
 the scenario simulations directly through the <code class="docutils literal notranslate"><span class="pre">ScenarioSeries</span></code>
 instance, but for now the results are written to disk. Therefore each
@@ -993,16 +993,16 @@ the description metadata for this purpose.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to base inputs; ‘control’, ‘parameters’,
+<li><p><strong>base_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to base inputs; ‘control’, ‘parameters’,
 and ‘data’ must be present there</p></li>
-<li><p><strong>scenarios_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory where scenario data will be written
+<li><p><strong>scenarios_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – directory where scenario data will be written
 to; will be overwritten or created if it does not exist</p></li>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – title of the ScenarioSeries instance</p></li>
-<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – description of the ScenarioSeries
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – title of the ScenarioSeries instance</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – description of the ScenarioSeries
 instance</p></li>
 </ul>
 </dd>
@@ -1016,7 +1016,7 @@ the UUID dictionary (<code class="docutils literal notranslate"><span class="pre
 calling <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1028,7 +1028,7 @@ calling <a class="reference internal" href="#prms_python.ScenarioSeries.build" t
 after defining them by calling <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1063,7 +1063,7 @@ lookups. The <code class="docutils literal notranslate"><span class="pre">build<
 UUID values as individiual <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> subdirectories as shown below.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>scenarios_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – list of dictionaries with key-value
+<dd class="field-odd"><p><strong>scenarios_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of dictionaries with key-value
 pairs being parameter-function definition pairs or
 title-title string or description-description string.</p>
 </dd>
@@ -1132,12 +1132,12 @@ passed in <a class="reference internal" href="#prms_python.ScenarioSeries.build"
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>base_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – directory that contains model input files</p></li>
+<li><p><strong>base_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – directory that contains model input files</p></li>
 <li><p><strong>parameters_iter</strong> (<em>list of dicts</em>) – list of dictionaries for each
 <code class="docutils literal notranslate"><span class="pre">Scenario</span></code> as described in <a class="reference internal" href="#prms_python.Scenario" title="prms_python.Scenario"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scenario</span></code></a> and
 <a class="reference internal" href="#prms_python.ScenarioSeries.build" title="prms_python.ScenarioSeries.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ScenarioSeries.build()</span></code></a>.</p></li>
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – title for group of scenarios</p></li>
-<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – description for group of scenarios</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – title for group of scenarios</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – description for group of scenarios</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1154,11 +1154,11 @@ to file structure and metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
+<li><p><strong>prms_exec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS executable on $PATH or path to
 executable. Default = ‘prms’</p></li>
-<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – number of processceors available to
+<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – number of processceors available to
 parallelize PRMS simulations, if None (default) then use
-half of what the <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> detects on the
+half of what the <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> detects on the
 machine.</p></li>
 </ul>
 </dd>
@@ -1212,7 +1212,7 @@ of the top-level metadata file <code class="docutils literal notranslate"><span 
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Therefore one can use the <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> file to track between UUID’s and
+<p>Therefore one can use the <a class="reference external" href="https://docs.python.org/3/library/json.html#module-json" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code></a> file to track between UUID’s and
 individual scenario titles. The json files are read as a Python
 dictionary which makes them particularly convenient. The contents of
 an individual scenarios <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file included a string
@@ -1279,25 +1279,25 @@ executes and manages the corresponding simulations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>reference_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – path to measured data for optimization</p></li>
-<li><p><strong>param_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – list of parameter names to resample</p></li>
-<li><p><strong>statvar_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of statisical variable output name for
+<li><p><strong>reference_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to measured data for optimization</p></li>
+<li><p><strong>param_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of parameter names to resample</p></li>
+<li><p><strong>statvar_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of statisical variable output name for
 optimization</p></li>
-<li><p><strong>stage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – custom name of optimization stage e.g. ‘ddsolrad’</p></li>
+<li><p><strong>stage</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – custom name of optimization stage e.g. ‘ddsolrad’</p></li>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>n_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of simulations to conduct
+<li><p><strong>n_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – number of simulations to conduct
 parameter optimization/uncertaitnty analysis.</p></li>
-<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – resampling method for parameters (normal or uniform)</p></li>
-<li><p><strong>mu_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – coefficient to scale mean of the parameter(s)
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – resampling method for parameters (normal or uniform)</p></li>
+<li><p><strong>mu_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – coefficient to scale mean of the parameter(s)
 to resample from when using the normal distribution to resample
 i.e. a value of 1.5 will sample from a normal rv with mean
 50% higher than the original parameter mean</p></li>
-<li><p><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – scales the variance of noise to add to
+<li><p><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – scales the variance of noise to add to
 parameter values when using normal rv (method=’normal’)</p></li>
-<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of processors available to run PRMS simulations</p></li>
+<li><p><strong>nproc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – number of processors available to run PRMS simulations</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns</dt>
@@ -1317,21 +1317,21 @@ method using the result data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – frequency of time series plots, value can be ‘daily’
+<li><p><strong>freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – frequency of time series plots, value can be ‘daily’
 or ‘monthly’ for solar radiation</p></li>
-<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – ‘time_series’ for time series sub plot of each
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – ‘time_series’ for time series sub plot of each
 simulation alongside measured radiation. Another choice is
 ‘correlation’ which plots each measured daily solar radiation
 value versus the corresponding simulated variable as subplots
 one for each simulation in the optimization. With coefficients
 of determiniationi i.e. square of pearson correlation coef.</p></li>
-<li><p><strong>plot_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – what to plot alongside simulated srad:
+<li><p><strong>plot_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – what to plot alongside simulated srad:
 ‘meas’: plot simulated along with measured swrad
 ‘orig’: plot simulated along with the original simulated swrad
 ‘both’: plot simulated, with original simulation and measured</p></li>
-<li><p><strong>plot_1to1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True plot one to one line on correlation
+<li><p><strong>plot_1to1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True plot one to one line on correlation
 scatter plot, otherwise exclude.</p></li>
-<li><p><strong>return_fig</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – flag whether to return matplotlib figure</p></li>
+<li><p><strong>return_fig</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – flag whether to return matplotlib figure</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1407,12 +1407,12 @@ OptimizationResult.stage in the OptimizationResult.working_dir.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>remove_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True recursively delete all folders
+<li><p><strong>remove_sims</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True recursively delete all folders
 and files associated with original simulations of the
 OptimizationResult.stage in the
 OptimizationResult.working_dir, if False do not delete
 simulations.</p></li>
-<li><p><strong>remove_meta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to delete original Optimizer
+<li><p><strong>remove_meta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Whether to delete original Optimizer
 JSON metadata files, default is False.</p></li>
 <li><p><strong>metric_freq</strong> (<em>Str</em>) – Frequency of output metric computation
 for recording of model performance. Can be ‘daily’
@@ -1440,7 +1440,7 @@ later with archived results.</p></li>
 <dd><p>Read the data file and load into a datetime indexed Pandas dataframe object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – data file path</p>
+<dd class="field-odd"><p><strong>data_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – data file path</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
@@ -1450,7 +1450,7 @@ later with archived results.</p></li>
 </p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>df (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)">pandas.DataFrame</a>)</p>
+<dd class="field-odd"><p>df (<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.1.4)">pandas.DataFrame</a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1465,7 +1465,7 @@ later with archived results.</p></li>
 Pandas dataframe object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>statvar_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – statvar file path</p>
+<dd class="field-odd"><p><strong>statvar_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – statvar file path</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
@@ -1488,13 +1488,13 @@ parameters to params_out.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>params_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – location on disk of the base parameter file</p></li>
-<li><p><strong>params_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – location on disk where the modified parameters will
+<li><p><strong>params_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – location on disk of the base parameter file</p></li>
+<li><p><strong>params_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – location on disk where the modified parameters will
 be written</p></li>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>param_mods</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – param name-keyed, param modification function-valued</p>
+<dd class="field-even"><p><strong>param_mods</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – param name-keyed, param modification function-valued</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>None</p>
@@ -1538,15 +1538,15 @@ random variable with mean=0 and std dev = parameter range X <code class="docutil
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>params</strong> (<a class="reference internal" href="#prms_python.Parameters" title="prms_python.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">prms_python.Parameters</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> object</p></li>
-<li><p><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of PRMS parameter to resample</p></li>
+<li><p><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of PRMS parameter to resample</p></li>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>how</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – distribution to resample parameters from in the case
+<li><p><strong>how</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – distribution to resample parameters from in the case
 that each parameter element can be resampled (len &lt;=366)
 Currently works for uniform and normal distributions.</p></li>
-<li><p><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – factor to multiply parameter range by,
+<li><p><strong>noise_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – factor to multiply parameter range by,
 use the result as the standard deviation for the normal rand.
 variable used to add element wise noise. i.e. higher
 noise_factor will result in higher variance. Must be &gt; 0.</p></li>
@@ -1560,8 +1560,8 @@ noise_factor will result in higher variance. Must be &gt; 0.</p></li>
 </dd>
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.7)"><strong>KeyError</strong></a> – if <code class="docutils literal notranslate"><span class="pre">param_name</span></code> not a valid parameter name</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – if the parameter range has not been set in
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.9)"><strong>KeyError</strong></a> – if <code class="docutils literal notranslate"><span class="pre">param_name</span></code> not a valid parameter name</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – if the parameter range has not been set in
     <code class="docutils literal notranslate"><span class="pre">Optimizer.param_ranges</span></code></p></li>
 </ul>
 </dd>
@@ -1578,8 +1578,8 @@ noise_factor will result in higher variance. Must be &gt; 0.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>observed</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><em>numpy.ndarray</em></a>) – historic observational data</p></li>
-<li><p><strong>modeled</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><em>numpy.ndarray</em></a>) – model output with matching time index</p></li>
+<li><p><strong>observed</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – historic observational data</p></li>
+<li><p><strong>modeled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – model output with matching time index</p></li>
 </ul>
 </dd>
 </dl>
@@ -1605,7 +1605,7 @@ noise_factor will result in higher variance. Must be &gt; 0.</p></li>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2016-2018, John Volk and Matthew Turner.
+      &copy;2016-2020, John Volk and Matthew Turner.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>

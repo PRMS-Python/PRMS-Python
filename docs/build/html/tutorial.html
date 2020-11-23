@@ -95,7 +95,7 @@
 
 
 <p>
-<a class="badge" href="https://www.patreon.com/bePatron?u=25576909">
+<a class="badge" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JH3GLXKCGGQLG&currency_code=USD&source=url">
 <img src="https://img.shields.io/badge/donate-%E2%9D%A4%C2%A0-ff69b4.svg?style=flat" alt="Donate">
 </a>
 </p>
@@ -125,7 +125,7 @@ and functions.</p>
 for easy modification and writing of PRMS data files.</p>
 <p>A PRMS data file holds time series variables that are used as input for running
 PRMS, e.g. daily air temperature and precipitation. Being tabular and date-indexed
-the data file is well represented and managed as a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
+the data file is well represented and managed as a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.1.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.
 A common paractice in hydrologic modeling is to evaluate hydrologic response
 to multiple climate change scenarios. The <code class="docutils literal notranslate"><span class="pre">Data</span></code> class offers function-based
 modification of time series variable/s so that the user can quickly create new
@@ -147,7 +147,7 @@ to disk in the PRMS ascii format.</p>
 <span class="n">d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;test/data/temp_plus2_data&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> property is the <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.25.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> representation
+<p>The <code class="docutils literal notranslate"><span class="pre">Data.data_frame</span></code> property is the <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.1.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a> representation
 of hydro-climatic variables found in a PRMS data file. As such it can also
 be assigned within Python. However in order to create a data file from scratch
 using the <code class="docutils literal notranslate"><span class="pre">Data</span></code> object one must also assign the <code class="docutils literal notranslate"><span class="pre">Data.metadata</span></code> property.
@@ -697,7 +697,7 @@ There are some details on customizing the plots that can be viewed there.</p>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2016-2018, John Volk and Matthew Turner.
+      &copy;2016-2020, John Volk and Matthew Turner.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
