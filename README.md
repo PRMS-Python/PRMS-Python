@@ -1,5 +1,7 @@
 # PRMS-Python
 
+[Online documentation](https://prms-python.github.io/PRMS-Python/build/html/index.html)
+
 PRMS-Python provides a Python interface to PRMS data files and manages 
 PRMS simulations. This module aims to improve the efficiency of PRMS 
 workflows by giving access to PRMS data structures while providing 

@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PRMS-Python'
-copyright = u'2016-2018, John Volk and Matthew Turner'
+copyright = u'2016-2020, John Volk and Matthew Turner'
 author = u'John Volk and Matthew Turner'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -149,7 +149,7 @@ html_theme_options = {
     'github_repo': 'PRMS-Python',
     'logo': 'prms-python-200x.png',
     'fixed_sidebar': 'true',
-    'donate_url': 'https://www.patreon.com/bePatron?u=25576909'
+    'donate_url': 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JH3GLXKCGGQLG&currency_code=USD&source=url'
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
