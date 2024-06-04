@@ -192,7 +192,7 @@ def load_statvar(statvar_file):
     skiprows = n_statvars+1
     df = pd.read_csv(
         statvar_file, delim_whitespace=True, skiprows=skiprows,
-        header=-1, na_values=[missing_value]
+        header=None, na_values=[missing_value]
     )
 
     # apply correct header names using metadata retrieved from file

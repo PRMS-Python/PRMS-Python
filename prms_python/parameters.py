@@ -144,7 +144,8 @@ class Parameters(object):
                                         ['vartype']])])
 
     def plot(self, nrows, which='all', out_dir=None, xlabel=None,\
-                    ylabel=None, cbar_label=None, title=None, mpl_style=None):
+                    ylabel=None, cbar_label=None, title=None, mpl_style=None,
+                    na_val=-99999):
         """
         Versatile method that plots most parameters in a standard PRMS parameter
         file assuming the PRMS model was built on a uniform spatial grid. 
@@ -177,6 +178,7 @@ class Parameters(object):
             title (str): plot title
             mpl_style (str, list): name or list of names of matplotlib style sheets to 
                 use for plot(s).
+            na_val (float, int): default -99999. Value to mask in plots.
     
         Returns: 
             None
@@ -235,7 +237,10 @@ class Parameters(object):
                     try:
                         plt.figure()
                         ax = plt.gca()
-                        im = ax.imshow(params['{}'.format(p)].reshape(nrows,ncols), origin='upper')
+
+                        d = np.where(params[p] == na_val, np.nan, params[p])
+                        im = ax.imshow(d.reshape(nrows,ncols), origin='upper')
+
                         # origin upper- assumes indices of parameters starts in upper left
                         divider = make_axes_locatable(ax)
                         cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -290,7 +295,7 @@ class Parameters(object):
             df = pd.DataFrame()
             df.index.name = 'parameter'
             for p in p_names:
-                df.set_value(p, 'value', params[p])
+                df.at[p, 'value'] = params[p]
             df.to_html(OPJ(out_dir,'single_valued_params.html'))
         ################################################################                
         # plot single parameter, in case of nhru by monthly param, 
