@@ -171,7 +171,7 @@ class Data(object):
         elif isinstance(self._data_frame, pd.DataFrame):
             return self._data_frame
         
-        df = pd.read_csv(self.base_file, header = -1, skiprows = self.metadata['data_startline'],
+        df = pd.read_csv(self.base_file, header = None, skiprows = self.metadata['data_startline'],
                          delim_whitespace = True, na_values = [self.na_rep]) ## read data file
         df.columns = Data.date_header + self.metadata['data_variables']
         date = pd.Series(pd.to_datetime(df.year * 10000 + df.month * 100 +\
