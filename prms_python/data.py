@@ -259,5 +259,5 @@ class Data(object):
             with open(out_path,'w') as outf: # write comment header then data
                 outf.write(self._metadata['text_before_header'])
                 df.to_csv(outf, sep=' ', header=None,\
-                          index=False, na_rep=self.na_rep)
+                          index=False, na_rep=self.na_rep, lineterminator='\n')
 
