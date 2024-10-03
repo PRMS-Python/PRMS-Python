@@ -240,7 +240,6 @@ class Parameters(object):
 
                         d = np.where(params[p] == na_val, np.nan, params[p])
                         im = ax.imshow(d.reshape(nrows,ncols), origin='upper')
-
                         # origin upper- assumes indices of parameters starts in upper left
                         divider = make_axes_locatable(ax)
                         cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -261,7 +260,10 @@ class Parameters(object):
                         for i in range(12): #month
                             plt.figure()
                             ax = plt.gca()
-                            im = ax.imshow(params['{}'.format(p)][i].reshape(nrows, ncols), origin='upper')
+                            
+                            d = params['{}'.format(p)][i].reshape(nrows, ncols)
+                            d = np.where(d == na_val, np.nan, d)
+                            im = ax.imshow(d, origin='upper')
                             divider = make_axes_locatable(ax)
                             cax = divider.append_axes("right", size="5%", pad=0.05)
                             plt.colorbar(im, cax=cax)
